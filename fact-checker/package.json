@@ -1,0 +1,8 @@
+{
+  "name": "fact-checker",
+  "version": "1.1.0",
+  "description": "Fact verification with temporal reasoning and search validity checks",
+  "author": "jp-cruz",
+  "repository": "jp-cruz/agent-skills",
+  "license": "MIT"
+}
