@@ -56,7 +56,7 @@ If you spot an issue with any skill, please [open an issue](../../issues). I'd r
 
 Have a skill you think belongs here? [Open an issue](../../issues) and make the case.
 I'm not accepting PRs, but genuine suggestions are welcome. I'll evaluate, audit, and
-credit you if I add it.
+credit you if I add it. Thank you! - Jp Cruz
 
 ---
 
