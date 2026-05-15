@@ -1,0 +1,40 @@
+{
+  "name": "legionforge-claude-obsidian",
+  "version": "1.0.0",
+  "description": "Complete session context initialization system for Claude Code and Claude Desktop with Obsidian vault integration, three-layer context loading, and cross-platform setup.",
+  "author": "jp-cruz",
+  "license": "MIT",
+  "repository": "jp-cruz/agent-skills",
+  "homepage": "https://github.com/jp-cruz/agent-skills/tree/main/agent-skills/legionforge-claude-obsidian",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "claude-desktop",
+    "obsidian",
+    "vault",
+    "mcp",
+    "hooks",
+    "session-context",
+    "ai-setup"
+  ],
+  "scripts": {
+    "setup": "python3 scripts/setup.py",
+    "verify": "bash scripts/verify.sh",
+    "doctor": "python3 scripts/recovery.py"
+  },
+  "requirements": {
+    "python": ">=3.8",
+    "bash": ">=4.0",
+    "node": ">=18.0 (for MCP servers)",
+    "obsidian": "optional"
+  },
+  "installation": {
+    "npm": "npx skills@latest add jp-cruz/agent-skills/legionforge-claude-obsidian",
+    "manual": "Clone repo and run: python3 scripts/setup.py"
+  },
+  "platforms": [
+    "macos",
+    "linux",
+    "windows"
+  ]
+}

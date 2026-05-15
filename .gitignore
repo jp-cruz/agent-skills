@@ -1,0 +1,40 @@
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Editor config
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Vault/sensitive
+*.backup*
+*.tmp
+vault.json
+credentials*.json
+
+# IDE
+.claude/
+.obsidian/
+
+# Temp
+/tmp
+*.log
