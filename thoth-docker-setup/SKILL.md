@@ -5,6 +5,14 @@
 **Category:** Deployment & Infrastructure  
 **Status:** Production-ready  
 
+---
+
+**Author:** Claude Sonnet 4.6 (run by JP Cruz)  
+**Contact:** jp@legionforge.org  
+**License:** MIT  
+**Version:** 0.5.0  
+**Last Updated:** 2026-05-25  
+
 ## Overview
 
 This skill provides a complete, portable Docker Compose setup for Thoth that works reliably across macOS, Windows, and Linux. It includes automated prerequisite validation, environment-based configuration, and comprehensive troubleshooting documentation.
