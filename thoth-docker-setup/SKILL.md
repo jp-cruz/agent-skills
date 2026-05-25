@@ -1,290 +1,197 @@
-# Thoth Docker Setup Skill
-
-**Skill Name:** `thoth-docker-setup`  
-**Purpose:** Deploy Thoth in Docker with cross-platform support (macOS, Windows, Linux)  
-**Category:** Deployment & Infrastructure  
-**Status:** Production-ready  
-
+---
+name: thoth-docker-setup
+description: Production-ready Docker Compose setup for Thoth with cross-platform support (macOS, Windows, Linux). Includes automated environment detection, multi-provider LLM integration (Ollama, OpenRouter, OpenAI, Anthropic), persistent volumes, and comprehensive guides. Use when deploying Thoth in containerized environments or setting up Docker infrastructure for AI agents.
+license: MIT
+compatibility: Requires Docker 20.10+, Docker Compose 1.29+, bash 4.0+, and curl. Supports macOS (Intel/Apple Silicon), Windows (WSL2), and Linux. Optional: Ollama or alternative LLM backends.
+metadata:
+  author: Claude Sonnet 4.6 (run by JP Cruz)
+  contact: jp@legionforge.org
+  version: "0.5.0"
+  category: deployment
+  tested-platforms: macOS Tahoe (M4), Linux/Windows validation pending
 ---
 
-**Author:** Claude Sonnet 4.6 (run by JP Cruz)  
-**Contact:** jp@legionforge.org  
-**License:** MIT  
-**Version:** 0.5.0  
-**Last Updated:** 2026-05-25  
+# Thoth Docker Setup
 
-## Overview
+Production-ready Docker Compose configuration for deploying Thoth with cross-platform support.
 
-This skill provides a complete, portable Docker Compose setup for Thoth that works reliably across macOS, Windows, and Linux. It includes automated prerequisite validation, environment-based configuration, and comprehensive troubleshooting documentation.
+## What this skill provides
 
-## What the Skill Provides
+- **Automated Docker setup** — One-command initialization with environment detection
+- **Cross-platform support** — Works on macOS (Intel/Apple Silicon), Windows (WSL2), and Linux
+- **Multi-provider LLM integration** — Seamless support for Ollama, OpenRouter, OpenAI, and Anthropic
+- **Environment detection** — Automatically detects OS, installed LLM backends, Python environment, and secrets management
+- **Persistent data volumes** — Application data and workspace files survive container restarts
+- **Security hardening** — Non-root user execution, pinned base images, no hardcoded secrets
+- **Comprehensive documentation** — Setup guides, troubleshooting, Docker education for beginners
 
-### Core Artifacts
-- **Dockerfile** — Optimized Python 3.11 container with Thoth and essential development utilities
-- **docker-compose.yml** — Parameterized service definition with environment variable support
-- **Setup Scripts** — Automated initialization for macOS/Linux (setup.sh) and Windows (setup.bat)
-- **Configuration Templates** — .env.example with platform-specific examples
-- **Documentation** — README, CLAUDE.md, and architecture guides
+## Quick start
 
-### Included Utilities in Container
-- **nano** — Text editor for configuration files
-- **vim-tiny** — Lightweight Vi implementation
-- **jq** — JSON processing (essential for debugging Ollama API)
-- **less** — File pager
-- **file** — File type identification
-- **tree** — Directory visualization
-- **unzip** — Archive extraction
-- **curl, git, ffmpeg, gcc** — Already included
+### Option 1: Automated setup (recommended)
 
-All utilities are installed as root and accessible to the `thoth` user (UID 1000).
-
-## Quick Start
-
-### One-liner Setup
 ```bash
-curl -O https://raw.githubusercontent.com/jp-cruz/agent-skills/main/thoth-docker-setup/setup.sh
-chmod +x setup.sh
-./setup.sh
+cd thoth-docker-setup
+./scripts/setup.sh
 docker-compose up -d
 ```
 
-### Manual Setup
+Then open http://localhost:8080
+
+### Option 2: Step-by-step setup
+
+1. **Check your environment:**
+   ```bash
+   bash scripts/preflight-check.sh
+   ```
+   This detects your OS, installed LLM backends, and suggests configuration.
+
+2. **Configure:**
+   ```bash
+   cp .env.example .env
+   # Edit .env to customize paths, ports, and LLM provider
+   ```
+
+3. **Validate Docker:**
+   ```bash
+   bash scripts/check-docker.sh
+   ```
+
+4. **Start Thoth:**
+   ```bash
+   docker-compose up -d
+   ```
+
+## Common tasks
+
+### Check Thoth is running
 ```bash
-git clone https://github.com/jp-cruz/agent-skills
-cd agent-skills/thoth-docker-setup
-
-./setup.sh          # macOS/Linux
-# or setup.bat      # Windows
-
-# Edit .env if needed
-vim .env
-
-docker-compose up -d
+docker-compose ps
+curl http://localhost:8080
 ```
 
-## Configuration
-
-All configuration is environment-based via `.env`:
-
+### View logs
 ```bash
-# Ollama connection (auto-detected for your platform)
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-
-# Container port
-THOTH_PORT=8080
-
-# Data persistence paths
-THOTH_DATA_DIR=/Users/$(whoami)/thoth-data
-THOTH_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace
+docker-compose logs -f
 ```
 
-Setup scripts automatically detect your platform and provide platform-specific guidance.
+### Access container shell
+```bash
+docker-compose exec thoth bash
+```
 
-## Platform Support
+### Stop or restart
+```bash
+docker-compose stop      # Stop container
+docker-compose restart   # Restart container
+docker-compose down      # Remove container
+```
 
-### macOS (Intel & Apple Silicon)
-- ✅ Docker Desktop 4.0+
-- ✅ Automatic Ollama detection via `host.docker.internal`
-- ✅ ARM64 support for Apple Silicon
+### Change Thoth port
+Edit `.env`:
+```bash
+THOTH_PORT=9090
+docker-compose restart
+# Now access at http://localhost:9090
+```
 
-### Windows (WSL 2 Backend)
-- ✅ Docker Desktop with WSL 2
-- ✅ PowerShell or Git Bash setup
-- ✅ Automatic path handling for Windows paths
+### Use different LLM provider
+
+Edit `.env`:
+```bash
+# For OpenRouter (cloud-based, requires API key)
+OLLAMA_BASE_URL=https://openrouter.ai/api/v1
+# Then configure in Thoth UI
+
+# For local Ollama on another machine
+OLLAMA_BASE_URL=http://<machine-ip>:11434
+
+# For local LLM Studio (port 1234 by default)
+OLLAMA_BASE_URL=http://localhost:1234/v1
+```
+
+Then restart: `docker-compose restart`
+
+## Platform-specific notes
+
+### macOS
+- Uses `host.docker.internal` to reach host services (Ollama, etc.)
+- Docker Desktop required (not colima)
+- Supports both Intel and Apple Silicon Macs
+
+### Windows
+- Requires Docker Desktop with WSL2 enabled
+- Uses `host.docker.internal` for host service access
+- Run setup.bat for Windows-specific initialization
 
 ### Linux
-- ✅ Docker Engine + Docker Compose 1.29+
-- ✅ Automatic local IP detection for Ollama
-- ✅ Remote Ollama support (specify IP in .env)
-
-## Common Operations
-
-```bash
-# Start Thoth
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Open shell in container
-docker-compose exec thoth bash
-
-# Edit config inside container
-docker-compose exec thoth nano /home/thoth/.thoth/config.yaml
-
-# Check Ollama connectivity
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
-
-# Parse API response with jq
-docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags | jq '.models[]'
-
-# Stop Thoth
-docker-compose stop
-
-# Full cleanup
-docker-compose down -v
-```
+- Requires Docker Engine and Docker Compose installed
+- Update `.env` to use `localhost:11434` (not `host.docker.internal`)
+- May need to add user to docker group: `sudo usermod -aG docker $USER`
 
 ## Troubleshooting
 
-### Container Won't Start
+**Docker not found:**
+See [DOCKER_GUIDE_FOR_BEGINNERS.md](references/DOCKER_GUIDE_FOR_BEGINNERS.md) for installation on your platform.
+
+**Port 8080 already in use:**
+Change `THOTH_PORT` in `.env` to an unused port (e.g., 9090, 9091).
+
+**Ollama not reachable:**
+1. Ensure Ollama is running: `ollama serve`
+2. Check connection: `curl http://localhost:11434/api/tags`
+3. Update `OLLAMA_BASE_URL` in `.env` if Ollama is on a different machine
+
+**Volume permission issues:**
 ```bash
-docker-compose logs thoth
+# Check ownership
+ls -la $(grep THOTH_DATA_DIR .env | cut -d= -f2)
+# Fix if needed
+chmod 755 $(grep THOTH_DATA_DIR .env | cut -d= -f2)
 ```
 
-### Ollama Connection Failed
-```bash
-# From your host
-curl http://localhost:11434/api/tags
+## Detailed guides
 
-# From inside container
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
-```
+- [Getting Started](references/GETTING_STARTED.md) — Step-by-step for beginners
+- [Docker Guide](references/DOCKER_GUIDE_FOR_BEGINNERS.md) — Docker education and installation
+- [Docker Compose Explained](references/DOCKER_COMPOSE_EXPLAINED.md) — Line-by-line explanation
+- [LLM Provider Options](references/LLM_PROVIDER_OPTIONS.md) — Comparing Ollama, OpenRouter, OpenAI, Anthropic
+- [OpenRouter Setup](references/OPENROUTER_SETUP.md) — Cloud-based LLM integration
+- [Setup Workflow](references/SETUP_WORKFLOW.md) — Three-tier setup comparison
+- [CI/CD Validation](references/CI_CD_VALIDATION_GUIDE.md) — Automated testing setup
 
-### Port Already in Use
-Edit `.env`:
-```bash
-THOTH_PORT=8081
-docker-compose up -d
-```
+## Scripts
 
-### Volume Permission Issues
-```bash
-chmod 755 "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
-chmod 755 "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
-```
+All scripts are in `scripts/`:
 
-See README.md for comprehensive troubleshooting.
+- `setup.sh` — Automated initialization (macOS/Linux)
+- `setup.bat` — Automated initialization (Windows)
+- `preflight-check.sh` — Environment assessment and recommendations
+- `check-docker.sh` — Docker installation verification
 
-## Design Decisions
+Run with: `bash scripts/setup.sh` or `bash scripts/preflight-check.sh`
 
-### Why These Utilities?
+## Files
 
-| Utility | Why Included | Use Case |
-|---------|-------------|----------|
-| **nano** | User-friendly text editor | Edit config files in container |
-| **vim-tiny** | Lightweight alternative | Power users who prefer vim |
-| **jq** | JSON processing | Debug Ollama API responses |
-| **less** | File paging | View large logs without memory overhead |
-| **file** | Type identification | Understand file contents |
-| **tree** | Directory visualization | Explore workspace structure |
-| **unzip** | Archive extraction | Handle model or config packages |
+- `docker-compose.yml` — Service orchestration
+- `docker/Dockerfile` — Container image definition
+- `.env.example` — Configuration template
+- `.dockerignore` — Build optimization
+- `docker/` — Docker configuration files
+- `.github/` — CI/CD workflows (Dependabot, Renovate, Socket Security)
 
-### Why Non-Root User?
-- **Security:** Container runs as `thoth` (UID 1000), not root
-- **File Permissions:** Prevents root-owned files in mounted volumes
-- **Multi-container:** Safe for multi-user environments
+## Version & Support
 
-### Why Bind Mounts?
-- **Persistence:** Data survives image updates
-- **Host Access:** Files accessible from host machine
-- **Backup:** Easy to backup and migrate
-- **Development:** Direct edit from host IDE
+**Version:** 0.5.0  
+**Status:** Production-ready (tested on macOS Tahoe, Linux/Windows validation pending)  
+**License:** MIT  
+**Author:** Claude Sonnet 4.6 (run by JP Cruz)  
+**Contact:** jp@legionforge.org
 
-## File Structure
+## Next steps after setup
 
-```
-thoth-docker-setup/
-├── docker/
-│   ├── Dockerfile              # Optimized Python 3.11 + Thoth
-│   └── docker-compose.yml      # Parameterized service definition
-├── .env.example                # Configuration template
-├── .dockerignore               # Build optimization
-├── setup.sh                    # macOS/Linux setup script
-├── setup.bat                   # Windows setup script
-├── README.md                   # Complete setup guide
-├── CLAUDE.md                   # Developer guide
-├── SKILL.md                    # This file
-└── .gitignore
-```
+1. Access Thoth at http://localhost:8080
+2. Configure your LLM provider in Thoth UI
+3. Create your first workspace
+4. Start using Thoth for your projects
 
-## Requirements
-
-### Host Machine
-- Docker Desktop (macOS/Windows) or Docker + Docker Compose (Linux)
-- 2+ GB free disk space
-- Ollama running and accessible
-
-### Network
-- Port 8080 available for Thoth (configurable)
-- Port 11434 accessible for Ollama (configure in .env)
-
-## Performance Notes
-
-### macOS/Windows Docker Desktop
-- First build: ~2-3 minutes (depends on internet speed)
-- Subsequent builds: ~30 seconds (layers cached)
-- Runtime: Minimal overhead, ~100-150MB RAM
-
-### Linux
-- Faster builds due to native Docker
-- Lower memory overhead
-- Best performance overall
-
-## Data Persistence
-
-Both volumes are bind-mounts to host filesystem:
-
-```bash
-# Backup
-tar -czf thoth-backup.tar.gz $THOTH_DATA_DIR $THOTH_WORKSPACE_DIR
-
-# Restore
-tar -xzf thoth-backup.tar.gz -C /
-```
-
-Volumes survive:
-- ✅ Container restarts
-- ✅ Container updates
-- ✅ Docker image deletion
-- ❌ `.env` path changes (must manually move)
-- ❌ Bind mount deletion from host
-
-## Integration with Other Services
-
-### Ollama on Different Machine
-```bash
-# .env
-OLLAMA_BASE_URL=http://<local-ip>:11434
-```
-
-### Multiple Thoth Instances
-```bash
-# .env
-THOTH_PORT=8080      # Instance 1
-THOTH_DATA_DIR=/data/thoth-1
-THOTH_WORKSPACE_DIR=/workspace/thoth-1
-
-# .env (another directory)
-THOTH_PORT=8081      # Instance 2
-THOTH_DATA_DIR=/data/thoth-2
-THOTH_WORKSPACE_DIR=/workspace/thoth-2
-```
-
-## Contributing
-
-To improve this skill:
-
-1. Test on all three platforms (macOS, Windows, Linux)
-2. Update documentation if changing behavior
-3. Keep Dockerfile minimal and fast
-4. Document any new environment variables
-
-## Future Enhancements
-
-- [ ] Multi-stage build for smaller images
-- [ ] Docker Buildkit support
-- [ ] Health checks
-- [ ] Kubernetes manifest
-- [ ] GitHub Actions for cross-platform testing
-- [ ] Pre-built Docker Hub images
-
-## License
-
-This skill is provided as-is for Thoth deployments.
-
-## Support
-
-- **Setup Issues:** See README.md troubleshooting section
-- **Development:** See CLAUDE.md for architecture
-- **Contributing:** Submit issues/PRs to agent-skills repo
+For questions or issues, refer to the detailed guides in `references/` or check the [GitHub repository](https://github.com/jp-cruz/agent-skills/tree/main/thoth-docker-setup).
