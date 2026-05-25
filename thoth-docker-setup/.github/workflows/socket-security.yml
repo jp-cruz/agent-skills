@@ -1,0 +1,43 @@
+name: Socket Security Scan
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 0'  # Weekly on Sunday at 2 AM UTC
+
+jobs:
+  socket-security:
+    name: Socket Security Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Socket Security scan
+        uses: socketio/socket-security-action@v1
+        with:
+          npm-token: ${{ secrets.NPM_TOKEN }}
+          report: true
+          fail-on-high: true
+
+      - name: Upload results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ./socket-results.sarif
+          category: socket-security

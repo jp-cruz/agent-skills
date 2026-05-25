@@ -1,0 +1,77 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":docker",
+    ":enableVulnerabilityAlerts"
+  ],
+  "schedule": [
+    "before 3am on Monday"
+  ],
+  "timezone": "UTC",
+  "labels": [
+    "dependencies",
+    "renovate"
+  ],
+  "reviewers": [
+    "jp-cruz"
+  ],
+  "docker": {
+    "enabled": true,
+    "automerge": false,
+    "major": {
+      "enabled": true
+    },
+    "minor": {
+      "enabled": true
+    },
+    "patch": {
+      "automerge": true,
+      "automergeType": "pr"
+    }
+  },
+  "python": {
+    "enabled": true,
+    "automerge": false
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": false,
+    "labels": [
+      "security",
+      "critical"
+    ]
+  },
+  "packageRules": [
+    {
+      "description": "Automatically merge patch updates",
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Disable automerge for major updates",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "automerge": false
+    },
+    {
+      "description": "Security updates must be reviewed",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major"
+      ],
+      "labels": [
+        "security"
+      ],
+      "automerge": false
+    }
+  ]
+}

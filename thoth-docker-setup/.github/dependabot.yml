@@ -1,0 +1,52 @@
+version: 2
+
+updates:
+  # Docker image scanning
+  - package-ecosystem: "docker"
+    directory: "/thoth-docker-setup/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    pull-request-branch-name:
+      separator: "-"
+    labels:
+      - "dependencies"
+      - "docker"
+    reviewers:
+      - "jp-cruz"
+    allow:
+      - dependency-type: "all"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:30"
+    pull-request-branch-name:
+      separator: "-"
+    labels:
+      - "dependencies"
+      - "ci"
+    reviewers:
+      - "jp-cruz"
+
+  # Python dependencies (if applicable)
+  - package-ecosystem: "pip"
+    directory: "/thoth-docker-setup"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    pull-request-branch-name:
+      separator: "-"
+    labels:
+      - "dependencies"
+      - "python"
+    reviewers:
+      - "jp-cruz"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
