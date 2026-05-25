@@ -1,0 +1,63 @@
+{
+  "name": "thoth-docker-setup",
+  "version": "0.5.0",
+  "description": "Production-ready Docker Compose setup for Thoth with cross-platform support (macOS, Windows, Linux)",
+  "author": "Claude Sonnet 4.6 (run by JP Cruz)",
+  "contact": "jp@legionforge.org",
+  "license": "MIT",
+  "repository": "jp-cruz/agent-skills",
+  "homepage": "https://github.com/jp-cruz/agent-skills/tree/main/thoth-docker-setup",
+  "category": "deployment",
+  "keywords": [
+    "thoth",
+    "docker",
+    "docker-compose",
+    "deployment",
+    "cross-platform",
+    "ollama",
+    "container",
+    "lvm",
+    "openrouter"
+  ],
+  "scripts": {
+    "setup": "bash setup.sh",
+    "preflight": "bash preflight-check.sh",
+    "docker-check": "bash check-docker.sh"
+  },
+  "requirements": {
+    "docker": "20.10+",
+    "docker-compose": "1.29+",
+    "bash": "4.0+",
+    "curl": "7.0+",
+    "disk-space": "2GB"
+  },
+  "optional": {
+    "ollama": "For local LLM inference",
+    "lm-studio": "Alternative to Ollama",
+    "vllm": "Python-based LLM serving"
+  },
+  "installation": {
+    "npx": "npx skills@latest add jp-cruz/agent-skills/thoth-docker-setup",
+    "github": "git clone https://github.com/jp-cruz/agent-skills && cd agent-skills/thoth-docker-setup && ./setup.sh"
+  },
+  "platforms": [
+    "macos-intel",
+    "macos-arm64",
+    "windows-wsl2",
+    "linux-x86_64",
+    "linux-arm64"
+  ],
+  "capabilities": [
+    "Docker container orchestration",
+    "Multi-provider LLM integration",
+    "Cross-platform setup automation",
+    "Environment detection",
+    "Data persistence",
+    "Security hardening"
+  ],
+  "tested": {
+    "macos": "Tahoe (M4)",
+    "linux": "Pending",
+    "windows": "Pending"
+  }
+}
