@@ -27,6 +27,7 @@ npx skills@latest add jp-cruz/agent-skills/<skill-name> --global
 
 | Skill | Description | Version | Install |
 |-------|-------------|---------|---------|
+| [thoth-docker-setup](./thoth-docker-setup/) | Production-ready Docker Compose setup for Thoth with cross-platform support (macOS, Windows, Linux). Includes automated environment detection, multi-provider LLM integration (Ollama, OpenRouter, OpenAI, Anthropic), persistent volumes, and comprehensive troubleshooting documentation. Security-hardened with non-root execution and pinned base images. | v0.5.0 | `npx skills@latest add jp-cruz/agent-skills/thoth-docker-setup` |
 | [legionforge-claude-obsidian](./legionforge-claude-obsidian/) | Complete session context initialization system for Claude Code and Desktop. Three-layer context loading (automatic, on-demand via MCP, selective by domain). Provider-independent, crash-safe, cross-platform. Includes setup wizard, verification protocol, and recovery tools. | v0.1.0-alpha | `npx skills@latest add jp-cruz/agent-skills/legionforge-claude-obsidian` |
 | [fact-checker](./fact-checker/) | Systematic fact verification with temporal reasoning and search result validity checks. Flags claims that fall outside model knowledge cutoff with recommended follow-up paths. Forked from [Shubhamsaboo/awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps/tree/main/awesome_agent_skills/fact-checker). | v1.1.0 | `npx skills@latest add jp-cruz/agent-skills/fact-checker` |
 
