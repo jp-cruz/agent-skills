@@ -1,0 +1,424 @@
+# Thoth Docker Template
+
+Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/Thoth) across macOS, Windows, and Linux. Built on learnings from the Jeli project.
+
+## Setup Methods
+
+Choose your setup approach based on complexity:
+
+| Method | Time | Best For | Command |
+|--------|------|----------|---------|
+| **Quick Setup** | 1 min | Most users | `./setup.sh` |
+| **Detailed Assessment** | 2 min | Custom config | `./preflight-check.sh` |
+| **Intelligent Setup** | 3-5 min | Complex env | Ask Claude Code |
+
+See [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for detailed comparison.
+
+---
+
+## Quick Start
+
+### 1. Prerequisites
+
+**All platforms:**
+- Docker Desktop (Mac/Windows) or Docker + Docker Compose (Linux)
+- Ollama running and accessible (see [Ollama Setup](#ollama-setup) below)
+- 2+ GB free disk space for image and data volumes
+
+**Platform-specific:**
+- **macOS:** Docker Desktop 4.0+ (for `host.docker.internal`)
+- **Windows:** Docker Desktop with WSL 2 backend
+- **Linux:** Docker 20.10+, Docker Compose 1.29+
+
+### 2. Assess Your Environment (Recommended)
+
+Before configuration, assess what LLM backends you have available:
+
+```bash
+# Detailed assessment (shows all options)
+./preflight-check.sh
+
+# This will detect:
+# - Ollama, LM Studio, vLLM, etc.
+# - Python keyring installation
+# - Secrets management (Keychain/Credential Manager/Secret Service)
+# - Docker and dependencies
+# - Recommend optimal .env configuration
+```
+
+### 3. Clone and Configure
+
+```bash
+git clone <repo-url> thoth-docker-template
+cd thoth-docker-template
+
+# Quick setup (uses defaults)
+./setup.sh
+
+# Or copy manually
+cp .env.example .env
+```
+
+### 3. Configure `.env` for Your System
+
+Edit `.env` and set the paths for your platform:
+
+#### macOS (Intel/Apple Silicon)
+```bash
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+THOTH_DATA_DIR=/Users/$(whoami)/thoth-data
+THOTH_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace
+THOTH_PORT=8080
+```
+
+#### Windows (WSL 2 Backend)
+```bash
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+THOTH_DATA_DIR=C:\Users\<your-username>\thoth-data
+THOTH_WORKSPACE_DIR=C:\Users\<your-username>\thoth-workspace
+THOTH_PORT=8080
+```
+
+#### Linux (Ollama on Host)
+```bash
+# Get your local IP (not 127.0.0.1 since Docker uses a bridge)
+LOCAL_IP=$(hostname -I | awk '{print $1}')
+
+OLLAMA_BASE_URL=http://${LOCAL_IP}:11434
+THOTH_DATA_DIR=/home/$(whoami)/thoth-data
+THOTH_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace
+THOTH_PORT=8080
+```
+
+#### Linux (Ollama in Docker/Different Machine)
+```bash
+OLLAMA_BASE_URL=http://<ollama-host-ip>:11434
+THOTH_DATA_DIR=/home/$(whoami)/thoth-data
+THOTH_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace
+THOTH_PORT=8080
+```
+
+### 4. Ensure Data Directories Exist
+
+```bash
+mkdir -p "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
+mkdir -p "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+```
+
+### 5. Start Thoth
+
+```bash
+# Build and start the container
+docker-compose up -d
+
+# Watch logs (Ctrl+C to stop watching)
+docker-compose logs -f
+
+# Verify it's running
+docker-compose ps
+```
+
+### 6. Access Thoth
+
+Open your browser and go to:
+```
+http://localhost:8080
+```
+
+## Container Utilities
+
+The Thoth container includes essential command-line utilities pre-installed and accessible to the `thoth` user:
+
+| Utility | Purpose | Example |
+|---------|---------|---------|
+| **nano** | Text editor | `docker-compose exec thoth nano /home/thoth/.thoth/config.yaml` |
+| **vim-tiny** | Vi implementation | `docker-compose exec thoth vim /home/thoth/.thoth/config.yaml` |
+| **jq** | JSON processing | `docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags \| jq '.'` |
+| **less** | File pager | `docker-compose exec thoth less /home/thoth/.thoth/logs.json` |
+| **tree** | Directory explorer | `docker-compose exec thoth tree -L 2 /home/thoth/.thoth` |
+| **file** | File type check | `docker-compose exec thoth file /home/thoth/workspace/model.gguf` |
+| **unzip** | Archive extraction | `docker-compose exec thoth unzip models.zip -d /home/thoth/.thoth/models` |
+| **curl** | HTTP requests | `docker-compose exec thoth curl http://host.docker.internal:11434/api/tags` |
+| **git** | Version control | `docker-compose exec thoth git clone <repo>` |
+
+All utilities are installed as root during build and accessible to the `thoth` user at runtime.
+
+See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on each utility.
+
+## Docker Installation (Required)
+
+**Don't have Docker?** See [DOCKER_GUIDE_FOR_BEGINNERS.md](DOCKER_GUIDE_FOR_BEGINNERS.md) for:
+- What Docker is and why it's essential
+- Installation for macOS, Windows, and Linux
+- Verification and troubleshooting
+- Common questions answered
+
+**Quick Version:**
+```bash
+# macOS: Download Docker Desktop from https://www.docker.com/products/docker-desktop
+# Windows: Download Docker Desktop + enable WSL 2
+# Linux: sudo apt install docker.io docker-compose
+
+# Verify
+docker --version
+docker-compose --version
+```
+
+---
+
+## Ollama Setup (If Using Local LLM)
+
+Thoth requires Ollama running on your host machine (if you choose local models). Ollama provides the LLM backend.
+
+### Install Ollama
+
+- **macOS/Windows:** Download from [ollama.ai](https://ollama.ai)
+- **Linux:** 
+  ```bash
+  curl https://ollama.ai/install.sh | sh
+  ```
+
+### Start Ollama
+
+**macOS/Windows:** Launch the Ollama application (runs in background on port 11434)
+
+**Linux:** 
+```bash
+ollama serve
+```
+
+### Verify Ollama is Running
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+You should get a JSON response with available models. If Ollama isn't running yet, pull a model:
+
+```bash
+ollama pull llama2
+```
+
+## Common Commands
+
+### Container Management
+
+```bash
+# Start container in background
+docker-compose up -d
+
+# Stop container
+docker-compose stop
+
+# Remove container and volumes
+docker-compose down
+
+# Remove container, volumes, and image
+docker-compose down -v --rmi all
+
+# View live logs
+docker-compose logs -f
+
+# View last 100 lines of logs
+docker-compose logs --tail=100
+```
+
+### Development & Debugging
+
+```bash
+# Open shell inside container
+docker-compose exec thoth bash
+
+# Run Python command
+docker-compose exec thoth python launcher.py --help
+
+# Check Ollama connectivity from inside container
+docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
+
+# Inspect container environment
+docker-compose exec thoth env | grep OLLAMA
+docker-compose exec thoth env | grep THOTH
+```
+
+### Rebuild After Changes
+
+```bash
+# Full rebuild (no cache)
+docker-compose build --no-cache
+
+# Rebuild and restart
+docker-compose up -d --build
+```
+
+## Persistent Data
+
+Two volumes store data across container restarts:
+
+1. **thoth-data** (`${THOTH_DATA_DIR}`)
+   - Thoth application state, cache, configuration
+   - Mounted at `/home/thoth/.thoth` inside container
+
+2. **thoth-workspace** (`${THOTH_WORKSPACE_DIR}`)
+   - User workspace and projects
+   - Mounted at `/app/workspace` inside container
+
+Both are bind mounts, so files are stored on your host filesystem and survive container removal.
+
+### Backup & Restore
+
+**Backup:**
+```bash
+# Create backup tarball
+tar -czf thoth-backup-$(date +%Y%m%d).tar.gz \
+  "$(grep THOTH_DATA_DIR .env | cut -d= -f2)" \
+  "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+```
+
+**Restore:**
+```bash
+# Extract backup (after ensuring container is stopped)
+tar -xzf thoth-backup-20240525.tar.gz -C /
+```
+
+**Full data reset:**
+```bash
+docker-compose down -v
+rm -rf "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
+rm -rf "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+mkdir -p "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
+mkdir -p "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+docker-compose up -d
+```
+
+## Troubleshooting
+
+### Port Already in Use
+
+If port 8080 is in use, change it in `.env`:
+```bash
+THOTH_PORT=8081
+```
+
+Then restart:
+```bash
+docker-compose up -d
+```
+
+### Ollama Connection Failed
+
+**Symptom:** `Connection refused` or `Network unreachable` when Thoth tries to reach Ollama
+
+**Check 1:** Ollama is running
+```bash
+curl http://localhost:11434/api/tags
+```
+
+**Check 2:** Docker can reach the host
+```bash
+docker-compose exec thoth curl http://host.docker.internal:11434/api/tags  # macOS/Windows
+docker-compose exec thoth curl http://<your-local-ip>:11434/api/tags      # Linux
+```
+
+**Check 3:** Firewall isn't blocking port 11434
+```bash
+# macOS
+sudo lsof -i :11434
+
+# Linux
+sudo netstat -tlnp | grep 11434
+```
+
+**Check 4:** On Linux, if using a different IP, verify it's reachable:
+```bash
+ping <ollama-host-ip>
+```
+
+### Volume Permission Issues
+
+If you get "Permission denied" errors, ensure the directories are writable:
+```bash
+chmod 755 "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
+chmod 755 "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+```
+
+If issues persist, check container user permissions:
+```bash
+docker-compose exec thoth id
+docker-compose exec thoth ls -la /home/thoth/.thoth
+```
+
+### Container Won't Start
+
+Check logs for the error:
+```bash
+docker-compose logs thoth
+```
+
+Common causes:
+- **Out of disk space:** `docker system prune` to clean up old images
+- **Port in use:** See [Port Already in Use](#port-already-in-use)
+- **Ollama not running:** See [Ollama Connection Failed](#ollama-connection-failed)
+- **Bad `.env` file:** Verify paths are correct and directories exist
+
+### Slow on Windows/macOS
+
+Docker volume performance on WSL 2 and Docker Desktop can be slow. To improve:
+
+1. Use native paths (not network shares)
+2. Reduce bind mount depth if possible
+3. Consider using named volumes instead (less portable but faster)
+
+## Multi-Machine Deployments
+
+To run Thoth and Ollama on different machines:
+
+**Machine 1 (Ollama Host):**
+```bash
+ollama serve
+# Or in Docker: docker run -d -p 11434:11434 ollama/ollama:latest
+```
+
+**Machine 2 (Thoth Host):**
+```bash
+# In .env, set:
+OLLAMA_BASE_URL=http://<machine1-ip>:11434
+
+# Then start as normal
+docker-compose up -d
+```
+
+## Architecture
+
+- **Base:** Python 3.11 slim
+- **Runtime:** Thoth (GitHub commit `deb5d11`)
+- **Port:** 8080 (configurable)
+- **User:** `thoth` (UID 1000, non-root)
+- **Restart:** Automatic unless stopped
+- **Networking:** Bridge mode (macOS/Windows), configurable on Linux
+
+## File Structure
+
+```
+.
+├── .dockerignore           # Excludes unnecessary files from Docker build
+├── .env.example            # Configuration template (copy to .env)
+├── .gitignore              # Git ignore patterns
+├── README.md               # This file
+├── CLAUDE.md               # Development guide for Claude Code
+└── docker/
+    ├── Dockerfile          # Container definition
+    └── docker-compose.yml  # Service orchestration with env variable support
+```
+
+## Contributing
+
+When making changes:
+
+1. Test on at least one platform (macOS, Windows, or Linux)
+2. Update `docker-compose.yml` to use env variables for paths
+3. Document any platform-specific workarounds in this README
+4. Update CLAUDE.md if build/test commands change
+
+## License
+
+This template is provided as-is. See the [Thoth project](https://github.com/siddsachar/Thoth) for its license.

@@ -1,0 +1,50 @@
+# Environment and local config
+.env
+.env.local
+.env.*.local
+
+# Data volumes (user-local, not shared)
+thoth-data/
+thoth-workspace/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+venv/
+env/
+.venv
+
+# Logs
+*.log
+build.log
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+desktop.ini
+
+# Temporary files
+.temp/
+.cache/
+*.tmp
+
+# Docker build cache
+.docker/
