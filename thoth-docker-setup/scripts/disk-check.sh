@@ -10,10 +10,15 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Parse --quiet flag
+# Parse flags: --quiet (legacy), --export-only (exports vars, no output)
 QUIET=0
+EXPORT_ONLY=0
+
 if [ "$1" = "--quiet" ]; then
     QUIET=1
+elif [ "$1" = "--export-only" ]; then
+    QUIET=1
+    EXPORT_ONLY=1
 fi
 
 log() {

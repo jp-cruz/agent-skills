@@ -2,178 +2,95 @@
 
 Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/Thoth) across macOS, Windows, and Linux. Built on learnings from the Jeli project.
 
-## Setup Methods
-
-Choose your setup approach based on complexity:
-
-| Method | Time | Best For | Command |
-|--------|------|----------|---------|
-| **Quick Setup** | 1 min | Most users | `./setup.sh` |
-| **Detailed Assessment** | 2 min | Custom config | `./preflight-check.sh` |
-| **Intelligent Setup** | 3-5 min | Complex env | Ask Claude Code |
-
-See [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for detailed comparison.
-
----
-
-## Disk Space Planning (Read This First)
-
-> **Mac Mini M4 with 256GB drive?** Read this section — Thoth grows fast.
-
-### Space Requirements
-
-| Component | Size | Notes |
-|-----------|------|-------|
-| Docker image (Thoth) | ~5 GB uncompressed | One-time; cached after first build |
-| Docker build cache | 1–3 GB | Grows with rebuilds |
-| Thoth data (memory.db, etc.) | 1 GB → 10 GB+ | Grows with use; 10GB typical after 2–3 weeks |
-| Workspace files | Variable | Your files |
-| **Total after 1 month** | **~15–20 GB** | On a 256GB drive, this matters |
-
-### Recommendation
-
-- **External Thunderbolt/USB-C SSD**: Store Thoth data and workspace here. Thunderbolt 3/4 and USB 3.2 Gen 2 SSDs are fast enough (>300 MB/s) for seamless use.
-- Run `./scripts/disk-check.sh` before setup to get a recommendation based on your actual drives.
-- The `setup.sh` wizard will prompt you to use an external drive if one is available.
-
-### Moving Data Later
-
-If you've already installed and want to move data to an external drive:
-```bash
-# See the full guide
-cat references/DISK_MANAGEMENT.md
-```
-
----
-
 ## Quick Start
-
-### 1. Prerequisites
-
-**All platforms:**
-- Docker Desktop (Mac/Windows) or Docker + Docker Compose (Linux)
-- Ollama running and accessible (see [Ollama Setup](#ollama-setup) below)
-- 2+ GB free disk space for image and data volumes
-
-**Platform-specific:**
-- **macOS:** Docker Desktop 4.0+ (for `host.docker.internal`)
-- **Windows:** Docker Desktop with WSL 2 backend
-- **Linux:** Docker 20.10+, Docker Compose 1.29+
-
-### 2. Plan Your Storage (Important for Small Drives)
-
-> **Mac Mini M4 with 256GB?** Plan ahead — Thoth grows fast.
-
-Run the storage assessment before setup:
-
-```bash
-# Detect drives, test speed, recommend location
-./scripts/disk-check.sh
-
-# This will:
-# - Check your system drive free space
-# - Detect external drives (Thunderbolt, USB)
-# - Recommend optimal location for Thoth data
-# - Warn if space is constrained
-```
-
-**Expected growth:** Thoth memory grows 1–3 GB/week. After 1 month: ~15–20 GB. Use an external drive if available.
-
-See [Disk Space Planning](#disk-space-planning-read-this-first) section below for detailed recommendations.
-
-### 3. Assess Your Environment (Optional)
-
-Before configuration, assess what LLM backends you have available:
-
-```bash
-# Detailed assessment (shows all options)
-./scripts/preflight-check.sh
-
-# This will detect:
-# - Ollama, LM Studio, vLLM, etc.
-# - Python keyring installation
-# - Secrets management (Keychain/Credential Manager/Secret Service)
-# - Docker and dependencies
-# - Recommend optimal .env configuration
-```
-
-### 3. Clone and Configure
 
 ```bash
 git clone <repo-url> thoth-docker-template
 cd thoth-docker-template
-
-# Quick setup (uses defaults)
 ./setup.sh
-
-# Or copy manually
-cp .env.example .env
 ```
 
-### 3. Configure `.env` for Your System
+That's it. The setup script detects your system, recommends optimal storage, and walks you through the only decisions that matter.
 
-Edit `.env` and set the paths for your platform:
-
-#### macOS (Intel/Apple Silicon)
+Then start Thoth:
 ```bash
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-THOTH_DATA_DIR=/Users/$(whoami)/thoth-data
-THOTH_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace
-THOTH_PORT=8080
+docker-compose up -d
 ```
 
-#### Windows (WSL 2 Backend)
+Open your browser to `http://localhost:8080`
+
+---
+
+## Advanced Options
+
+For more control, you can run these before setup:
+
+**Storage Assessment (detect external drives):**
 ```bash
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-THOTH_DATA_DIR=C:\Users\<your-username>\thoth-data
-THOTH_WORKSPACE_DIR=C:\Users\<your-username>\thoth-workspace
-THOTH_PORT=8080
+./scripts/disk-check.sh
 ```
 
-#### Linux (Ollama on Host)
+**Full Environment Scan (LLM backends, Docker, WSL2, secrets):**
 ```bash
-# Get your local IP (not 127.0.0.1 since Docker uses a bridge)
-LOCAL_IP=$(hostname -I | awk '{print $1}')
-
-OLLAMA_BASE_URL=http://${LOCAL_IP}:11434
-THOTH_DATA_DIR=/home/$(whoami)/thoth-data
-THOTH_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace
-THOTH_PORT=8080
+./scripts/preflight-check.sh
 ```
 
-#### Linux (Ollama in Docker/Different Machine)
+**Intelligent Guided Setup via Claude Code CLI:**
 ```bash
-OLLAMA_BASE_URL=http://<ollama-host-ip>:11434
-THOTH_DATA_DIR=/home/$(whoami)/thoth-data
-THOTH_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace
-THOTH_PORT=8080
+claude  # Start Claude Code CLI, then ask: "Help me set up thoth-docker-setup"
 ```
 
-### 4. Ensure Data Directories Exist
+---
+
+## Common Commands
+
+### Container Management
 
 ```bash
-mkdir -p "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
-mkdir -p "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
-```
-
-### 5. Start Thoth
-
-```bash
-# Build and start the container
+# Start container in background
 docker-compose up -d
 
-# Watch logs (Ctrl+C to stop watching)
+# Stop container
+docker-compose stop
+
+# Remove container and volumes
+docker-compose down
+
+# Remove container, volumes, and image
+docker-compose down -v --rmi all
+
+# View live logs
 docker-compose logs -f
 
-# Verify it's running
-docker-compose ps
+# View last 100 lines of logs
+docker-compose logs --tail=100
 ```
 
-### 6. Access Thoth
+### Development & Debugging
 
-Open your browser and go to:
+```bash
+# Open shell inside container
+docker-compose exec thoth bash
+
+# Run Python command
+docker-compose exec thoth python launcher.py --help
+
+# Check Ollama connectivity from inside container
+docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
+
+# Inspect container environment
+docker-compose exec thoth env | grep OLLAMA
+docker-compose exec thoth env | grep THOTH
 ```
-http://localhost:8080
+
+### Rebuild After Changes
+
+```bash
+# Full rebuild (no cache)
+docker-compose build --no-cache
+
+# Rebuild and restart
+docker-compose up -d --build
 ```
 
 ## Container Utilities
@@ -248,57 +165,6 @@ You should get a JSON response with available models. If Ollama isn't running ye
 
 ```bash
 ollama pull llama2
-```
-
-## Common Commands
-
-### Container Management
-
-```bash
-# Start container in background
-docker-compose up -d
-
-# Stop container
-docker-compose stop
-
-# Remove container and volumes
-docker-compose down
-
-# Remove container, volumes, and image
-docker-compose down -v --rmi all
-
-# View live logs
-docker-compose logs -f
-
-# View last 100 lines of logs
-docker-compose logs --tail=100
-```
-
-### Development & Debugging
-
-```bash
-# Open shell inside container
-docker-compose exec thoth bash
-
-# Run Python command
-docker-compose exec thoth python launcher.py --help
-
-# Check Ollama connectivity from inside container
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
-
-# Inspect container environment
-docker-compose exec thoth env | grep OLLAMA
-docker-compose exec thoth env | grep THOTH
-```
-
-### Rebuild After Changes
-
-```bash
-# Full rebuild (no cache)
-docker-compose build --no-cache
-
-# Rebuild and restart
-docker-compose up -d --build
 ```
 
 ## Persistent Data
@@ -418,6 +284,39 @@ Docker volume performance on WSL 2 and Docker Desktop can be slow. To improve:
 1. Use native paths (not network shares)
 2. Reduce bind mount depth if possible
 3. Consider using named volumes instead (less portable but faster)
+
+---
+
+## Disk Space Planning
+
+> **Mac Mini M4 with 256GB drive? Linux workstation with storage constraints?** Read this section.
+
+Thoth's memory system grows 1–3 GB/week. On smaller drives, plan ahead.
+
+### Space Requirements
+
+| Component | Size | Notes |
+|-----------|------|-------|
+| Docker image (Thoth) | ~5 GB uncompressed | One-time; cached after first build |
+| Docker build cache | 1–3 GB | Grows with rebuilds |
+| Thoth data (memory.db, etc.) | 1 GB → 10 GB+ | Grows with use; 10GB typical after 2–3 weeks |
+| Workspace files | Variable | Your files |
+| **Total after 1 month** | **~15–20 GB** | Plan accordingly |
+
+### Recommendation
+
+- **External Thunderbolt/USB-C SSD**: Best for Thoth data. Thunderbolt 3/4 and USB 3.2 Gen 2 SSDs (>300 MB/s) are fast enough for seamless use.
+- **Setup script automation:** `./setup.sh` detects external drives and offers to use them automatically.
+- **Move data later:** If you've already installed, see [references/DISK_MANAGEMENT.md](references/DISK_MANAGEMENT.md) for migration steps.
+
+### External Drive Recommended When
+
+- Total drive space < 500 GB
+- System drive free space < 100 GB
+- You expect to use Thoth heavily (>10 hours/week)
+- You plan to keep Thoth running for months
+
+---
 
 ## Multi-Machine Deployments
 

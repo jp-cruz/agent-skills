@@ -20,6 +20,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.1] - 2026-05-27
+
+**Status:** UX redesign complete. Single entry point (./setup.sh), unified configuration panel, smart defaults with visibility.
+
+### Added
+
+- ✨ **Smart Defaults with Visibility UX** — Redesigned setup flow for clarity
+  - Single entry point: `./setup.sh` handles all detection and decisions
+  - Unified "DETECTED CONFIGURATION" panel showing all findings at once
+  - One decision point: "Apply this configuration? [Y/n]"
+  - If user declines: shows customization help path (edit .env manually) with link to docs
+  - Graceful exit with guidance instead of forcing adoption
+
+### Changed
+
+- 📖 **README.md** — Flattened setup instructions
+  - Removed 3-path setup methods table (Quick/Detailed/Intelligent confusion)
+  - Single "Quick Start" section: just `./setup.sh`
+  - Demoted `preflight-check.sh` and `disk-check.sh` to "Advanced Options" section
+  - Moved "Disk Space Planning" section later in README (after troubleshooting)
+  - Consolidated "Common Commands" sections (removed duplicate)
+  
+- 🧪 **scripts/preflight-check.sh** — Windows WSL2 text reduction
+  - WSL-not-installed explanation: reduced from ~15 lines to ~6 lines
+  - WSL1-upgrade explanation: reduced from ~10 lines to ~6 lines
+  - Removed early exit after opening PowerShell — assessment continues
+  - Added guidance: "re-run ./scripts/preflight-check.sh after restart"
+
+- ⚙️ **scripts/disk-check.sh** — Added `--export-only` flag
+  - `--export-only`: exports detection variables, prints nothing (used by setup.sh)
+  - Semantic clarification: `--quiet` remains for backward compat (same behavior)
+  - Standalone `./scripts/disk-check.sh` (no flags): full detailed output as before
+
+### Why These Changes
+
+User feedback: Setup process had implicit decision saturation (3-path README table) even though explicit prompts were minimal. Users debated which script to run before starting anything. Solution: Single entry point that shows analysis openly, not buried in `--quiet` output. "Apply this? [Y/n]" replaces scattered decisions.
+
+---
+
 ## [0.6.0] - 2026-05-27
 
 **Status:** Storage intelligence added. Disk management tools fully functional.

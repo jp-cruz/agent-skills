@@ -88,45 +88,39 @@ if [[ "$OS" == "windows" ]]; then
     # --- Report and act ---
 
     if [[ $WSL_INSTALLED -eq 0 ]]; then
-        echo -e "  ${RED}✗ WSL is NOT installed${NC}"
+        echo -e "  ${RED}✗ WSL2 not found — required for Docker on Windows${NC}"
         echo ""
-        echo -e "  ${YELLOW}Why WSL2 matters:${NC}"
-        echo "    • Docker Desktop uses WSL2 as its Linux kernel on Windows"
-        echo "    • Without it: containers start 10–30x slower"
-        echo "    • Many Thoth features require a real Linux process"
-        echo "    • Microsoft ships WSL2 free with all Windows 10/11 versions"
+        echo "  Docker Desktop uses WSL2 as its Linux kernel. Without it:"
+        echo "  containers are slow, unstable, or won't start."
         echo ""
-        echo -e "  ${YELLOW}To install WSL2:${NC}"
-        echo "    Run this in PowerShell (as Administrator):"
-        echo "      wsl --install"
-        echo "    Then restart your computer."
+        echo "  Fix: run in PowerShell (as Administrator):"
+        echo "    wsl --install"
+        echo "  Then restart and re-run this script."
         echo ""
-        echo -e "  ${YELLOW}Or let this script open PowerShell for you:${NC}"
-        read -p "  Open PowerShell as Administrator to install WSL2? [y/N] " INSTALL_WSL
+        read -p "  Open PowerShell now? [y/N] " INSTALL_WSL
         if [[ "$INSTALL_WSL" == "y" || "$INSTALL_WSL" == "Y" ]]; then
             powershell.exe -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command wsl --install'"
             echo ""
-            echo -e "  ${YELLOW}→ PowerShell launched. Run setup again after restart.${NC}"
-            exit 0
+            echo -e "  ${YELLOW}→ PowerShell opened. After WSL2 installs and you restart, re-run:${NC}"
+            echo "    ./scripts/preflight-check.sh"
+            echo ""
         fi
 
     elif [[ $WSL_HAS_V2 -eq 0 ]]; then
         echo -e "  ${YELLOW}⚠ WSL is installed but only WSL1 found${NC}"
         echo ""
-        echo "  WSL1 uses a compatibility layer — it's too slow for Docker"
-        echo "  and many Thoth operations will fail or timeout."
+        echo "  WSL1 uses a compatibility layer — too slow for Docker."
+        echo "  Upgrade to WSL2 (requires admin access)."
         echo ""
-        echo -e "  ${YELLOW}Upgrade to WSL2:${NC}"
-        echo "    1. Open PowerShell as Administrator"
-        echo "    2. Run: wsl --set-default-version 2"
-        echo "    3. Upgrade your distro:"
-        echo "       wsl --set-version <DistroName> 2"
-        echo "    (Run 'wsl -l' to see your distro name)"
+        echo "  Fix: run in PowerShell (as Administrator):"
+        echo "    wsl --set-default-version 2"
         echo ""
-        read -p "  Open PowerShell as Administrator to upgrade WSL2? [y/N] " UPGRADE_WSL
+        read -p "  Open PowerShell now? [y/N] " UPGRADE_WSL
         if [[ "$UPGRADE_WSL" == "y" || "$UPGRADE_WSL" == "Y" ]]; then
             powershell.exe -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command wsl --set-default-version 2'"
-            echo -e "  ${YELLOW}→ PowerShell launched. Confirm upgrade, then re-run setup.${NC}"
+            echo -e "  ${YELLOW}→ PowerShell opened. Confirm upgrade, then re-run:${NC}"
+            echo "    ./scripts/preflight-check.sh"
+            echo ""
         fi
 
     else
