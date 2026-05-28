@@ -3,14 +3,14 @@ name: thoth-docker-setup
 description: Production-ready Docker Compose setup for Thoth with cross-platform support (macOS, Windows, Linux). Includes automated environment detection, multi-provider LLM integration (Ollama, OpenRouter, OpenAI, Anthropic), persistent volumes, and comprehensive guides. Use when deploying Thoth in containerized environments or setting up Docker infrastructure for AI agents.
 license: MIT
 compatibility: Requires Docker 20.10+, Docker Compose 1.29+, bash 4.0+, and curl. Supports macOS (Intel/Apple Silicon), Windows (WSL2), and Linux. Optional: Ollama or alternative LLM backends.
-requires_claude_code_cli: true
+requires_terminal: true
 metadata:
   author: Claude Sonnet 4.6 (run by JP Cruz)
   contact: jp@legionforge.org
   version: "0.6.1"
   category: deployment
   tested-platforms: macOS Tahoe (M4), Linux/Windows validation pending
-  execution_context: CLI-only (requires Claude Code CLI in terminal)
+  execution_context: Interactive terminal (Aider, Claude Code CLI, VS Code, OpenCode, or bash)
 ---
 
 # Thoth Docker Setup
@@ -28,21 +28,37 @@ Production-ready Docker Compose configuration for deploying Thoth with cross-pla
 - **Security hardening** — Non-root user execution, pinned base images, no hardcoded secrets
 - **Comprehensive documentation** — Setup guides, troubleshooting, Docker education for beginners
 
-## ⚠️ Requires Claude Code CLI (Terminal Only)
+## ⚠️ Requires Interactive Terminal
 
-**This skill MUST be run from Claude Code CLI in a terminal. It cannot run from Claude.ai web or the desktop app.**
+**This skill requires an interactive terminal with bash, Docker, and file system access. It cannot run from Claude.ai web or the desktop app.**
 
-### Why CLI-Only?
+### Compatible Execution Environments
+
+You can run this skill from any of these:
+
+| Environment | How | Status |
+|-------------|-----|--------|
+| **Claude Code CLI** | `npm install -g @anthropic-ai/claude-code && claude` | ✅ Recommended |
+| **Aider** | `aider` (Claude in terminal) | ✅ Works great |
+| **VS Code terminal** | Ask Claude in VS Code Chat with code execution | ✅ Works |
+| **OpenCode** | Terminal within OpenCode | ✅ Works |
+| **Any bash terminal** | `bash setup.sh` (manual) | ✅ Works |
+
+**NOT compatible:**
+- Claude.ai web chat ❌
+- Claude desktop app ❌
+- ChatGPT web ❌
+
+### Why Terminal-Only?
 
 This skill needs:
 - **File system access** — Detect external drives, read/write `.env`, create directories
 - **Command execution** — Run `docker-compose`, `curl`, `mkdir`, Git commands
 - **Real-time feedback** — Stream Docker build progress, show live logs
+- **Interactive prompts** — TTY for `read` commands during setup
 - **Reliable error handling** — Detect and recover from failures mid-execution
 
-**Web/desktop Claude cannot do any of these.** Attempting to run this skill from the web will fail silently or partially.
-
-### Install Claude Code CLI (1 minute)
+### Quick Start: Claude Code CLI (Recommended)
 
 ```bash
 npm install -g @anthropic-ai/claude-code

@@ -23,17 +23,19 @@ echo ""
 # EXECUTION CONTEXT CHECK
 # ============================================================================
 
-# Verify running in Claude Code CLI (terminal with proper stdin/stdout)
+# Verify running in an interactive terminal (TTY required for prompts)
 if [ -z "$TERM" ] || [ ! -t 0 ]; then
-    echo -e "${RED}✗ ERROR: Not running in Claude Code CLI terminal${NC}"
+    echo -e "${RED}✗ ERROR: Not running in an interactive terminal${NC}"
     echo ""
-    echo "This skill requires Claude Code CLI for file system and command access."
+    echo "This script requires a terminal with bash and file system access."
+    echo "It cannot run from Claude.ai web, desktop app, or ChatGPT."
     echo ""
-    echo "Install and run:"
-    echo "  ${BLUE}npm install -g @anthropic-ai/claude-code${NC}"
-    echo "  ${BLUE}claude${NC}"
-    echo ""
-    echo "Then ask: ${YELLOW}\"Help me set up thoth-docker-setup\"${NC}"
+    echo "Run from any of these:"
+    echo "  ${BLUE}Claude Code CLI:${NC}    npm install -g @anthropic-ai/claude-code && claude"
+    echo "  ${BLUE}Aider:${NC}             aider"
+    echo "  ${BLUE}VS Code terminal:${NC}   Ask Claude with code execution enabled"
+    echo "  ${BLUE}OpenCode:${NC}          Terminal within OpenCode"
+    echo "  ${BLUE}Any bash terminal:${NC}  bash setup.sh"
     echo ""
     exit 1
 fi

@@ -33,11 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - If user declines: shows customization help path (edit .env manually) with link to docs
   - Graceful exit with guidance instead of forcing adoption
 
-- 🔒 **CLI-Only Enforcement** — Explicit requirements for proper execution
-  - SKILL.md: Added `requires_claude_code_cli: true` metadata flag
+- 🔒 **Terminal-Only Enforcement** — Explicit requirements for proper execution
+  - SKILL.md: Added `requires_terminal: true` metadata flag
   - SKILL.md: Prominent warning that web/desktop Claude cannot run this skill
+  - SKILL.md: Compatibility table showing supported environments (Aider, Claude Code CLI, VS Code, OpenCode, bash)
   - scripts/setup.sh: Context detection check — blocks if not in interactive TTY
-  - Clear error message with installation instructions when run outside CLI
+  - Clear error message with multiple compatible execution options
 
 ### Changed
 
