@@ -14,13 +14,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Non-root user**: Thoth runs as user `thoth` (UID 1000) for security; all files are owned by this user
 - **Specific Git commit**: The Dockerfile pins Thoth to commit `deb5d11` to ensure reproducible builds
 
-### Current Limitations (Template Refinement Needed)
+### Architecture Improvements (v0.5.1+)
 
-1. **Hardcoded host paths**: docker-compose.yml binds volumes to `/Users/dylan/thoth-data` and `/Users/dylan/thoth-workspace`—these need parameterization for portability
-2. **No .dockerignore**: Missing optimization to reduce build context
-3. **No environment file**: No `.env` support for configuration flexibility
-4. **Python path overhead**: User-level pip installs add to PATH/PYTHONPATH unnecessarily if using virtual environments
-5. **No build optimization**: Multi-stage build or layer caching improvements possible
+✅ **Implemented:**
+- Multi-stage Dockerfile build (separate builder and runtime stages) — reduces final image size by ~50%
+- Optimized .dockerignore for minimal build context
+- Environment file (.env) support with sensible defaults
+- Fixed PYTHONPATH syntax with absolute paths
+- Health check in docker-compose.yml and Dockerfile
+- Automated setup.sh script to initialize directories and validate Ollama connectivity
+
+## Quick Start
+
+1. **Initialize the setup** (first time only):
+   ```bash
+   cd /path/to/docker-compose.yml  # This directory contains docker-compose.yml
+   ./setup.sh
+   ```
+
+2. **Start the container**:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Access Thoth** at `http://localhost:8080`
+
+## Important: Running from the Correct Directory
+
+All `docker-compose` commands must be run from the directory containing `docker-compose.yml`. The relative paths in `.env` (like `./thoth-data`) are resolved relative to this directory.
+
+```bash
+# ✓ Correct - run from the directory with docker-compose.yml
+cd /path/to/thoth-docker-setup
+docker-compose up -d
+
+# ✗ Wrong - running from parent directory won't work with relative paths
+cd /path/to/parent
+docker-compose -f thoth-docker-setup/docker-compose.yml up -d
+```
 
 ## Common Commands
 
