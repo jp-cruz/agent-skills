@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.1] - 2026-05-27
 
-**Status:** UX redesign complete. Single entry point (./setup.sh), unified configuration panel, smart defaults with visibility.
+**Status:** UX redesign complete. Single entry point (./setup.sh), unified configuration panel, smart defaults with visibility. CLI-only execution enforced.
 
 ### Added
 
@@ -32,6 +32,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - One decision point: "Apply this configuration? [Y/n]"
   - If user declines: shows customization help path (edit .env manually) with link to docs
   - Graceful exit with guidance instead of forcing adoption
+
+- 🔒 **CLI-Only Enforcement** — Explicit requirements for proper execution
+  - SKILL.md: Added `requires_claude_code_cli: true` metadata flag
+  - SKILL.md: Prominent warning that web/desktop Claude cannot run this skill
+  - scripts/setup.sh: Context detection check — blocks if not in interactive TTY
+  - Clear error message with installation instructions when run outside CLI
 
 ### Changed
 

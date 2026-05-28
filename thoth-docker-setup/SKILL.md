@@ -3,12 +3,14 @@ name: thoth-docker-setup
 description: Production-ready Docker Compose setup for Thoth with cross-platform support (macOS, Windows, Linux). Includes automated environment detection, multi-provider LLM integration (Ollama, OpenRouter, OpenAI, Anthropic), persistent volumes, and comprehensive guides. Use when deploying Thoth in containerized environments or setting up Docker infrastructure for AI agents.
 license: MIT
 compatibility: Requires Docker 20.10+, Docker Compose 1.29+, bash 4.0+, and curl. Supports macOS (Intel/Apple Silicon), Windows (WSL2), and Linux. Optional: Ollama or alternative LLM backends.
+requires_claude_code_cli: true
 metadata:
   author: Claude Sonnet 4.6 (run by JP Cruz)
   contact: jp@legionforge.org
-  version: "0.6.0"
+  version: "0.6.1"
   category: deployment
   tested-platforms: macOS Tahoe (M4), Linux/Windows validation pending
+  execution_context: CLI-only (requires Claude Code CLI in terminal)
 ---
 
 # Thoth Docker Setup
@@ -26,25 +28,54 @@ Production-ready Docker Compose configuration for deploying Thoth with cross-pla
 - **Security hardening** — Non-root user execution, pinned base images, no hardcoded secrets
 - **Comprehensive documentation** — Setup guides, troubleshooting, Docker education for beginners
 
-## Best Experience: Run via Claude Code CLI
+## ⚠️ Requires Claude Code CLI (Terminal Only)
 
-This skill is designed to be invoked via **Claude Code CLI** (`claude` in terminal).
+**This skill MUST be run from Claude Code CLI in a terminal. It cannot run from Claude.ai web or the desktop app.**
 
-If you're reading this from Claude.ai (web) or the Claude desktop app, you'll get a much better setup experience running it from the command line where Claude can:
-- Execute scripts directly in your environment
-- Read your actual drive configuration
-- Interactively ask you questions during setup
-- Monitor Docker logs in real time
+### Why CLI-Only?
 
-**To install Claude Code CLI:**
+This skill needs:
+- **File system access** — Detect external drives, read/write `.env`, create directories
+- **Command execution** — Run `docker-compose`, `curl`, `mkdir`, Git commands
+- **Real-time feedback** — Stream Docker build progress, show live logs
+- **Reliable error handling** — Detect and recover from failures mid-execution
+
+**Web/desktop Claude cannot do any of these.** Attempting to run this skill from the web will fail silently or partially.
+
+### Install Claude Code CLI (1 minute)
+
 ```bash
 npm install -g @anthropic-ai/claude-code
-claude  # start an interactive session
+claude  # Start interactive session in your terminal
 ```
 
-Then ask: "Help me set up thoth-docker-setup" and Claude will run the disk check, guide you through storage selection, and verify everything is working.
+Then ask: **"Help me set up thoth-docker-setup"**
 
-The web/desktop Claude can still help you understand configuration, but cannot execute scripts or read your system state directly.
+Claude will:
+- Run disk detection and recommend optimal storage
+- Auto-detect your OS, Docker, Ollama, and LLM backends
+- Interactively ask for customization
+- Create `.env` and validate everything
+- Start Thoth and show you the URL
+
+### What You Get with CLI
+
+✅ Real-time Docker build progress  
+✅ Auto-detection of your system state  
+✅ Interactive prompts with immediate feedback  
+✅ Automatic `.env` configuration  
+✅ File system integration (volumes, data directories)  
+✅ Live troubleshooting and error messages  
+
+### Why Not Web/Desktop?
+
+- Can't read your file system
+- Can't execute shell commands
+- Can't detect installed software
+- Can't show live progress
+- Can't create or modify local files
+
+**Use Claude Code CLI instead. It takes 60 seconds to install.**
 
 ## Quick start
 

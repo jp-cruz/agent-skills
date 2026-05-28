@@ -18,6 +18,26 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo -e "${GREEN}    Thoth Docker Template Setup${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
+
+# ============================================================================
+# EXECUTION CONTEXT CHECK
+# ============================================================================
+
+# Verify running in Claude Code CLI (terminal with proper stdin/stdout)
+if [ -z "$TERM" ] || [ ! -t 0 ]; then
+    echo -e "${RED}✗ ERROR: Not running in Claude Code CLI terminal${NC}"
+    echo ""
+    echo "This skill requires Claude Code CLI for file system and command access."
+    echo ""
+    echo "Install and run:"
+    echo "  ${BLUE}npm install -g @anthropic-ai/claude-code${NC}"
+    echo "  ${BLUE}claude${NC}"
+    echo ""
+    echo "Then ask: ${YELLOW}\"Help me set up thoth-docker-setup\"${NC}"
+    echo ""
+    exit 1
+fi
+
 echo -e "${YELLOW}Scanning environment...${NC}"
 echo ""
 
