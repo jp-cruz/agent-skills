@@ -16,6 +16,36 @@ See [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for detailed comparison.
 
 ---
 
+## Disk Space Planning (Read This First)
+
+> **Mac Mini M4 with 256GB drive?** Read this section — Thoth grows fast.
+
+### Space Requirements
+
+| Component | Size | Notes |
+|-----------|------|-------|
+| Docker image (Thoth) | ~5 GB uncompressed | One-time; cached after first build |
+| Docker build cache | 1–3 GB | Grows with rebuilds |
+| Thoth data (memory.db, etc.) | 1 GB → 10 GB+ | Grows with use; 10GB typical after 2–3 weeks |
+| Workspace files | Variable | Your files |
+| **Total after 1 month** | **~15–20 GB** | On a 256GB drive, this matters |
+
+### Recommendation
+
+- **External Thunderbolt/USB-C SSD**: Store Thoth data and workspace here. Thunderbolt 3/4 and USB 3.2 Gen 2 SSDs are fast enough (>300 MB/s) for seamless use.
+- Run `./scripts/disk-check.sh` before setup to get a recommendation based on your actual drives.
+- The `setup.sh` wizard will prompt you to use an external drive if one is available.
+
+### Moving Data Later
+
+If you've already installed and want to move data to an external drive:
+```bash
+# See the full guide
+cat references/DISK_MANAGEMENT.md
+```
+
+---
+
 ## Quick Start
 
 ### 1. Prerequisites
@@ -30,13 +60,34 @@ See [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for detailed comparison.
 - **Windows:** Docker Desktop with WSL 2 backend
 - **Linux:** Docker 20.10+, Docker Compose 1.29+
 
-### 2. Assess Your Environment (Recommended)
+### 2. Plan Your Storage (Important for Small Drives)
+
+> **Mac Mini M4 with 256GB?** Plan ahead — Thoth grows fast.
+
+Run the storage assessment before setup:
+
+```bash
+# Detect drives, test speed, recommend location
+./scripts/disk-check.sh
+
+# This will:
+# - Check your system drive free space
+# - Detect external drives (Thunderbolt, USB)
+# - Recommend optimal location for Thoth data
+# - Warn if space is constrained
+```
+
+**Expected growth:** Thoth memory grows 1–3 GB/week. After 1 month: ~15–20 GB. Use an external drive if available.
+
+See [Disk Space Planning](#disk-space-planning-read-this-first) section below for detailed recommendations.
+
+### 3. Assess Your Environment (Optional)
 
 Before configuration, assess what LLM backends you have available:
 
 ```bash
 # Detailed assessment (shows all options)
-./preflight-check.sh
+./scripts/preflight-check.sh
 
 # This will detect:
 # - Ollama, LM Studio, vLLM, etc.

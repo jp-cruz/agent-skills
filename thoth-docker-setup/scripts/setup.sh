@@ -38,6 +38,25 @@ fi
 
 echo -e "${GREEN}✓ Detected OS: ${OS}${NC}"
 
+# ============================================================================
+# DISK SPACE ASSESSMENT (NEW)
+# ============================================================================
+
+echo -e "\n${GREEN}✓ Assessing disk storage options${NC}"
+
+# Source disk-check.sh to get recommendations
+if [[ -f "$(dirname "$0")/disk-check.sh" ]]; then
+    source "$(dirname "$0")/disk-check.sh" --quiet 2>/dev/null || true
+
+    # Show warnings if relevant
+    if [[ "$DISK_CHECK_WARNING_LEVEL" == "critical" ]]; then
+        echo -e "${RED}⚠️  CRITICAL: System drive has < 30GB free. Thoth will fill your disk.${NC}"
+        echo -e "${YELLOW}   Strongly recommend using an external drive for storage.${NC}"
+    elif [[ "$DISK_CHECK_WARNING_LEVEL" == "warn" ]]; then
+        echo -e "${YELLOW}⚠️  System drive has < 100GB free. Thoth memory grows 1-3GB/week.${NC}"
+    fi
+fi
+
 # Extract paths from .env
 THOTH_DATA_DIR=$(grep "^THOTH_DATA_DIR=" .env | cut -d= -f2)
 THOTH_WORKSPACE_DIR=$(grep "^THOTH_WORKSPACE_DIR=" .env | cut -d= -f2)
@@ -53,6 +72,29 @@ echo "  Data Directory:      $THOTH_DATA_DIR"
 echo "  Workspace Directory: $THOTH_WORKSPACE_DIR"
 echo "  Thoth Port:          $THOTH_PORT"
 echo "  Ollama URL:          $OLLAMA_BASE_URL"
+
+# Offer to use recommended storage location if available
+if [[ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ]]; then
+    echo ""
+    echo -e "${GREEN}✓ Recommended external storage location found:${NC}"
+    echo "  $DISK_CHECK_RECOMMENDED_DATA_DIR"
+    echo ""
+    read -p "Update .env to use external drive? [Y/n] " USE_RECOMMENDED
+    if [[ "$USE_RECOMMENDED" != "n" && "$USE_RECOMMENDED" != "N" ]]; then
+        sed -i.bak "s|^THOTH_DATA_DIR=.*|THOTH_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR|" .env
+        sed -i.bak "s|^THOTH_WORKSPACE_DIR=.*|THOTH_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR|" .env
+
+        # Re-read updated .env
+        THOTH_DATA_DIR=$(grep "^THOTH_DATA_DIR=" .env | cut -d= -f2)
+        THOTH_WORKSPACE_DIR=$(grep "^THOTH_WORKSPACE_DIR=" .env | cut -d= -f2)
+        THOTH_DATA_DIR="${THOTH_DATA_DIR/#\~/$HOME}"
+        THOTH_WORKSPACE_DIR="${THOTH_WORKSPACE_DIR/#\~/$HOME}"
+
+        echo -e "${GREEN}✓ .env updated with external drive paths${NC}"
+        echo "  Data Directory:      $THOTH_DATA_DIR"
+        echo "  Workspace Directory: $THOTH_WORKSPACE_DIR"
+    fi
+fi
 
 # Create directories
 echo -e "\n${GREEN}✓ Creating data directories${NC}"
@@ -107,10 +149,13 @@ echo "  1. Review and customize .env if needed"
 echo "  2. Ensure Ollama is running: ollama serve"
 echo "  3. Start Thoth: docker-compose up -d"
 echo "  4. Open http://localhost:${THOTH_PORT}"
+echo "  5. Monitor disk usage: ./scripts/thoth-maintenance.sh"
 echo ""
 echo -e "${GREEN}Useful commands:${NC}"
-echo "  docker-compose up -d          # Start in background"
-echo "  docker-compose logs -f        # View logs"
-echo "  docker-compose ps             # Check status"
+echo "  docker-compose up -d           # Start in background"
+echo "  docker-compose logs -f         # View logs"
+echo "  docker-compose ps              # Check status"
 echo "  docker-compose exec thoth bash # Open shell in container"
+echo "  ./scripts/disk-check.sh         # Check storage recommendations"
+echo "  ./scripts/thoth-maintenance.sh  # Cleanup & monitoring"
 echo ""

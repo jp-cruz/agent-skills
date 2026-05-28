@@ -20,6 +20,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-05-27
+
+**Status:** Storage intelligence added. Disk management tools fully functional.
+
+### Added
+
+- ✨ `scripts/disk-check.sh` — Drive detection, speed testing, storage recommendation engine
+  - Detects OS, identifies mounted volumes
+  - Classifies external drives (Thunderbolt, USB) with connection types
+  - Tests drive speed (~3 sec per candidate)
+  - Analyzes Docker storage usage
+  - Exports recommendations for setup.sh to consume
+- 🧹 `scripts/thoth-maintenance.sh` — Interactive cleanup and archival
+  - Disk usage reporting (current footprint)
+  - Docker cleanup: build cache, stopped containers, dangling images
+  - Log truncation, workspace archival
+  - Automated cron scheduling (weekly)
+- 📖 `references/DISK_MANAGEMENT.md` — Complete storage management guide
+  - Why Thoth grows (memory.db, threads.db, caches)
+  - Space timeline estimates (by use case)
+  - External drive recommendations (Thunderbolt > USB-C > USB-A)
+  - How to move data to external drive
+  - Docker data-root relocation (all platforms)
+  - Cleanup and archival strategies
+- ⚙️ **Disk Space Planning section** in README.md with size estimates
+- 🌐 **Claude Code CLI recommendation** in SKILL.md with install instructions
+
+### Changed
+
+- `scripts/preflight-check.sh` — Added Windows WSL2 prerequisite check
+  - Detects if WSL is installed (required for Docker Desktop on Windows)
+  - Verifies WSL version is 2, not 1 (WSL1 is too slow for Docker)
+  - Checks Docker Desktop backend configuration
+  - If WSL missing: explains why it's critical, offers to launch PowerShell installer
+  - If WSL1 only: shows upgrade command
+  - If Docker not using WSL2: shows exact steps to enable in Docker Settings
+- `scripts/setup.sh` — Integrated disk-check.sh assessment
+  - Now calls disk-check.sh before Docker checks
+  - Shows storage warnings if space constrained
+  - Interactively prompts to use recommended external drive
+  - Auto-updates .env paths if user approves
+  - Added maintenance tool to "Next steps" output
+- `.env.example` — Disk space warning and external drive examples
+- `SKILL.md` — Version bumped to 0.6.0, added Claude Code CLI section
+
+### Why These Changes
+
+Thoth's memory system grows 1–3 GB/week. Mac Mini M4 users with 256GB drives hit disk constraints quickly. The updates provide:
+1. **Early warning:** disk-check.sh runs at setup time
+2. **Smart recommendations:** detects external drives, suggests best location
+3. **Proactive guidance:** .env.example and README warn users upfront
+4. **Ongoing maintenance:** thoth-maintenance.sh offers cleanup and archival
+5. **User-friendly:** interactive prompts in setup.sh, no manual .env editing needed
+
+---
+
 ## [0.5.0] - 2026-05-25
 
 **Status:** Feature-complete, tested on macOS Tahoe. Linux and Windows validation pending.

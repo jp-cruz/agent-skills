@@ -44,6 +44,118 @@ echo "  Architecture: $ARCH"
 echo "  Shell: $SHELL"
 
 # ============================================================================
+# SECTION 1.5: WINDOWS WSL2 PREREQUISITE CHECK (Windows only)
+# ============================================================================
+
+if [[ "$OS" == "windows" ]]; then
+    echo -e "\n${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║      WINDOWS PREREQUISITE: WSL2                           ║${NC}"
+    echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${NC}"
+
+    echo ""
+    echo "  Docker Desktop on Windows requires WSL2 (Windows Subsystem"
+    echo "  for Linux v2). Without it, containers are slow, unstable, or"
+    echo "  fail entirely. This is Microsoft and Docker's official recommendation."
+    echo ""
+
+    # --- Sub-check A: Is WSL installed at all? ---
+    WSL_INSTALLED=0
+    WSL_HAS_V2=0
+
+    if wsl --list --verbose > /dev/null 2>&1; then
+        WSL_INSTALLED=1
+        # wsl output has UTF-16 BOM + CRLF; try iconv first, fall back to tr
+        WSL_OUTPUT=$(wsl --list --verbose 2>&1 | iconv -f utf-16 -t utf-8 2>/dev/null || wsl --list --verbose 2>&1)
+
+        if echo "$WSL_OUTPUT" | grep -q " 2 "; then
+            WSL_HAS_V2=1
+        fi
+    fi
+
+    # --- Sub-check B: Is Docker Desktop using WSL2 backend? ---
+    DOCKER_USES_WSL2=0
+    DOCKER_SETTINGS_PATH="${USERPROFILE}/AppData/Roaming/Docker/settings.json"
+    # Translate Windows path to Git Bash path
+    DOCKER_SETTINGS_BASH=$(echo "$DOCKER_SETTINGS_PATH" | sed 's|\\|/|g' | sed 's|C:|/c|')
+
+    if [[ -f "$DOCKER_SETTINGS_BASH" ]]; then
+        if grep -q '"wslEngineEnabled":true' "$DOCKER_SETTINGS_BASH" 2>/dev/null || \
+           grep -q '"wslEngineEnabled": true' "$DOCKER_SETTINGS_BASH" 2>/dev/null; then
+            DOCKER_USES_WSL2=1
+        fi
+    fi
+
+    # --- Report and act ---
+
+    if [[ $WSL_INSTALLED -eq 0 ]]; then
+        echo -e "  ${RED}✗ WSL is NOT installed${NC}"
+        echo ""
+        echo -e "  ${YELLOW}Why WSL2 matters:${NC}"
+        echo "    • Docker Desktop uses WSL2 as its Linux kernel on Windows"
+        echo "    • Without it: containers start 10–30x slower"
+        echo "    • Many Thoth features require a real Linux process"
+        echo "    • Microsoft ships WSL2 free with all Windows 10/11 versions"
+        echo ""
+        echo -e "  ${YELLOW}To install WSL2:${NC}"
+        echo "    Run this in PowerShell (as Administrator):"
+        echo "      wsl --install"
+        echo "    Then restart your computer."
+        echo ""
+        echo -e "  ${YELLOW}Or let this script open PowerShell for you:${NC}"
+        read -p "  Open PowerShell as Administrator to install WSL2? [y/N] " INSTALL_WSL
+        if [[ "$INSTALL_WSL" == "y" || "$INSTALL_WSL" == "Y" ]]; then
+            powershell.exe -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command wsl --install'"
+            echo ""
+            echo -e "  ${YELLOW}→ PowerShell launched. Run setup again after restart.${NC}"
+            exit 0
+        fi
+
+    elif [[ $WSL_HAS_V2 -eq 0 ]]; then
+        echo -e "  ${YELLOW}⚠ WSL is installed but only WSL1 found${NC}"
+        echo ""
+        echo "  WSL1 uses a compatibility layer — it's too slow for Docker"
+        echo "  and many Thoth operations will fail or timeout."
+        echo ""
+        echo -e "  ${YELLOW}Upgrade to WSL2:${NC}"
+        echo "    1. Open PowerShell as Administrator"
+        echo "    2. Run: wsl --set-default-version 2"
+        echo "    3. Upgrade your distro:"
+        echo "       wsl --set-version <DistroName> 2"
+        echo "    (Run 'wsl -l' to see your distro name)"
+        echo ""
+        read -p "  Open PowerShell as Administrator to upgrade WSL2? [y/N] " UPGRADE_WSL
+        if [[ "$UPGRADE_WSL" == "y" || "$UPGRADE_WSL" == "Y" ]]; then
+            powershell.exe -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile -ExecutionPolicy Bypass -Command wsl --set-default-version 2'"
+            echo -e "  ${YELLOW}→ PowerShell launched. Confirm upgrade, then re-run setup.${NC}"
+        fi
+
+    else
+        echo -e "  ${GREEN}✓ WSL2 is installed${NC}"
+    fi
+
+    # Docker Desktop backend check
+    if [[ $WSL_HAS_V2 -eq 1 ]]; then
+        if [[ $DOCKER_USES_WSL2 -eq 1 ]]; then
+            echo -e "  ${GREEN}✓ Docker Desktop is using WSL2 backend${NC}"
+        else
+            echo -e "  ${YELLOW}⚠ Docker Desktop may not be using WSL2 backend${NC}"
+            echo ""
+            echo "  To verify and fix:"
+            echo "    1. Open Docker Desktop"
+            echo "    2. Go to: Settings → General"
+            echo "    3. Enable: 'Use the WSL 2 based engine'"
+            echo "    4. Click 'Apply & Restart'"
+            echo ""
+            echo "  Why this matters:"
+            echo "    • WSL2 backend: fast, stable, full Linux kernel"
+            echo "    • Hyper-V backend: slower, more memory, less compatible"
+        fi
+    fi
+
+    echo ""
+fi
+
+# ============================================================================
 # SECTION 2: DETECT LLM BACKENDS
 # ============================================================================
 

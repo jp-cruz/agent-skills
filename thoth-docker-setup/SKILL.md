@@ -6,7 +6,7 @@ compatibility: Requires Docker 20.10+, Docker Compose 1.29+, bash 4.0+, and curl
 metadata:
   author: Claude Sonnet 4.6 (run by JP Cruz)
   contact: jp@legionforge.org
-  version: "0.5.0"
+  version: "0.6.0"
   category: deployment
   tested-platforms: macOS Tahoe (M4), Linux/Windows validation pending
 ---
@@ -22,8 +22,29 @@ Production-ready Docker Compose configuration for deploying Thoth with cross-pla
 - **Multi-provider LLM integration** — Seamless support for Ollama, OpenRouter, OpenAI, and Anthropic
 - **Environment detection** — Automatically detects OS, installed LLM backends, Python environment, and secrets management
 - **Persistent data volumes** — Application data and workspace files survive container restarts
+- **Storage intelligence** — Disk space monitoring, external drive recommendation, cleanup tools
 - **Security hardening** — Non-root user execution, pinned base images, no hardcoded secrets
 - **Comprehensive documentation** — Setup guides, troubleshooting, Docker education for beginners
+
+## Best Experience: Run via Claude Code CLI
+
+This skill is designed to be invoked via **Claude Code CLI** (`claude` in terminal).
+
+If you're reading this from Claude.ai (web) or the Claude desktop app, you'll get a much better setup experience running it from the command line where Claude can:
+- Execute scripts directly in your environment
+- Read your actual drive configuration
+- Interactively ask you questions during setup
+- Monitor Docker logs in real time
+
+**To install Claude Code CLI:**
+```bash
+npm install -g @anthropic-ai/claude-code
+claude  # start an interactive session
+```
+
+Then ask: "Help me set up thoth-docker-setup" and Claude will run the disk check, guide you through storage selection, and verify everything is working.
+
+The web/desktop Claude can still help you understand configuration, but cannot execute scripts or read your system state directly.
 
 ## Quick start
 
