@@ -14,15 +14,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Non-root user**: Thoth runs as user `thoth` (UID 1000) for security; all files are owned by this user
 - **Specific Git commit**: The Dockerfile pins Thoth to commit `deb5d11` to ensure reproducible builds
 
-### Architecture Improvements (v0.5.1+)
+### Architecture Improvements (v0.6.0+)
 
 ✅ **Implemented:**
 - Multi-stage Dockerfile build (separate builder and runtime stages) — reduces final image size by ~50%
+- **Pure Docker volumes** (not host bind mounts) for portable, upgradeable setup
 - Optimized .dockerignore for minimal build context
 - Environment file (.env) support with sensible defaults
 - Fixed PYTHONPATH syntax with absolute paths
 - Health check in docker-compose.yml and Dockerfile
 - Automated setup.sh script to initialize directories and validate Ollama connectivity
+- **All required utilities in runtime** (git, nano, jq, less, tree, file, unzip, vim-tiny) — MUST NOT be removed
+- **Developer Studio symlink** for workspace accessibility (`/home/thoth/Documents/Thoth/projects`)
+- Tested upgrade and disaster recovery procedures
 
 ## Quick Start
 
@@ -164,14 +168,27 @@ All paths and ports are configurable through `.env`:
 - `PYTHONPATH`: Includes user-level pip packages
 - Container runs as non-root user `thoth` (UID 1000)
 
-### Volumes
+### Volumes (Pure Docker Volumes - Production Ready)
+
+This setup uses **pure Docker volumes** (not host bind mounts) for maximum stability and portability:
 
 - `thoth-data`: Stores Thoth application state, cache, and configuration
-  - Bind-mounted from `${THOTH_DATA_DIR}`
-  - Container path: `/home/thoth/.thoth`
+  - **Location**: `/var/lib/docker/volumes/thoth-docker-setup_thoth-data/_data`
+  - **Container path**: `/home/thoth/.thoth`
+  - **Contents**: memory.db, memory_vectors, vault, api_keys.json, projects, configs
+  - **Portability**: Works identically on any machine with Docker (no host path dependencies)
+  
 - `thoth-workspace`: User workspace and project files
-  - Bind-mounted from `${THOTH_WORKSPACE_DIR}`
-  - Container path: `/app/workspace`
+  - **Location**: `/var/lib/docker/volumes/thoth-docker-setup_thoth-workspace/_data`
+  - **Container path**: `/app/workspace`
+  - **Portability**: Fully portable
+
+**Why pure Docker volumes (not bind mounts)?**
+- ✅ Portable: Same volumes work on any Docker host (macOS, Linux, Windows, cloud)
+- ✅ Upgrades are safe: Volumes persist across image updates and Thoth version upgrades
+- ✅ Disaster recovery is clean: Backup/restore volumes anywhere
+- ✅ No host filesystem dependencies: Data stays with Docker, not tied to `/path/on/host`
+- ✅ Permission-safe: Consistent UID/GID handling (thoth user = UID 1000)
 
 ## Before Making Changes
 
@@ -195,19 +212,23 @@ All paths and ports are configurable through `.env`:
    netstat -tlnp | grep ${THOTH_PORT:-8080}  # Linux
    ```
 
-## Included Development Utilities
+## ⚠️ CRITICAL: Required Runtime Utilities
 
-The Dockerfile installs these utilities as root, accessible to the `thoth` user:
+The following utilities **MUST ALWAYS be included** in the Docker runtime stage. These are not optional:
 
-| Utility | Purpose | Use Case |
-|---------|---------|----------|
-| **nano** | Text editor | Edit config files without rebuilding container |
-| **vim-tiny** | Vi implementation | For power users |
-| **jq** | JSON processor | Debug Ollama API responses |
-| **less** | File pager | View large logs efficiently |
-| **file** | File type checker | Verify file formats |
-| **tree** | Directory explorer | Visualize workspace structure |
-| **unzip** | Archive extraction | Handle model/config packages |
+```dockerfile
+git curl ffmpeg nano vim-tiny less file tree jq unzip
+```
+
+**Why they're mandatory:**
+- **git**: Required for committing/pushing changes, managing project state, and Thoth's developer tools
+- **curl/ffmpeg**: Core Thoth dependencies for API calls and media processing
+- **nano/vim-tiny**: Essential for editing config files and scripts inside the container
+- **less/file/tree**: Debugging and exploration tools that Thoth and its skills depend on
+- **jq**: JSON processing for API response debugging
+- **unzip**: Archive extraction for model packages and configurations
+
+**Do NOT remove these from the runtime stage** even when optimizing image size. They are essential for Thoth's functionality and developer workflows. If size optimization is needed, use other strategies (layer caching, image compression, etc.) but keep these utilities installed.
 
 See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on each utility's necessity and safety.
 
@@ -233,12 +254,70 @@ This is ready for distribution as an agent skill:
 - **Quick Start:** Pre-configured setup scripts for all platforms
 - **Documentation:** README, CLAUDE, SKILL, UTILITIES_ANALYSIS
 
+## Upgrading Thoth (Safe & Stable)
+
+To upgrade Thoth to a new version:
+
+1. **Update Dockerfile** (line 11):
+   ```dockerfile
+   RUN git clone https://github.com/siddsachar/Thoth.git . && \
+       git checkout <NEW_VERSION_TAG>  # e.g., v3.24.0
+   ```
+
+2. **Rebuild and restart**:
+   ```bash
+   docker-compose build --no-cache
+   docker-compose up -d
+   ```
+
+3. **Data is completely safe**: Volumes persist across this entire process
+   - memory.db, vault, projects, configs all remain intact
+   - Container restarts with new Thoth code, same data
+   - Zero data loss risk
+
+## Disaster Recovery
+
+**Backing up data:**
+```bash
+# Full volume backup (includes everything)
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
+```
+
+**Restoring from backup:**
+```bash
+# Stop container
+docker-compose down
+
+# Restore volume
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
+
+# Restart
+docker-compose up -d
+```
+
+**Important**: The `thoth-memory-backup-to-github` skill backs up only memory.db. For full disaster recovery, also backup Docker volumes using the procedure above.
+
+## Troubleshooting Stability
+
+**Issue: Container restarts repeatedly**
+- Check logs: `docker-compose logs --tail=50 thoth`
+- Often caused by file permission issues
+- Fix: `docker run --rm -v thoth-docker-setup_thoth-data:/data alpine chown -R 1000:1000 /data`
+
+**Issue: Permission denied on files**
+- Happens after restoring backups (files may be owned by different UID)
+- Fix ownership: `docker run --rm -v thoth-docker-setup_thoth-data:/data alpine chown -R 1000:1000 /data`
+
+**Issue: Projects not visible in Developer Studio**
+- Ensure symlink exists: `docker-compose exec thoth ln -s /home/thoth/.thoth/Documents/Thoth/projects /home/thoth/Documents/Thoth/projects`
+- This should be automatic but may need recreation after container rebuilds
+
 ## Future Enhancements (Optional)
 
-- Multi-stage Dockerfile build for smaller image size (~15% reduction)
-- Docker Buildkit support for faster builds
-- Health check configuration in docker-compose.yml
+- Automatic symlink creation in entrypoint script (for Developer Studio portability)
+- Expand backup skill to full volume backup (v0.4.0)
 - GitHub Actions CI/CD pipeline for cross-platform testing
 - Pre-built images on Docker Hub for instant startup
 - Kubernetes manifests for orchestration
-- Helm chart for enterprise deployments

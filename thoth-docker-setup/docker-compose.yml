@@ -25,13 +25,5 @@ services:
 volumes:
   thoth-data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${THOTH_DATA_DIR:-./thoth-data}
   thoth-workspace:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${THOTH_WORKSPACE_DIR:-./thoth-workspace}

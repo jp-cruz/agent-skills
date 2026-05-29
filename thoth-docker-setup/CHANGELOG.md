@@ -20,6 +20,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.2] - 2026-05-29
+
+**Status:** Production-ready. Pure Docker volumes, tested upgrade path, disaster recovery procedures.
+
+### Added
+
+- 🔒 **Pure Docker Volumes (v0.6.0+)** — Production-ready architecture
+  - Migrated from host bind mounts to Docker-managed volumes
+  - Eliminates permission issues and portability concerns
+  - Volumes now live in `/var/lib/docker/volumes/` (host-independent)
+  - Zero data loss on container restarts, upgrades, or rebuilds
+  - Works identically on any Docker host (macOS, Linux, Windows, cloud)
+
+- 📚 **Migration Guide** — MIGRATION.md for upgrading from v0.5.x
+  - Step-by-step instructions for existing users
+  - Backup procedures before migration
+  - Troubleshooting common migration issues
+  - Verification checklist for successful migration
+
+- 🛡️ **Disaster Recovery Procedures** — Tested and documented
+  - Full volume backup command examples
+  - Reliable restore procedures with ownership fixes
+  - Tested on real recovery scenarios
+  - Documented in CLAUDE.md and MIGRATION.md
+
+- 🚀 **Safe Upgrade Path** — Proven Thoth version upgrades
+  - Documented how to upgrade Thoth without risking data
+  - Volumes persist across image rebuilds and version changes
+  - No permission issues or data loss during upgrades
+
+### Changed
+
+- 🔧 **CLAUDE.md** — Updated with new volume architecture
+  - Clarified pure Docker volumes vs old bind mounts
+  - Added upgrade instructions for Thoth versions
+  - Added disaster recovery section with examples
+  - Added troubleshooting for permission and symlink issues
+  - Marked v0.5.x approaches as deprecated
+
+- 📝 **Environment Configuration** (.env.example)
+  - Clarified that THOTH_DATA_DIR/THOTH_WORKSPACE_DIR are deprecated
+  - Added notes about Docker volume location and inspection
+  - Added backup command examples for reference
+
+### Fixed
+
+- 🐛 **Permission Issues on Data Restore**
+  - Documented ownership fix: `chown -R 1000:1000 /data`
+  - Applies automatically during clean restore procedure
+  - Prevents "Permission denied" errors after migrations
+
+- 🔗 **Developer Studio Path Access**
+  - Symlink recreation procedure documented
+  - Can be made automatic in future versions
+  - Workaround provided for manual recreation
+
+### Verified
+
+- ✅ Thoth v3.23.1 upgrade from v3.22.0 (data persists)
+- ✅ Container restarts preserve all data in volumes
+- ✅ Docker upgrades don't affect volume integrity
+- ✅ Backup/restore cycle tested and working
+- ✅ All required utilities (git, nano, jq, etc.) in runtime
+- ✅ Multi-machine portability of volumes
+
+---
+
 ## [0.6.1] - 2026-05-27
 
 **Status:** UX redesign complete. Single entry point (./setup.sh), unified configuration panel, smart defaults with visibility. CLI-only execution enforced.

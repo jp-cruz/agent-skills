@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 RUN git clone https://github.com/siddsachar/Thoth.git . && \
-    git checkout deb5d11
+    git checkout v3.23.1
 
 RUN pip install --no-cache-dir --user -r requirements.txt && \
     pip install --no-cache-dir --user --upgrade keyring keyrings.alt
@@ -21,7 +21,11 @@ RUN useradd -m -u 1000 thoth && \
     chown thoth:thoth /home/thoth/.thoth
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl ffmpeg \
+    curl ffmpeg git \
+    nano vim-tiny \
+    less file tree \
+    jq \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
