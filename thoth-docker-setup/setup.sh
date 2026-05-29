@@ -85,6 +85,18 @@ RAM_GB=$(free -g 2>/dev/null | awk 'NR==2 {print $2}' || \
          vm_stat 2>/dev/null | grep "Pages free:" | awk '{print int($3/256000)}' || \
          echo "unknown")
 
+# Detect GPU
+GPU_TYPE="none"
+if command -v nvidia-smi &> /dev/null; then
+    GPU_VRAM=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -1)
+    if [ ! -z "$GPU_VRAM" ]; then
+        GPU_TYPE="nvidia"
+        GPU_VRAM_GB=$((GPU_VRAM / 1024))
+    fi
+elif system_profiler SPDisplaysDataType 2>/dev/null | grep -q "Metal"; then
+    GPU_TYPE="apple-metal"
+fi
+
 # Detect Ollama
 OLLAMA_RUNNING=false
 if curl -s http://localhost:11434/api/tags > /dev/null 2>&1 || \
@@ -109,6 +121,13 @@ fi
 # Print scan results
 echo -e "${GREEN}✓ System Scan Results${NC}"
 echo "  RAM: $([[ "$RAM_GB" != "unknown" ]] && echo "${RAM_GB}GB" || echo "Unable to detect")"
+if [[ "$GPU_TYPE" == "nvidia" ]]; then
+    echo "  GPU: NVIDIA (${GPU_VRAM_GB}GB VRAM) — vLLM or accelerated Ollama recommended ✓"
+elif [[ "$GPU_TYPE" == "apple-metal" ]]; then
+    echo "  GPU: Apple Metal — oMLX or Ollama recommended ✓"
+else
+    echo "  GPU: None detected (will use CPU or cloud LLM)"
+fi
 [[ "$DOCKER_OK" == "true" ]] && echo "  Docker: Installed (v${DOCKER_VERSION}) ✓" || echo "  Docker: Not installed ✗"
 [[ "$OLLAMA_RUNNING" == "true" ]] && echo "  Ollama: Running ✓" || echo "  Ollama: Not running (will use cloud LLM)"
 [[ "$PORT_8080_AVAILABLE" == "true" ]] && echo "  Port 8080: Available ✓" || echo "  Port 8080: In use (⚠️ may need to configure different port)"
@@ -164,6 +183,12 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
     if [[ "$RAM_GB" != "unknown" && "$RAM_GB" -lt 8 ]]; then
         RECOMMENDED_LLM="openrouter"
         RECOMMENDED_LLM_MSG="Cloud LLM (your hardware is <8GB RAM)"
+    elif [[ "$GPU_TYPE" == "nvidia" && "$GPU_VRAM_GB" -ge 8 ]]; then
+        RECOMMENDED_LLM="ollama"
+        RECOMMENDED_LLM_MSG="Local Ollama with GPU acceleration (NVIDIA ${GPU_VRAM_GB}GB)"
+    elif [[ "$GPU_TYPE" == "apple-metal" ]]; then
+        RECOMMENDED_LLM="ollama"
+        RECOMMENDED_LLM_MSG="Local Ollama (Apple Metal optimized)"
     elif [[ "$OLLAMA_RUNNING" == "true" ]]; then
         RECOMMENDED_LLM="ollama"
         RECOMMENDED_LLM_MSG="Local Ollama (detected on your machine)"

@@ -49,13 +49,16 @@ Running `./setup.sh` guides you through two options:
 | Goal | Start Here | Time |
 |------|-----------|------|
 | **First time setup** | Run `./setup.sh` (Quick or Advanced) | 5-10 min |
+| **Verify setup works** | Run `./health-check.sh` | 1 min |
+| **Estimate monthly costs** | Run `./estimate-costs.sh` | 5 min |
 | **Why Docker?** | [DOCKER_WHY.md](DOCKER_WHY.md) | 5 min |
 | **LLM options** | [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) | 10 min |
+| **First steps with Thoth** | [GETTING_STARTED.md](GETTING_STARTED.md) | 5 min |
+| **Bug report / debugging** | Run `./diagnostics.sh` | 2 min |
 | **Upgrading from v0.5.x** | [MIGRATION.md](MIGRATION.md) | 15 min |
 | **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
 | **Network/firewall setup** | [NETWORK_SETUP.md](references/NETWORK_SETUP.md) | 10 min |
-| **Disaster recovery testing** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
-| **Contributing/Development** | [CONTRIBUTING.md](CONTRIBUTING.md) | — |
+| **Disaster recovery** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
 
 ---
 
@@ -78,23 +81,26 @@ Open your browser to `http://localhost:8080`
 
 ---
 
-## Advanced Options
+## Useful Scripts
 
-For more control, you can run these before setup:
-
-**Storage Assessment (detect external drives):**
+**Health Check (verify setup works):**
 ```bash
-./scripts/disk-check.sh
+./health-check.sh
+# Checks: Docker, Thoth container, Ollama, disk space, LLM provider
 ```
 
-**Full Environment Scan (LLM backends, Docker, WSL2, secrets):**
+**Cost Estimator (monthly LLM expenses):**
 ```bash
-./scripts/preflight-check.sh
+./estimate-costs.sh
+# Interactive tool to estimate costs for different providers
+# Helps choose between Ollama (free), OpenAI, Claude, OpenRouter
 ```
 
-**Intelligent Guided Setup via Claude Code CLI:**
+**Diagnostics (for bug reports):**
 ```bash
-claude  # Start Claude Code CLI, then ask: "Help me set up thoth-docker-setup"
+./diagnostics.sh
+# Collects system info, Docker status, logs (with secrets removed)
+# Safe to share in GitHub issues
 ```
 
 ---
