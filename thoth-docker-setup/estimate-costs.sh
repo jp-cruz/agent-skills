@@ -124,20 +124,26 @@ echo "  ~5% cheaper than direct Anthropic"
 echo -e "  ${GREEN}Monthly: \$$OPENROUTER_CLAUDE_COST${NC}"
 echo ""
 
-# Local Ollama (free, electricity cost)
+# Local Ollama (electricity + hardware amortization if buying new GPU)
 HOURLY_POWER_W=50  # Typical GPU/CPU power draw during inference
 COST_PER_KWH=0.12  # US average
 DAILY_HOURS=2  # Average usage
 MONTHLY_HOURS=$((DAILY_HOURS * 30))
 MONTHLY_KWH=$(awk "BEGIN {printf \"%.2f\", $MONTHLY_HOURS * $HOURLY_POWER_W / 1000}")
-OLLAMA_COST=$(awk "BEGIN {printf \"%.2f\", $MONTHLY_KWH * $COST_PER_KWH}")
+ELECTRICITY_COST=$(awk "BEGIN {printf \"%.2f\", $MONTHLY_KWH * $COST_PER_KWH}")
 
+# Hardware amortization: only if buying a new GPU specifically for Thoth
+GPU_AMORTIZATION=0  # Default: already own hardware
 echo -e "${YELLOW}Ollama (Local - electricity only)${NC}"
-echo "  Estimated usage: $MONTHLY_HOURS hours/month"
-echo "  Power draw: ~${HOURLY_POWER_W}W"
-echo "  Monthly energy: ${MONTHLY_KWH} kWh"
-echo "  Electricity cost (\$0.12/kWh): \$$OLLAMA_COST"
-echo -e "  ${GREEN}Monthly: \$$OLLAMA_COST${NC}"
+echo "  Estimated usage: $MONTHLY_HOURS hours/month at ~${HOURLY_POWER_W}W"
+echo "  Monthly electricity: ${MONTHLY_KWH} kWh = \$$ELECTRICITY_COST"
+echo -e "  ${GREEN}Monthly (if you already own hardware): \$$ELECTRICITY_COST${NC}"
+echo ""
+echo -e "  ${BLUE}Important Note:${NC}"
+echo "    • Costs shown assume you already have a GPU or Mac with integrated GPU"
+echo "    • If buying a NEW GPU for Ollama: add \$33/month (\$800 GPU / 24 months)"
+echo "    • Total with new hardware: \$$(awk "BEGIN {printf \"%.2f\", $ELECTRICITY_COST + 33.33}")/month"
+echo "    • Most users already own hardware → electricity cost only"
 echo ""
 
 # Summary
@@ -146,9 +152,9 @@ echo -e "${BLUE}                        Quick Summary${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-echo "Ranked by monthly cost:"
+echo "Ranked by monthly cost (assuming existing hardware):"
 COSTS=(
-    "Ollama (Local)|$OLLAMA_COST"
+    "Ollama (electricity only)|$ELECTRICITY_COST"
     "OpenRouter (Mistral)|$OPENROUTER_CHEAP_COST"
     "OpenRouter (Claude Sonnet)|$OPENROUTER_CLAUDE_COST"
     "Anthropic (Claude Sonnet)|$ANTHROPIC_COST"
@@ -166,10 +172,15 @@ done
 echo ""
 echo -e "${YELLOW}💡 Recommendations:${NC}"
 echo ""
-echo "  For ${GREEN}best value${NC}: OpenRouter with Mistral (\$${OPENROUTER_CHEAP_COST}/mo)"
+echo "  For ${GREEN}lowest cost (have GPU)${NC}: Ollama (\$${ELECTRICITY_COST}/mo electricity)"
+echo "  For ${GREEN}lowest cost (no GPU)${NC}: OpenRouter Mistral (\$${OPENROUTER_CHEAP_COST}/mo)"
 echo "  For ${GREEN}best quality${NC}: Claude 3 Opus (\$${ANTHROPIC_OPUS_COST}/mo)"
-echo "  For ${GREEN}privacy${NC}: Ollama (local, ~\$${OLLAMA_COST}/mo in electricity)"
-echo "  For ${GREEN}balanced${NC}: Claude 3 Sonnet (\$${ANTHROPIC_COST}/mo)"
+echo "  For ${GREEN}privacy & offline${NC}: Ollama (local, no API keys needed)"
+echo "  For ${GREEN}balanced price/quality${NC}: Claude 3 Sonnet (\$${ANTHROPIC_COST}/mo)"
+echo ""
+echo -e "${BLUE}Hardware cost note:${NC}"
+echo "  If buying a GPU specifically for Ollama (~\$800 RTX 4060): add \$33/month amortization"
+echo "  Most home users already have GPUs → electricity cost only (\$${ELECTRICITY_COST}/mo)"
 echo ""
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
