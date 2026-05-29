@@ -53,14 +53,43 @@ THOTH_PORT=8080
 
 **How it works:**
 - `0.0.0.0` tells Thoth to listen on all local network interfaces
-- Your router/firewall blocks external internet access
+- **Assumes:** Your router/firewall blocks external internet access
 - Only devices on your LAN can reach it
+
+**⚠️ IMPORTANT: Firewall Assumption**
+
+This setup assumes you have an **active firewall** blocking port 8080 from the internet.
+
+**Most users are safe because:**
+- ✅ Modern routers (ASUS, TP-Link, Netgear, etc.) have firewalls enabled by default
+- ✅ Most operating systems (macOS, Windows, Linux) have OS-level firewalls
+- ✅ Consumer-grade equipment blocks inbound connections by default
+
+**Verify your firewall:**
+```bash
+# Check if firewall is enabled
+./health-check.sh    # Includes firewall status check
+
+# macOS
+sudo pfctl -s info | grep Status
+
+# Linux (UFW)
+sudo ufw status
+
+# Linux (firewalld)
+sudo firewall-cmd --state
+```
+
+**If firewall is disabled:**
+- ⚠️ LAN access may be exposed to the internet
+- Enable your router's firewall (check router admin panel)
+- Or switch to `THOTH_BIND=127.0.0.1` (localhost only)
 
 **Security considerations:**
 - ⚠️ No authentication by default (anyone on LAN can access)
-- ✅ Protected by firewall (not accessible from internet)
-- ✅ Run behind reverse proxy (Nginx, Caddy) for authentication
-- ✅ Consider adding firewall rules to restrict to trusted devices
+- ✅ Protected by firewall (not accessible from internet, if firewall is enabled)
+- ✅ Add reverse proxy (Nginx, Caddy) for authentication
+- ✅ Configure router firewall rules to restrict to trusted devices
 
 ### Option 2: Internet Access (Production)
 

@@ -117,6 +117,43 @@ else
 fi
 
 # ============================================================================
+# CHECK 4b: Firewall status (important for LAN access)
+# ============================================================================
+
+echo ""
+echo -e "${YELLOW}Checking firewall...${NC}"
+
+FIREWALL_STATUS="unknown"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS: check pf (packet filter)
+    if sudo pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
+        check_pass "Firewall: Enabled (blocks external access)"
+        FIREWALL_STATUS="enabled"
+    elif sudo pfctl -s info 2>/dev/null | grep -q "Status: Disabled"; then
+        check_fail "Firewall: Disabled (⚠️ if using LAN access, configure router firewall)"
+        FIREWALL_STATUS="disabled"
+    fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux: check ufw or firewalld
+    if sudo ufw status 2>/dev/null | grep -q "Status: active"; then
+        check_pass "Firewall: Enabled (ufw active)"
+        FIREWALL_STATUS="enabled"
+    elif sudo firewall-cmd --state 2>/dev/null | grep -q "running"; then
+        check_pass "Firewall: Enabled (firewalld running)"
+        FIREWALL_STATUS="enabled"
+    else
+        check_warn "Firewall status: Unable to determine (check manually)"
+    fi
+else
+    check_warn "Firewall status: Unable to check on this OS"
+fi
+
+if [[ "$FIREWALL_STATUS" == "disabled" ]]; then
+    check_warn "⚠️  If using THOTH_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
+    check_warn "    Otherwise, Thoth may be exposed to the internet"
+fi
+
+# ============================================================================
 # CHECK 5: Container status
 # ============================================================================
 

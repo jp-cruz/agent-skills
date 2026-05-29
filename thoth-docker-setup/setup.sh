@@ -37,6 +37,39 @@ echo "Setting up Thoth in Docker for safe, isolated AI agent deployment."
 echo ""
 
 # ============================================================================
+# CHECK 1: DOCKER OR RANCHER INSTALLED (GATING)
+# ============================================================================
+
+DOCKER_AVAILABLE=false
+DOCKER_PRODUCT="unknown"
+
+if command -v docker &> /dev/null; then
+    if docker info > /dev/null 2>&1; then
+        DOCKER_AVAILABLE=true
+        DOCKER_PRODUCT="Docker Desktop or Docker Engine"
+    fi
+fi
+
+if [ "$DOCKER_AVAILABLE" = false ]; then
+    echo -e "${RED}✗ Docker is not installed or not running${NC}"
+    echo ""
+    echo "Before continuing, you need to install Docker (or Rancher Desktop as an alternative)."
+    echo ""
+    echo "Options:"
+    echo "  1. Install Docker Desktop (recommended)"
+    echo "  2. Install Rancher Desktop (lighter weight)"
+    echo "  3. Already installed? Then start Docker and run this script again"
+    echo ""
+    echo "Full installation guide available in: DOCKER_GUIDE_FOR_BEGINNERS.md"
+    echo ""
+    echo "Quick links:"
+    echo "  • Docker Desktop: https://www.docker.com/products/docker-desktop"
+    echo "  • Rancher Desktop: https://rancherdesktop.io"
+    echo ""
+    exit 1
+fi
+
+# ============================================================================
 # SYSTEM SCANNING
 # ============================================================================
 
@@ -67,13 +100,6 @@ if curl -s http://localhost:11434/api/tags > /dev/null 2>&1 || \
     OLLAMA_RUNNING=true
 fi
 
-# Detect Docker
-DOCKER_OK=false
-if command -v docker &> /dev/null && docker info > /dev/null 2>&1; then
-    DOCKER_OK=true
-    DOCKER_VERSION=$(docker --version | grep -o 'version [0-9.]*' | grep -o '[0-9.]*')
-fi
-
 # Check port availability
 PORT_8080_AVAILABLE=true
 if lsof -i :8080 > /dev/null 2>&1 || \
@@ -91,7 +117,7 @@ elif [[ "$GPU_TYPE" == "apple-metal" ]]; then
 else
     echo "  GPU: None detected (will use CPU or cloud LLM)"
 fi
-[[ "$DOCKER_OK" == "true" ]] && echo "  Docker: Installed (v${DOCKER_VERSION}) ✓" || echo "  Docker: Not installed ✗"
+echo "  Docker: $DOCKER_PRODUCT ✓"
 [[ "$OLLAMA_RUNNING" == "true" ]] && echo "  Ollama: Running ✓" || echo "  Ollama: Not running (will use cloud LLM)"
 [[ "$PORT_8080_AVAILABLE" == "true" ]] && echo "  Port 8080: Available ✓" || echo "  Port 8080: In use (⚠️ may need to configure different port)"
 echo ""
