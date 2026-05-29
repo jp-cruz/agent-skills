@@ -4,19 +4,57 @@ Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/
 
 ---
 
+## Why Docker for Agent Software?
+
+**Running untrusted code on bare metal is risky:**
+- Malicious code could wipe your hard drive
+- Compromised agents can access your files and API keys
+- Security breaches expose your entire computer
+
+**Docker solves this** by isolating Thoth in a container:
+- Your files are protected
+- Your API keys and credentials stay safe
+- If Thoth is compromised, the damage is contained
+
+**Default setup is secure:** Localhost-only access, optional cloud LLM providers, non-root user.
+
+> **Learn more:** See [DOCKER_WHY.md](DOCKER_WHY.md) for detailed security explanation
+
+---
+
+## Quick Setup (Two Paths)
+
+Running `./setup.sh` guides you through two options:
+
+### Quick Setup (5 min)
+- System scans your hardware
+- Recommends safe defaults
+- One-click approval
+- Done — start Thoth immediately
+
+### Advanced Setup (10 min)
+- Same intelligent defaults
+- Detailed customization options
+- CTAs for power users
+- Fine-tune every setting
+
+**Both paths produce secure, safe-by-default configurations.**
+
+---
+
 ## Choose Your Path
 
 **What do you want to do?**
 
 | Goal | Start Here | Time |
 |------|-----------|------|
-| **First time setup** | Quick Start (below) | 5 min |
+| **First time setup** | Run `./setup.sh` (Quick or Advanced) | 5-10 min |
+| **Why Docker?** | [DOCKER_WHY.md](DOCKER_WHY.md) | 5 min |
+| **LLM options** | [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) | 10 min |
 | **Upgrading from v0.5.x** | [MIGRATION.md](MIGRATION.md) | 15 min |
 | **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
-| **Understanding architecture** | [ARCHITECTURE.md](references/ARCHITECTURE.md) | 15 min |
 | **Network/firewall setup** | [NETWORK_SETUP.md](references/NETWORK_SETUP.md) | 10 min |
 | **Disaster recovery testing** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
-| **Security considerations** | [SECURITY.md](SECURITY.md) | 10 min |
 | **Contributing/Development** | [CONTRIBUTING.md](CONTRIBUTING.md) | — |
 
 ---
@@ -153,9 +191,13 @@ docker-compose --version
 
 ---
 
-## Ollama Setup (If Using Local LLM)
+## Local LLM Setup (Optional)
 
-Thoth requires Ollama running on your host machine (if you choose local models). Ollama provides the LLM backend.
+Thoth can use local models (Ollama, llama.cpp, etc.) or cloud providers (OpenAI, Claude, OpenRouter).
+
+**If you choose a local model**, you need Ollama (or another backend) running on your host machine.
+
+> **Unsure which to choose?** See [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) for detailed comparison of options, tradeoffs, and hardware requirements.
 
 ### Install Ollama
 
@@ -188,43 +230,59 @@ ollama pull llama2
 
 ## Persistent Data
 
-Two volumes store data across container restarts:
+Two Docker volumes store data across container restarts:
 
-1. **thoth-data** (`${THOTH_DATA_DIR}`)
-   - Thoth application state, cache, configuration
+1. **thoth-docker-setup_thoth-data**
+   - Thoth application state, memory.db, configuration, API keys
    - Mounted at `/home/thoth/.thoth` inside container
+   - Location on host: `/var/lib/docker/volumes/thoth-docker-setup_thoth-data/_data`
 
-2. **thoth-workspace** (`${THOTH_WORKSPACE_DIR}`)
+2. **thoth-docker-setup_thoth-workspace**
    - User workspace and projects
    - Mounted at `/app/workspace` inside container
+   - Location on host: `/var/lib/docker/volumes/thoth-docker-setup_thoth-workspace/_data`
 
-Both are bind mounts, so files are stored on your host filesystem and survive container removal.
+**Why Docker volumes (not bind mounts)?**
+- ✅ Portable: Same volumes work on any Docker host
+- ✅ Safe upgrades: Data persists across Thoth version upgrades
+- ✅ Portable backups: Volumes can be backed up and restored anywhere
+- ✅ Permission-safe: Automatic UID/GID handling
+
+See [CLAUDE.md](CLAUDE.md) for full backup and disaster recovery procedures.
 
 ### Backup & Restore
 
-**Backup:**
+**Backup (full volume backup):**
 ```bash
-# Create backup tarball
-tar -czf thoth-backup-$(date +%Y%m%d).tar.gz \
-  "$(grep THOTH_DATA_DIR .env | cut -d= -f2)" \
-  "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+# Create backup of Thoth data volume
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
-**Restore:**
+**Restore from backup:**
 ```bash
-# Extract backup (after ensuring container is stopped)
-tar -xzf thoth-backup-20240525.tar.gz -C /
-```
+# Stop container
+docker-compose down
 
-**Full data reset:**
-```bash
-docker-compose down -v
-rm -rf "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
-rm -rf "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
-mkdir -p "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
-mkdir -p "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+# Restore volume
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
+
+# Fix ownership
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  alpine chown -R 1000:1000 /data
+
+# Restart
 docker-compose up -d
 ```
+
+**Full data reset (⚠️ deletes all data):**
+```bash
+docker-compose down -v
+docker-compose up -d
+```
+
+See [CLAUDE.md](CLAUDE.md) for complete backup, restore, and disaster recovery procedures including monthly testing guidance.
 
 ## Troubleshooting
 
