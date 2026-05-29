@@ -30,47 +30,10 @@ NC='\033[0m' # No Color
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}           Thoth Docker: Secure AI Agent Deployment${NC}"
+echo -e "${BLUE}                 Thoth Docker Setup${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "${GREEN}Setup Script Version: $SCRIPT_VERSION${NC}"
-echo -e "${GREEN}Thoth Version (from Dockerfile): $THOTH_VERSION${NC}"
-echo ""
-
-# Version comparison warning
-if [[ "$THOTH_VERSION" != "unknown" && ! "$THOTH_VERSION" =~ ^v[0-9] ]]; then
-    # If using commit hash
-    echo -e "${YELLOW}⚠️  WARNING: Setup script may not match Thoth version${NC}"
-    echo "This script was last tested with Thoth v3.23.1"
-    echo "Your Dockerfile uses commit: $THOTH_VERSION"
-    echo ""
-    echo "If using a newer Thoth version, some configuration options may have changed."
-    echo "Check https://github.com/siddsachar/Thoth/releases for breaking changes."
-    echo ""
-elif [[ "$SCRIPT_VERSION" < "$THOTH_VERSION" ]]; then
-    echo -e "${YELLOW}⚠️  WARNING: Setup script (v$SCRIPT_VERSION) is older than Thoth ($THOTH_VERSION)${NC}"
-    echo "Some newer Thoth features may not be configured by this script."
-    echo "Consider updating setup.sh from https://github.com/jp-cruz/agent-skills"
-    echo ""
-fi
-echo ""
-
-echo -e "${RED}⚠️  SECURITY REMINDER${NC}"
-echo ".env contains API keys and secrets. Keep it safe:"
-echo "  • ${RED}NEVER commit .env to Git (already in .gitignore)${NC}"
-echo "  • ${RED}NEVER share .env file${NC}"
-echo "  • Use strong, unique API keys with spending limits"
-echo ""
-echo -e "${YELLOW}Why Docker?${NC}"
-echo "Running agent software on bare metal exposes your entire computer to risk:"
-echo "  • Malicious code could wipe your hard drive"
-echo "  • Compromised agent could access your files and API keys"
-echo "  • Security breaches affect your whole system"
-echo ""
-echo -e "${GREEN}Docker solution:${NC} Thoth runs in an isolated container. If something"
-echo "goes wrong, your computer stays safe. Your data is protected."
-echo ""
-echo "Learn more: See DOCKER_WHY.md for detailed security explanation"
+echo "Setting up Thoth in Docker for safe, isolated AI agent deployment."
 echo ""
 
 # ============================================================================
@@ -279,21 +242,10 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     cp "$ENV_EXAMPLE" "$ENV_FILE"
 
     # ===== Q1: NETWORK ACCESS =====
-    echo -e "${YELLOW}Q1: How will you access Thoth?${NC}"
-    echo ""
-    echo "  a) This computer only [DEFAULT - SECURE]"
-    echo "     → Access: http://localhost:8080"
-    echo "     → Security: Maximum (not exposed to network)"
-    echo ""
-    echo "  b) From other machines on home WiFi"
-    echo "     → Access: http://<your-ip>:8080"
-    echo "     → Security: ⚠️ No authentication by default"
-    echo "     → Recommended: Add reverse proxy (see NETWORK_SETUP.md)"
-    echo ""
-    echo "  c) From the internet (expert mode)"
-    echo "     → Requires: Reverse proxy (Nginx, Caddy, Cloudflare Tunnel)"
-    echo "     → Security: Must add authentication and HTTPS"
-    echo "     → See: NETWORK_SETUP.md for detailed guide"
+    echo -e "${YELLOW}Q1: Who should access Thoth?${NC}"
+    echo "  a) Just this computer [DEFAULT]"
+    echo "  b) Other machines on WiFi"
+    echo "  c) From the internet"
     echo ""
     read -p "Choose [a/b/c]: " network_choice
     network_choice=${network_choice:-a}
@@ -301,146 +253,52 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     case "$network_choice" in
         b)
             THOTH_BIND="0.0.0.0"
-            echo -e "${YELLOW}⚠️  WARNING:${NC} Network-accessible without authentication"
-            echo "  Recommendation: Add reverse proxy for security"
-            echo "  See: references/NETWORK_SETUP.md"
+            echo -e "✓ Home network access enabled"
+            echo "  Tip: See NETWORK_SETUP.md for security options"
             ;;
         c)
             THOTH_BIND="127.0.0.1"
-            echo -e "${YELLOW}⚠️  WARNING:${NC} Internet access requires secure setup"
-            echo "  You need: Reverse proxy + HTTPS + authentication"
-            echo "  See: references/NETWORK_SETUP.md for examples"
+            echo "✓ Internet access requires reverse proxy setup"
+            echo "  See: NETWORK_SETUP.md for detailed guide"
             ;;
         *)
             THOTH_BIND="127.0.0.1"
-            echo -e "${GREEN}✓${NC} Localhost only (most secure)"
+            echo "✓ Localhost only (most secure)"
             ;;
     esac
     echo ""
 
     # ===== Q2: LLM PROVIDER =====
-    echo -e "${YELLOW}Q2: What matters most for language models?${NC}"
+    echo -e "${YELLOW}Q2: How do you want to run the AI model?${NC}"
+    echo "  a) Local (private, on your computer)"
+    echo "  b) Cloud (faster, needs API key)"
     echo ""
-    echo "  a) Privacy & Control (run models locally)"
+    read -p "Choose [a/b]: " llm_quick_choice
+
+    if [[ "$llm_quick_choice" == "a" ]]; then
+        USE_OLLAMA=true
+        LLM_PROVIDER="ollama"
+        echo "✓ Local Ollama (your data stays on your computer)"
+        echo "  See LOCAL_LLM_OPTIONS.md for model options"
+    else
+        echo "Which cloud provider?"
+        echo "  1) OpenRouter (cheapest, \$0.10-1/month)"
+        echo "  2) OpenAI (GPT-4, \$3-20/month)"
+        echo "  3) Anthropic (Claude, \$3-40/month)"
+        echo ""
+        read -p "Choose [1/2/3]: " cloud_choice
+
+        case "$cloud_choice" in
+            2) LLM_PROVIDER="openai" ;;
+            3) LLM_PROVIDER="anthropic" ;;
+            *) LLM_PROVIDER="openrouter" ;;
+        esac
+
+        USE_OLLAMA=false
+        echo "✓ Using $LLM_PROVIDER"
+        echo "  See estimate-costs.sh to plan monthly budget"
+    fi
     echo ""
-    echo "  b) Cost Savings (cloud provider is cheaper)"
-    echo ""
-    echo "  c) Quality & Speed (best models available)"
-    echo ""
-    echo "  d) Show me all options [DEFAULT]"
-    echo ""
-    read -p "Choose [a/b/c/d]: " llm_choice
-    llm_choice=${llm_choice:-d}
-
-    echo ""
-
-    case "$llm_choice" in
-        a)
-            echo "Privacy & Local Processing"
-            echo ""
-            if [[ "$RAM_GB" != "unknown" && "$RAM_GB" -lt 8 ]]; then
-                echo -e "${YELLOW}⚠️  Your system has ~${RAM_GB}GB RAM${NC}"
-                echo "  Minimum for reliable local LLM: 8GB"
-                echo "  Recommended: 16GB+ for comfortable speed"
-                echo ""
-                echo "  Suggestion: Use cloud provider or add more RAM"
-                echo ""
-            fi
-            echo "See LOCAL_LLM_OPTIONS.md for:"
-            echo "  • Detailed hardware requirements"
-            echo "  • Model size recommendations"
-            echo "  • Speed/quality tradeoffs"
-            echo ""
-
-            USE_OLLAMA=true
-            LLM_PROVIDER="ollama"
-            ;;
-
-        b)
-            echo "Cost Savings"
-            echo ""
-            echo "Recommended providers:"
-            echo "  • OpenRouter (cheap models: Mistral, Llama 2, ~\$0.01-0.50 per use)"
-            echo "  • OpenAI GPT-4 (high quality: ~\$0.03-0.06 per 1K tokens)"
-            echo ""
-            echo "Estimate: \$5-20/month for moderate use"
-            echo ""
-            echo "See LOCAL_LLM_OPTIONS.md for comparison"
-            echo ""
-
-            USE_OLLAMA=false
-            LLM_PROVIDER="openrouter"
-            ;;
-
-        c)
-            echo "Quality & Speed"
-            echo ""
-            echo "Best models available:"
-            echo "  • Claude 3 Opus (reasoning, accuracy)"
-            echo "  • GPT-4 Turbo (versatile, fast)"
-            echo "  • Claude 3 Sonnet (balanced)"
-            echo ""
-            echo "Cost: \$10-50/month depending on usage"
-            echo ""
-            echo "See LOCAL_LLM_OPTIONS.md for model details"
-            echo ""
-
-            USE_OLLAMA=false
-            LLM_PROVIDER="openrouter"
-            ;;
-
-        *)
-            echo "Options Available:"
-            echo ""
-            echo "1. ${GREEN}OLLAMA${NC} (Local, Private, Free)"
-            echo "   • Runs models on your computer"
-            echo "   • All data stays private (never leaves your machine)"
-            echo "   • Cost: Free (uses your hardware)"
-            echo "   • Requirement: 8GB+ RAM, decent CPU/GPU"
-            echo "   • Speed: Medium (depends on hardware)"
-            echo ""
-            echo "2. ${GREEN}OPENROUTER${NC} (Cloud, Cheap, Fast)"
-            echo "   • Hosted models (no local setup)"
-            echo "   • Pay per token (~\$0.01-0.50 per use)"
-            echo "   • Best for cost-conscious users"
-            echo "   • Requires API key from openrouter.ai"
-            echo ""
-            echo "3. ${GREEN}OPENAI${NC} (Cloud, Quality, Higher Cost)"
-            echo "   • GPT-4 Turbo (best general quality)"
-            echo "   • Cost: \$0.03-0.06 per 1K tokens (~\$10-50/month)"
-            echo "   • Very fast inference"
-            echo "   • Requires API key from openai.com"
-            echo ""
-            echo "4. ${GREEN}ANTHROPIC${NC} (Cloud, High Quality)"
-            echo "   • Claude 3 models (best at reasoning)"
-            echo "   • Cost: \$0.08+ per 1K tokens"
-            echo "   • Requires API key from anthropic.com"
-            echo ""
-            echo "For detailed comparison, see LOCAL_LLM_OPTIONS.md"
-            echo ""
-
-            read -p "Which sounds best? [ollama/openrouter/openai/anthropic]: " llm_choice2
-            case "$llm_choice2" in
-                openrouter)
-                    USE_OLLAMA=false
-                    LLM_PROVIDER="openrouter"
-                    ;;
-                openai)
-                    USE_OLLAMA=false
-                    LLM_PROVIDER="openai"
-                    ;;
-                anthropic)
-                    USE_OLLAMA=false
-                    LLM_PROVIDER="anthropic"
-                    ;;
-                *)
-                    USE_OLLAMA=true
-                    LLM_PROVIDER="ollama"
-                    ;;
-            esac
-            echo ""
-            ;;
-    esac
 
     # ===== Q3: POWER USER CTAs =====
     echo -e "${YELLOW}Q3: Interested in advanced options?${NC}"
@@ -563,6 +421,17 @@ echo -e "${BLUE}                    SETUP COMPLETE!${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
+# Version check (informational only, after setup completes)
+if [[ "$THOTH_VERSION" != "unknown" && ! "$THOTH_VERSION" =~ ^v[0-9] ]]; then
+    echo -e "${YELLOW}ℹ️  Note: Dockerfile uses Thoth commit $THOTH_VERSION${NC}"
+    echo "    This script was tested with Thoth v3.23.1"
+    echo ""
+elif [[ "$SCRIPT_VERSION" < "$THOTH_VERSION" ]]; then
+    echo -e "${YELLOW}ℹ️  Note: You may have a newer Thoth version${NC}"
+    echo "    This script v$SCRIPT_VERSION was tested with Thoth $THOTH_VERSION"
+    echo ""
+fi
+
 # Source the .env file for checking
 set -a
 source "$ENV_FILE"
@@ -610,21 +479,33 @@ fi
 # Next steps
 echo -e "${GREEN}Next Steps:${NC}"
 echo ""
-echo "1. Review your .env file (optional):"
-echo "   cat .env"
-echo ""
-echo "2. Start Thoth:"
+echo "1. Start Thoth:"
 echo "   docker-compose up -d"
 echo ""
-echo "3. Access Thoth:"
-echo "   ${THOTH_BIND == '127.0.0.1' && echo 'http://localhost:8080' || echo 'http://<your-ip>:8080'}"
+echo "2. Verify everything works:"
+echo "   ./health-check.sh"
 echo ""
-echo -e "${GREEN}Learning Resources:${NC}"
-echo "  • Why Docker:       See DOCKER_WHY.md"
-echo "  • LLM Options:      See LOCAL_LLM_OPTIONS.md"
-echo "  • Network Access:   See references/NETWORK_SETUP.md"
-echo "  • Troubleshooting:  See TROUBLESHOOTING.md"
-echo "  • Full Commands:    See CLAUDE.md"
+echo "3. Access Thoth:"
+if [[ "$THOTH_BIND" == "127.0.0.1" ]]; then
+    echo "   http://localhost:8080"
+else
+    echo "   http://<your-ip>:${THOTH_PORT:-8080}"
+fi
+echo ""
+
+# Contextual learning links (optional)
+echo -e "${YELLOW}Want to understand more?${NC}"
+echo "  • Why Docker isolates Thoth:    See DOCKER_WHY.md"
+echo "  • LLM options & tradeoffs:      See LOCAL_LLM_OPTIONS.md"
+echo "  • First steps with Thoth:       See GETTING_STARTED.md"
+echo "  • Network access & security:    See references/NETWORK_SETUP.md"
+echo "  • Estimate monthly costs:       Run ./estimate-costs.sh"
+echo ""
+
+# .env security note (subtle, at end)
+echo -e "${BLUE}⚠️  Keep .env safe:${NC}"
+echo "  Don't commit it to Git (already in .gitignore)"
+echo "  Don't share it with others"
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
