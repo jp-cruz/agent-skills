@@ -9,6 +9,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env"
 ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+DOCKERFILE="$SCRIPT_DIR/docker/Dockerfile"
+
+# Script & Thoth versions
+SCRIPT_VERSION="0.7.0"
+
+# Extract Thoth version from Dockerfile
+THOTH_VERSION=$(grep -oP 'git checkout \K[^ ]+' "$DOCKERFILE" 2>/dev/null || echo "unknown")
 
 # Colors for output
 RED='\033[0;31m'
@@ -18,13 +25,41 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # ============================================================================
-# WELCOME & SECURITY FRAMING
+# WELCOME & VERSION CHECK
 # ============================================================================
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}           Thoth Docker: Secure AI Agent Deployment${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "${GREEN}Setup Script Version: $SCRIPT_VERSION${NC}"
+echo -e "${GREEN}Thoth Version (from Dockerfile): $THOTH_VERSION${NC}"
+echo ""
+
+# Version comparison warning
+if [[ "$THOTH_VERSION" != "unknown" && ! "$THOTH_VERSION" =~ ^v[0-9] ]]; then
+    # If using commit hash
+    echo -e "${YELLOW}⚠️  WARNING: Setup script may not match Thoth version${NC}"
+    echo "This script was last tested with Thoth v3.23.1"
+    echo "Your Dockerfile uses commit: $THOTH_VERSION"
+    echo ""
+    echo "If using a newer Thoth version, some configuration options may have changed."
+    echo "Check https://github.com/siddsachar/Thoth/releases for breaking changes."
+    echo ""
+elif [[ "$SCRIPT_VERSION" < "$THOTH_VERSION" ]]; then
+    echo -e "${YELLOW}⚠️  WARNING: Setup script (v$SCRIPT_VERSION) is older than Thoth ($THOTH_VERSION)${NC}"
+    echo "Some newer Thoth features may not be configured by this script."
+    echo "Consider updating setup.sh from https://github.com/jp-cruz/agent-skills"
+    echo ""
+fi
+echo ""
+
+echo -e "${RED}⚠️  SECURITY REMINDER${NC}"
+echo ".env contains API keys and secrets. Keep it safe:"
+echo "  • ${RED}NEVER commit .env to Git (already in .gitignore)${NC}"
+echo "  • ${RED}NEVER share .env file${NC}"
+echo "  • Use strong, unique API keys with spending limits"
 echo ""
 echo -e "${YELLOW}Why Docker?${NC}"
 echo "Running agent software on bare metal exposes your entire computer to risk:"

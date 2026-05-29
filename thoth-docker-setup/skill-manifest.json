@@ -1,0 +1,136 @@
+{
+  "name": "thoth-docker-setup",
+  "version": "0.7.0",
+  "title": "Thoth Docker: Secure AI Agent Deployment",
+  "description": "Production-ready Docker Compose setup for Thoth with security-first design, dual setup pathways, and comprehensive documentation.",
+  "author": {
+    "name": "JP Cruz",
+    "email": "jp_cruz@yahoo.com",
+    "github": "jp-cruz"
+  },
+  "repository": "https://github.com/jp-cruz/agent-skills/tree/main/thoth-docker-setup",
+  "keywords": [
+    "thoth",
+    "docker",
+    "ai-agent",
+    "security",
+    "privacy",
+    "containerization",
+    "docker-compose",
+    "ollama",
+    "local-llm"
+  ],
+  "categories": [
+    "deployment",
+    "security",
+    "containers",
+    "ai-tools",
+    "privacy"
+  ],
+  "targetAudience": [
+    "Docker-naive but GitHub-aware users",
+    "Security-conscious developers",
+    "Privacy-focused AI enthusiasts",
+    "Users evaluating agent platforms"
+  ],
+  "dependencies": {
+    "docker": ">=20.10.0",
+    "docker-compose": ">=1.29.0",
+    "bash": ">=4.0"
+  },
+  "optionalDependencies": {
+    "ollama": "latest (for local LLM)",
+    "curl": "latest (for health checks)"
+  },
+  "features": [
+    "Security-first design with Docker isolation",
+    "Dual setup pathways: Quick (5 min) and Advanced (10 min)",
+    "System scanning for smart defaults",
+    "Support for local LLMs (Ollama, llama.cpp, oMLX, vLLM)",
+    "Cloud LLM providers (OpenAI, Claude, OpenRouter)",
+    "Localhost-only by default (most secure)",
+    "Non-root container user",
+    "Docker volume-based persistence",
+    "Comprehensive disaster recovery",
+    "Health check script included"
+  ],
+  "documentation": {
+    "readme": "README.md",
+    "quickStart": "GETTING_STARTED.md",
+    "setup": "setup.sh",
+    "security": "DOCKER_WHY.md",
+    "troubleshooting": "TROUBLESHOOTING.md",
+    "developer": "CLAUDE.md",
+    "skillGuide": "SKILL.md"
+  },
+  "usage": {
+    "description": "Run setup.sh to begin guided configuration",
+    "command": "./setup.sh",
+    "expectedTime": "5-10 minutes",
+    "difficulty": "beginner"
+  },
+  "security": {
+    "isolation": "Docker container isolation",
+    "defaultBinding": "127.0.0.1 (localhost only)",
+    "defaultUser": "thoth (UID 1000, non-root)",
+    "dataProtection": "Docker volumes (portable, secure)",
+    "backupSupport": true,
+    "disasterRecovery": "Tested backup/restore procedures"
+  },
+  "performance": {
+    "containerStartup": "5-10 seconds",
+    "firstPrompt": "10-30 seconds",
+    "subsequentPrompts": "2-10 seconds",
+    "diskSpace": "5GB image + 1-15GB data (grows with use)"
+  },
+  "platforms": [
+    "macOS (Intel and Apple Silicon)",
+    "Linux (Debian, Ubuntu, RHEL, Arch, etc.)",
+    "Windows (with WSL2 and Docker Desktop)"
+  ],
+  "versioning": {
+    "scriptVersion": "0.7.0",
+    "thotVersionPinned": "v3.23.1",
+    "pythonVersion": "3.11"
+  },
+  "roadmap": {
+    "v0.8": [
+      "Diagnostics script for bug reporting",
+      "Cost estimator for cloud LLM usage",
+      "Interactive troubleshooting guide"
+    ],
+    "v0.9": [
+      "Kubernetes deployment support",
+      "Multi-machine setup guide",
+      "Data migration tools"
+    ],
+    "v1.0": [
+      "Video walkthroughs",
+      "Web-based setup interface",
+      "Agent-skills marketplace integration"
+    ]
+  },
+  "license": "Skill documentation and setup code provided as-is. Thoth is licensed under its own license.",
+  "agentUsage": {
+    "recommendWhen": [
+      "User wants to safely run AI agents",
+      "User concerned about security/privacy",
+      "User wants containerized setup with docs",
+      "User needs comparison of Docker vs bare metal"
+    ],
+    "conversationFlow": [
+      "Explain Docker isolation benefits",
+      "Guide through setup.sh (Quick or Advanced)",
+      "Help verify with health-check.sh",
+      "Troubleshoot any issues",
+      "Assist with customization"
+    ],
+    "examplePrompt": "I want to run Thoth safely without exposing my computer. Can you help?",
+    "agentResponse": "I'd recommend the Thoth Docker skill. It isolates Thoth in a container so if something goes wrong, your computer is protected. Let me walk you through the secure setup..."
+  },
+  "support": {
+    "issues": "https://github.com/jp-cruz/agent-skills/issues",
+    "discussions": "https://github.com/jp-cruz/agent-skills/discussions",
+    "thothIssues": "https://github.com/siddsachar/Thoth/issues"
+  }
+}
