@@ -253,13 +253,43 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     case "$network_choice" in
         b)
             THOTH_BIND="0.0.0.0"
-            echo -e "✓ Home network access enabled"
-            echo "  Tip: See NETWORK_SETUP.md for security options"
+            echo -e "✓ Home WiFi access enabled"
+            echo "  Note: Only your home network can access this"
+            echo "  For remote access, see recommended tools below"
             ;;
         c)
             THOTH_BIND="127.0.0.1"
-            echo "✓ Internet access requires reverse proxy setup"
-            echo "  See: NETWORK_SETUP.md for detailed guide"
+            echo -e "${YELLOW}⚠️  Internet access requires special setup${NC}"
+            echo ""
+            echo "  Recommended options (in order of ease):"
+            echo ""
+            echo "  1. ${GREEN}Cloudflare Tunnel${NC} (EASIEST, FREE, RECOMMENDED)"
+            echo "     • No port forwarding needed"
+            echo "     • Your home IP stays hidden"
+            echo "     • Built-in DDoS protection"
+            echo "     • Add Cloudflare Access for password protection"
+            echo "     • Setup: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/"
+            echo ""
+            echo "  2. Tailscale (Private network, not internet)"
+            echo "     • VPN-style access from anywhere"
+            echo "     • More secure, peer-to-peer"
+            echo "     • Free for personal use"
+            echo "     • Setup: https://tailscale.com"
+            echo ""
+            echo "  3. ngrok (Quick but limited)"
+            echo "     • Simplest setup"
+            echo "     • Free tier: limited bandwidth"
+            echo "     • Setup: https://ngrok.com"
+            echo ""
+            echo "  ⚠️  DO NOT: Port forward directly without auth + HTTPS"
+            echo ""
+            read -p "  Use Cloudflare Tunnel? [y/n]: " use_tunnel
+            if [[ "$use_tunnel" == "y" || "$use_tunnel" == "Y" ]]; then
+                echo "  ✓ Set up Cloudflare Tunnel before starting Thoth"
+                echo "    Then configure your tunnel to point to: http://127.0.0.1:8080"
+            else
+                echo "  Choose a solution above, then update .env THOTH_BIND if needed"
+            fi
             ;;
         *)
             THOTH_BIND="127.0.0.1"

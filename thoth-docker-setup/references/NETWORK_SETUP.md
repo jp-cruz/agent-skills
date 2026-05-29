@@ -1,5 +1,18 @@
 # Network Setup & Security Guide
 
+## Quick Decision Guide
+
+| Scenario | Setup | Tool | Risk | Auth |
+|----------|-------|------|------|------|
+| **Local only** | `THOTH_BIND=127.0.0.1` | None | ✅ None | ✅ Built-in |
+| **Home WiFi** | `THOTH_BIND=0.0.0.0` | Nginx (optional) | ⚠️ LAN only | ❌ No |
+| **Remote private** | Reverse proxy | Tailscale | ✅ Low | ✅ VPN-based |
+| **Internet public** | Cloudflare Tunnel | Cloudflare | ✅ Protected | ✅ Cloudflare Access |
+
+**Recommendation:** Start with localhost, add network access only if needed.
+
+---
+
 ## Default: Localhost Only (Secure)
 
 By default, Thoth listens on `127.0.0.1:8080` — accessible **only from this computer**.
@@ -95,16 +108,65 @@ brew install nginx  # macOS
 nginx
 ```
 
-#### Example: Cloudflare Tunnel (Internet Access, No Port Forward)
+#### Example: Cloudflare Tunnel (Internet Access, No Port Forward) — RECOMMENDED
 
-If you want internet access without exposing your IP:
+**Why Cloudflare Tunnel?**
+- ✅ No port forwarding (your home IP stays hidden)
+- ✅ Built-in DDoS protection
+- ✅ Free tier available
+- ✅ HTTPS automatic
+- ✅ Can add Cloudflare Access for authentication
+- ✅ Easiest setup for non-technical users
 
-1. Install Cloudflare Tunnel: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
-2. Run: `cloudflared tunnel --url http://127.0.0.1:8080`
-3. Get public URL from Cloudflare
-4. Add Cloudflare authentication
+**Setup:**
 
-This proxies through Cloudflare's servers — no port forwarding needed.
+1. Sign up at https://www.cloudflare.com (free)
+2. Install Cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/install-and-setup/
+3. Create tunnel:
+   ```bash
+   cloudflared tunnel login
+   cloudflared tunnel create thoth
+   ```
+4. Configure tunnel to point to Thoth:
+   ```bash
+   cloudflared tunnel route dns thoth your-domain.com
+   # Or create a config file pointing to http://127.0.0.1:8080
+   ```
+5. Run tunnel:
+   ```bash
+   cloudflared tunnel run thoth
+   ```
+6. Access from anywhere: `https://thoth.your-domain.com`
+
+**Add Password Protection (optional):**
+Use Cloudflare Access to require login before accessing Thoth.
+
+---
+
+#### Alternative: Tailscale (VPN-Style, Private Network)
+
+If you want access from anywhere but prefer a **private network** (not internet):
+
+1. Install Tailscale: https://tailscale.com
+2. Connect your home computer and other devices
+3. Access Thoth at: `http://<home-computer-tailscale-ip>:8080`
+
+**Pros:** More private, peer-to-peer, no central server  
+**Cons:** Only works for devices on your Tailscale network (not true internet)
+
+---
+
+#### Alternative: ngrok (Quick & Easy, Limited)
+
+For quick testing (not production):
+
+```bash
+ngrok http 8080
+# Gives you a public URL like: https://abc123.ngrok.io
+```
+
+**Pros:** Fastest setup, no server needed  
+**Cons:** Free tier limited bandwidth, URL changes on restart
 
 ---
 
