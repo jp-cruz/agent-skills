@@ -46,5 +46,10 @@ desktop.ini
 .cache/
 *.tmp
 
+# Backups (local only, not version controlled)
+thoth-backup*
+*.tar.gz
+backups/
+
 # Docker build cache
 .docker/
