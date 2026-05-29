@@ -254,41 +254,68 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
         b)
             THOTH_BIND="0.0.0.0"
             echo -e "✓ Home WiFi access enabled"
-            echo "  Note: Only your home network can access this"
-            echo "  For remote access, see recommended tools below"
+            echo "  Access from other devices on your home network only"
+            echo ""
+            echo "  For remote access, Thoth offers safer alternatives:"
+            echo "  • Discord bot (chat from Discord, no web access needed)"
+            echo "  • SMS integration (text-based, authenticated)"
+            echo "  • Signal/Messenger bots (private, secure)"
+            echo "  See: REMOTE_ACCESS_GUIDE.md for setup"
             ;;
         c)
-            THOTH_BIND="127.0.0.1"
-            echo -e "${YELLOW}⚠️  Internet access requires special setup${NC}"
+            echo -e "${RED}⚠️  IMPORTANT: Internet Access to Web UI${NC}"
             echo ""
-            echo "  Recommended options (in order of ease):"
+            echo "  We recommend using Thoth's SAFER remote access methods:"
+            echo "  • Discord bot — Full Thoth access via Discord (encrypted)"
+            echo "  • SMS integration — Access via text message (no web needed)"
+            echo "  • Signal bot — Private, secure messaging"
+            echo "  • Messenger bot — Facebook Messenger integration"
             echo ""
-            echo "  1. ${GREEN}Cloudflare Tunnel${NC} (EASIEST, FREE, RECOMMENDED)"
-            echo "     • No port forwarding needed"
-            echo "     • Your home IP stays hidden"
-            echo "     • Built-in DDoS protection"
-            echo "     • Add Cloudflare Access for password protection"
-            echo "     • Setup: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/"
+            echo "  These are:"
+            echo "  ✓ Authenticated (only you can use them)"
+            echo "  ✓ Encrypted (no web exposure)"
+            echo "  ✓ Better UX (designed for chat)"
             echo ""
-            echo "  2. Tailscale (Private network, not internet)"
-            echo "     • VPN-style access from anywhere"
-            echo "     • More secure, peer-to-peer"
-            echo "     • Free for personal use"
-            echo "     • Setup: https://tailscale.com"
-            echo ""
-            echo "  3. ngrok (Quick but limited)"
-            echo "     • Simplest setup"
-            echo "     • Free tier: limited bandwidth"
-            echo "     • Setup: https://ngrok.com"
-            echo ""
-            echo "  ⚠️  DO NOT: Port forward directly without auth + HTTPS"
-            echo ""
-            read -p "  Use Cloudflare Tunnel? [y/n]: " use_tunnel
-            if [[ "$use_tunnel" == "y" || "$use_tunnel" == "Y" ]]; then
-                echo "  ✓ Set up Cloudflare Tunnel before starting Thoth"
-                echo "    Then configure your tunnel to point to: http://127.0.0.1:8080"
+            read -p "  Would you like to set up a Discord/SMS bot instead? [y/n]: " use_safer
+            if [[ "$use_safer" == "y" || "$use_safer" == "Y" ]]; then
+                echo "  ✓ Skip web UI internet access"
+                echo "  See: REMOTE_ACCESS_GUIDE.md for bot setup instructions"
+                THOTH_BIND="127.0.0.1"
             else
-                echo "  Choose a solution above, then update .env THOTH_BIND if needed"
+                echo ""
+                echo -e "${YELLOW}You've chosen to expose the web UI to the internet.${NC}"
+                echo "  This requires:"
+                echo "  1. A secure tunnel (Cloudflare, Tailscale, etc.)"
+                echo "  2. Authentication (password or OAuth)"
+                echo "  3. HTTPS only (never HTTP)"
+                echo ""
+                read -p "  Do you understand and accept these requirements? [y/n]: " internet_accept
+                if [[ "$internet_accept" == "y" || "$internet_accept" == "Y" ]]; then
+                    echo ""
+                    echo "  You MUST set up ONE of these before accessing from internet:"
+                    echo "  • Cloudflare Tunnel (recommended, free)"
+                    echo "  • Tailscale (private VPN)"
+                    echo "  • Reverse proxy + HTTPS (advanced)"
+                    echo ""
+                    read -p "  Which will you use? [cloudflare/tailscale/other]: " tunnel_choice
+                    if [[ "$tunnel_choice" == "cloudflare" ]]; then
+                        THOTH_BIND="127.0.0.1"
+                        echo "  ✓ Remember: Cloudflare Tunnel proxies all traffic"
+                        echo "    Configure tunnel to: http://127.0.0.1:8080"
+                        echo "    Setup guide: NETWORK_SETUP.md"
+                    elif [[ "$tunnel_choice" == "tailscale" ]]; then
+                        THOTH_BIND="127.0.0.1"
+                        echo "  ✓ Remember: Connect devices to Tailscale VPN first"
+                        echo "    Then access Thoth via private network"
+                    else
+                        THOTH_BIND="127.0.0.1"
+                        echo "  ⚠️  Set up your chosen solution before accessing Thoth"
+                        echo "    See: NETWORK_SETUP.md for detailed guides"
+                    fi
+                else
+                    echo "  ✓ Reverting to localhost-only (most secure)"
+                    THOTH_BIND="127.0.0.1"
+                fi
             fi
             ;;
         *)

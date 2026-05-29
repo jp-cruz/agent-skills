@@ -54,6 +54,7 @@ Running `./setup.sh` guides you through two options:
 | **Why Docker?** | [DOCKER_WHY.md](DOCKER_WHY.md) | 5 min |
 | **LLM options** | [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) | 10 min |
 | **First steps with Thoth** | [GETTING_STARTED.md](GETTING_STARTED.md) | 5 min |
+| **Remote access (safe)** | [REMOTE_ACCESS_GUIDE.md](REMOTE_ACCESS_GUIDE.md) | 10 min |
 | **Bug report / debugging** | Run `./diagnostics.sh` | 2 min |
 | **Upgrading from v0.5.x** | [MIGRATION.md](MIGRATION.md) | 15 min |
 | **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
