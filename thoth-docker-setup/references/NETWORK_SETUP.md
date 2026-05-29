@@ -2,14 +2,14 @@
 
 ## Quick Decision Guide
 
-| Scenario | Setup | Tool | Risk | Auth |
-|----------|-------|------|------|------|
-| **Local only** | `THOTH_BIND=127.0.0.1` | None | ✅ None | ✅ Built-in |
-| **Home WiFi** | `THOTH_BIND=0.0.0.0` | Nginx (optional) | ⚠️ LAN only | ❌ No |
-| **Remote private** | Reverse proxy | Tailscale | ✅ Low | ✅ VPN-based |
-| **Internet public** | Cloudflare Tunnel | Cloudflare | ✅ Protected | ✅ Cloudflare Access |
+| Scenario | Setup | Tool | Access | Protection |
+|----------|-------|------|--------|------------|
+| **Localhost only** | `THOTH_BIND=127.0.0.1` | None | This computer only | ✅ Maximum |
+| **Local Area Network** | `THOTH_BIND=0.0.0.0` | Firewall | WiFi, Ethernet, same LAN | ✅ Firewall-protected |
+| **Remote private** | `THOTH_BIND=127.0.0.1` | Tailscale VPN | Anywhere on private network | ✅ Encrypted VPN |
+| **Internet public** | `THOTH_BIND=127.0.0.1` | Cloudflare Tunnel | Anywhere on internet | ✅ DDoS + Auth |
 
-**Recommendation:** Start with localhost, add network access only if needed.
+**Recommendation:** Start with localhost (127.0.0.1), add LAN access only if needed.
 
 ---
 
@@ -34,9 +34,12 @@ If you want to access Thoth from other machines on your network or the internet,
 2. Add security hardening
 3. Consider authentication
 
-### Option 1: Local Network Access (Home Network)
+### Option 1: Local Area Network (LAN) Access
 
-**Scenario:** Access Thoth from other machines on your home network (e.g., phone, tablet, laptop)
+**Scenario:** Access Thoth from other devices on your Local Area Network
+- WiFi devices (phone, tablet, laptop)
+- Wired (Ethernet) devices
+- Any device on the same local network
 
 **Setup:**
 
@@ -48,10 +51,16 @@ THOTH_PORT=8080
 
 **Access:** `http://<your-machine-ip>:8080`
 
+**How it works:**
+- `0.0.0.0` tells Thoth to listen on all local network interfaces
+- Your router/firewall blocks external internet access
+- Only devices on your LAN can reach it
+
 **Security considerations:**
-- ⚠️ No authentication by default
-- ✅ Only accessible on LAN if firewall blocks external traffic
-- ✅ Run behind a reverse proxy for better control
+- ⚠️ No authentication by default (anyone on LAN can access)
+- ✅ Protected by firewall (not accessible from internet)
+- ✅ Run behind reverse proxy (Nginx, Caddy) for authentication
+- ✅ Consider adding firewall rules to restrict to trusted devices
 
 ### Option 2: Internet Access (Production)
 

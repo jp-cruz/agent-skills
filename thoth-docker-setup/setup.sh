@@ -243,9 +243,9 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
 
     # ===== Q1: NETWORK ACCESS =====
     echo -e "${YELLOW}Q1: Who should access Thoth?${NC}"
-    echo "  a) Just this computer [DEFAULT]"
-    echo "  b) Other machines on WiFi"
-    echo "  c) From the internet"
+    echo "  a) Just this computer [DEFAULT - most secure]"
+    echo "  b) Devices on my Local Area Network (LAN)"
+    echo "  c) From the internet (requires secure tunnel)"
     echo ""
     read -p "Choose [a/b/c]: " network_choice
     network_choice=${network_choice:-a}
@@ -253,13 +253,18 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     case "$network_choice" in
         b)
             THOTH_BIND="0.0.0.0"
-            echo -e "✓ Home WiFi access enabled"
-            echo "  Access from other devices on your home network only"
+            echo -e "✓ Local Area Network (LAN) access enabled"
+            echo "  Accessible from devices on your LAN:"
+            echo "  • WiFi devices on your network"
+            echo "  • Wired (Ethernet) devices on your network"
+            echo "  • Any device on same local network"
             echo ""
-            echo "  For remote access, Thoth offers safer alternatives:"
-            echo "  • Discord bot (chat from Discord, no web access needed)"
-            echo "  • SMS integration (text-based, authenticated)"
-            echo "  • Signal/Messenger bots (private, secure)"
+            echo "  Still protected by firewall (not internet-accessible)"
+            echo ""
+            echo "  For remote access from outside LAN, use:"
+            echo "  • Discord bot (chat from Discord)"
+            echo "  • SMS integration (text-based)"
+            echo "  • Tailscale or Cloudflare Tunnel"
             echo "  See: REMOTE_ACCESS_GUIDE.md for setup"
             ;;
         c)
