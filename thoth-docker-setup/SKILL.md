@@ -7,9 +7,10 @@ requires_terminal: true
 metadata:
   author: Claude Sonnet 4.6 (run by JP Cruz)
   contact: jp@legionforge.org
-  version: "0.6.1"
+  version: "0.6.2"
   category: deployment
-  tested-platforms: macOS Tahoe (M4), Linux/Windows validation pending
+  tested-platforms: macOS Tahoe (M4), Linux/Windows validation in progress
+  last-updated: 2026-05-29
   execution_context: Interactive terminal (Aider, Claude Code CLI, VS Code, OpenCode, or bash)
 ---
 

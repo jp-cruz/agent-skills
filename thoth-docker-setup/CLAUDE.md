@@ -277,27 +277,104 @@ To upgrade Thoth to a new version:
 
 ## Disaster Recovery
 
-**Backing up data:**
+### Backing up data
+
 ```bash
 # Full volume backup (includes everything)
 docker run --rm -v thoth-docker-setup_thoth-data:/data \
   -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
+
+# Store backup off-machine (critical!)
+# Option A: External drive
+cp ./backups/thoth-data-*.tar.gz /Volumes/ExternalDrive/thoth-backups/
+
+# Option B: GitHub (via thoth-memory-backup-to-github skill)
+# Option C: Cloud storage (S3, Google Drive, etc.)
 ```
 
-**Restoring from backup:**
+### Restoring from backup
+
 ```bash
 # Stop container
 docker-compose down
 
-# Restore volume
+# Restore volume (choose one)
+# From local backup:
 docker run --rm -v thoth-docker-setup_thoth-data:/data \
   -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
+
+# Fix ownership (files may have different UID after restore)
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  alpine chown -R 1000:1000 /data
 
 # Restart
 docker-compose up -d
 ```
 
-**Important**: The `thoth-memory-backup-to-github` skill backs up only memory.db. For full disaster recovery, also backup Docker volumes using the procedure above.
+### Testing Your Backup (Critical!)
+
+**You must test that backups actually work before you need them.** Untested backups often fail when you need them most.
+
+**Monthly backup test procedure:**
+
+```bash
+# Step 1: Create a test backup
+docker run --rm -v thoth-docker-setup_thoth-data:/data \
+  -v ./backups:/backup alpine tar czf /backup/thoth-test-restore-$(date +%Y%m%d).tar.gz -C /data .
+
+# Step 2: Create a test volume for restore
+docker volume create thoth-test-restore
+
+# Step 3: Restore to test volume
+docker run --rm -v thoth-test-restore:/data \
+  -v ./backups:/backup alpine tar xzf /backup/thoth-test-restore-*.tar.gz -C /data
+
+# Step 4: Fix ownership
+docker run --rm -v thoth-test-restore:/data \
+  alpine chown -R 1000:1000 /data
+
+# Step 5: Verify restore by mounting in temporary container
+docker run --rm -it -v thoth-test-restore:/data alpine ls -la /data/Documents/Thoth/projects/
+# Should list your projects
+
+# Step 6: Check file integrity (spot-check a few files)
+docker run --rm -v thoth-test-restore:/data alpine du -sh /data/memory.db
+# Should show non-zero size
+
+# Step 7: Clean up test volume
+docker volume rm thoth-test-restore
+
+# Step 8: Document the test
+echo "Backup test passed on $(date)" >> backup-test-log.txt
+```
+
+**Red flags (if you see these, your backup has issues):**
+- ❌ Tar extraction returns errors
+- ❌ Ownership fix shows "operation not permitted"
+- ❌ Projects directory is empty
+- ❌ memory.db is 0 bytes
+- ❌ Any permission denied errors
+
+**What to do if test fails:**
+1. Don't trust that backup
+2. Create a fresh backup immediately
+3. Test the new backup before deleting the old one
+4. Investigate what went wrong
+
+**Restore time estimate:**
+- Backup creation: 5-10 minutes (for 25GB)
+- Restore: 5-10 minutes
+- Ownership fix: 1-2 minutes
+- Container startup: 30-60 seconds
+- **Total: ~20 minutes**
+
+### Important Notes
+
+- **Off-machine storage:** Keep backups on external drives, not just on the same computer
+- **Retention policy:** Keep at least 2-3 backups (daily, weekly, monthly)
+- **Test quarterly:** Test a full restore procedure at least every 3 months
+- **Document recovery:** Write down the exact commands you'd run (save them in a README in your backups folder)
+- The `thoth-memory-backup-to-github` skill backs up only memory.db. For full disaster recovery, also backup Docker volumes using the procedure above
 
 ## Troubleshooting Stability
 

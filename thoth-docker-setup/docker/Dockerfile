@@ -33,6 +33,10 @@ WORKDIR /app
 COPY --from=builder --chown=thoth:thoth /app /app
 COPY --from=builder --chown=thoth:thoth /root/.local /home/thoth/.local
 
+# Copy entrypoint script to ensure symlinks persist across container restarts
+COPY --chown=thoth:thoth docker/entrypoint.sh /home/thoth/entrypoint.sh
+RUN chmod +x /home/thoth/entrypoint.sh
+
 USER thoth
 
 EXPOSE 8080
@@ -46,4 +50,5 @@ ENV OLLAMA_BASE_URL=http://host.docker.internal:11434 \
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080 || exit 1
 
+ENTRYPOINT ["/home/thoth/entrypoint.sh"]
 CMD ["python", "launcher.py", "--server", "--no-open", "--port", "8080"]

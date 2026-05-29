@@ -2,6 +2,25 @@
 
 Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/Thoth) across macOS, Windows, and Linux. Built on learnings from the Jeli project.
 
+---
+
+## Choose Your Path
+
+**What do you want to do?**
+
+| Goal | Start Here | Time |
+|------|-----------|------|
+| **First time setup** | Quick Start (below) | 5 min |
+| **Upgrading from v0.5.x** | [MIGRATION.md](MIGRATION.md) | 15 min |
+| **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
+| **Understanding architecture** | [ARCHITECTURE.md](references/ARCHITECTURE.md) | 15 min |
+| **Network/firewall setup** | [NETWORK_SETUP.md](references/NETWORK_SETUP.md) | 10 min |
+| **Disaster recovery testing** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
+| **Security considerations** | [SECURITY.md](SECURITY.md) | 10 min |
+| **Contributing/Development** | [CONTRIBUTING.md](CONTRIBUTING.md) | — |
+
+---
+
 ## Quick Start
 
 ```bash
