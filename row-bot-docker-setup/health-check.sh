@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Health Check for Thoth Docker Setup
-# Verifies Docker, Thoth container, Ollama, and basic connectivity
+# Health Check for Row-Bot Docker Setup
+# Verifies Docker, Row-Bot container, Ollama, and basic connectivity
 
 set +e  # Don't exit on errors, let us check them all
 
@@ -35,7 +35,7 @@ check_warn() {
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}              Thoth Docker Health Check${NC}"
+echo -e "${BLUE}              Row-Bot Docker Health Check${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
@@ -85,19 +85,19 @@ else
     check_pass ".env file exists"
 
     # Check required variables
-    if grep -q "^THOTH_BIND=" "$ENV_FILE"; then
-        THOTH_BIND=$(grep "^THOTH_BIND=" "$ENV_FILE" | cut -d= -f2)
-        check_pass "THOTH_BIND configured: $THOTH_BIND"
+    if grep -q "^ROWBOT_BIND=" "$ENV_FILE"; then
+        ROWBOT_BIND=$(grep "^ROWBOT_BIND=" "$ENV_FILE" | cut -d= -f2)
+        check_pass "ROWBOT_BIND configured: $ROWBOT_BIND"
     else
-        check_warn "THOTH_BIND not configured (using default)"
+        check_warn "ROWBOT_BIND not configured (using default)"
     fi
 
-    if grep -q "^THOTH_PORT=" "$ENV_FILE"; then
-        THOTH_PORT=$(grep "^THOTH_PORT=" "$ENV_FILE" | cut -d= -f2)
-        check_pass "THOTH_PORT configured: $THOTH_PORT"
+    if grep -q "^ROWBOT_PORT=" "$ENV_FILE"; then
+        ROWBOT_PORT=$(grep "^ROWBOT_PORT=" "$ENV_FILE" | cut -d= -f2)
+        check_pass "ROWBOT_PORT configured: $ROWBOT_PORT"
     else
-        THOTH_PORT=8080
-        check_warn "THOTH_PORT not configured (using default: 8080)"
+        ROWBOT_PORT=8080
+        check_warn "ROWBOT_PORT not configured (using default: 8080)"
     fi
 fi
 
@@ -108,12 +108,12 @@ fi
 echo ""
 echo -e "${YELLOW}Checking ports...${NC}"
 
-if lsof -i :${THOTH_PORT:-8080} > /dev/null 2>&1 || \
-   netstat -tln 2>/dev/null | grep -q ":${THOTH_PORT:-8080} "; then
-    check_warn "Port ${THOTH_PORT:-8080} is in use. Thoth may not be able to start."
-    check_warn "To use a different port, edit .env and set THOTH_PORT=8081"
+if lsof -i :${ROWBOT_PORT:-8080} > /dev/null 2>&1 || \
+   netstat -tln 2>/dev/null | grep -q ":${ROWBOT_PORT:-8080} "; then
+    check_warn "Port ${ROWBOT_PORT:-8080} is in use. Row-Bot may not be able to start."
+    check_warn "To use a different port, edit .env and set ROWBOT_PORT=8081"
 else
-    check_pass "Port ${THOTH_PORT:-8080} is available"
+    check_pass "Port ${ROWBOT_PORT:-8080} is available"
 fi
 
 # ============================================================================
@@ -149,7 +149,7 @@ else
 fi
 
 if [[ "$FIREWALL_STATUS" == "disabled" ]]; then
-    check_warn "⚠️  If using THOTH_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
+    check_warn "⚠️  If using ROWBOT_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
     check_warn "    Otherwise, Thoth may be exposed to the internet"
 fi
 
@@ -301,7 +301,7 @@ else
     echo ""
     echo "Common fixes:"
     echo "  • Docker not running? → Start Docker Desktop"
-    echo "  • Port in use? → Change THOTH_PORT in .env"
+    echo "  • Port in use? → Change ROWBOT_PORT in .env"
     echo "  • .env not found? → Run: ./setup.sh"
     echo "  • Ollama not found? → See LOCAL_LLM_OPTIONS.md"
     echo ""

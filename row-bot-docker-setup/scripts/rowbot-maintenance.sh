@@ -1,6 +1,6 @@
 #!/bin/bash
-# Thoth Disk Maintenance & Cleanup Utility
-# Manages cleanup, archival, and monitoring of Thoth disk usage
+# Row-Bot Disk Maintenance & Cleanup Utility
+# Manages cleanup, archival, and monitoring of Row-Bot disk usage
 
 set -e
 
@@ -31,20 +31,20 @@ source "$ENV_FILE"
 set +a
 
 # Resolve paths
-THOTH_DATA_DIR="${THOTH_DATA_DIR:-.}"
-THOTH_WORKSPACE_DIR="${THOTH_WORKSPACE_DIR:-.}"
+ROWBOT_DATA_DIR="${ROWBOT_DATA_DIR:-.}"
+ROWBOT_WORKSPACE_DIR="${ROWBOT_WORKSPACE_DIR:-.}"
 
 # Make paths absolute
-if [[ "$THOTH_DATA_DIR" != /* ]]; then
-    THOTH_DATA_DIR="$SCRIPT_DIR/$THOTH_DATA_DIR"
+if [[ "$ROWBOT_DATA_DIR" != /* ]]; then
+    ROWBOT_DATA_DIR="$SCRIPT_DIR/$ROWBOT_DATA_DIR"
 fi
-if [[ "$THOTH_WORKSPACE_DIR" != /* ]]; then
-    THOTH_WORKSPACE_DIR="$SCRIPT_DIR/$THOTH_WORKSPACE_DIR"
+if [[ "$ROWBOT_WORKSPACE_DIR" != /* ]]; then
+    ROWBOT_WORKSPACE_DIR="$SCRIPT_DIR/$ROWBOT_WORKSPACE_DIR"
 fi
 
 if [[ $AUTO_MODE -eq 0 ]]; then
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║          THOTH DISK MAINTENANCE & CLEANUP                              ║${NC}"
+    echo -e "${BLUE}║          ROW-BOT DISK MAINTENANCE & CLEANUP                            ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
 fi
 
@@ -55,18 +55,18 @@ fi
 if [[ $AUTO_MODE -eq 0 ]]; then
     echo -e "\n${GREEN}[1/3] CURRENT DISK USAGE${NC}\n"
 
-    if [[ -d "$THOTH_DATA_DIR" ]]; then
-        DATA_SIZE=$(du -sh "$THOTH_DATA_DIR" 2>/dev/null | awk '{print $1}')
-        echo "  Thoth Data: $DATA_SIZE"
+    if [[ -d "$ROWBOT_DATA_DIR" ]]; then
+        DATA_SIZE=$(du -sh "$ROWBOT_DATA_DIR" 2>/dev/null | awk '{print $1}')
+        echo "  Row-Bot Data: $DATA_SIZE"
     else
-        echo "  Thoth Data: Not found ($THOTH_DATA_DIR)"
+        echo "  Row-Bot Data: Not found ($ROWBOT_DATA_DIR)"
     fi
 
-    if [[ -d "$THOTH_WORKSPACE_DIR" ]]; then
-        WORKSPACE_SIZE=$(du -sh "$THOTH_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}')
+    if [[ -d "$ROWBOT_WORKSPACE_DIR" ]]; then
+        WORKSPACE_SIZE=$(du -sh "$ROWBOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}')
         echo "  Workspace: $WORKSPACE_SIZE"
     else
-        echo "  Workspace: Not found ($THOTH_WORKSPACE_DIR)"
+        echo "  Workspace: Not found ($ROWBOT_WORKSPACE_DIR)"
     fi
 
     # Docker usage
@@ -78,8 +78,8 @@ if [[ $AUTO_MODE -eq 0 ]]; then
     fi
 
     # Estimate total
-    THOTH_DATA_MB=$(du -sm "$THOTH_DATA_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
-    THOTH_WORKSPACE_MB=$(du -sm "$THOTH_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
+    THOTH_DATA_MB=$(du -sm "$ROWBOT_DATA_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
+    THOTH_WORKSPACE_MB=$(du -sm "$ROWBOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
     TOTAL_MB=$((THOTH_DATA_MB + THOTH_WORKSPACE_MB))
 
     echo ""
@@ -139,8 +139,8 @@ cleanup_dangling_images() {
 }
 
 truncate_logs() {
-    if [[ -f "$THOTH_DATA_DIR/thoth_app.log" ]]; then
-        > "$THOTH_DATA_DIR/thoth_app.log"
+    if [[ -f "$ROWBOT_DATA_DIR/thoth_app.log" ]]; then
+        > "$ROWBOT_DATA_DIR/thoth_app.log"
         echo -e "  ${GREEN}✓ Thoth logs truncated${NC}"
     fi
     return 0
@@ -184,7 +184,7 @@ execute_cleanup() {
 
                 ARCHIVE_FILE="$ARCHIVE_DEST/thoth-workspace-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
                 echo -e "  Creating archive: $ARCHIVE_FILE"
-                tar -czf "$ARCHIVE_FILE" -C "$(dirname "$THOTH_WORKSPACE_DIR")" "$(basename "$THOTH_WORKSPACE_DIR")"
+                tar -czf "$ARCHIVE_FILE" -C "$(dirname "$ROWBOT_WORKSPACE_DIR")" "$(basename "$ROWBOT_WORKSPACE_DIR")"
                 echo -e "  ${GREEN}✓ Workspace archived${NC}"
             fi
             ;;

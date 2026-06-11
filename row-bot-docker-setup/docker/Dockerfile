@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-RUN git clone https://github.com/siddsachar/Thoth.git . && \
-    git checkout v3.23.1
+RUN git clone https://github.com/siddsachar/row-bot.git . && \
+    git checkout latest
 
 RUN pip install --no-cache-dir --user -r requirements.txt && \
     pip install --no-cache-dir --user --upgrade keyring keyrings.alt
@@ -16,9 +16,9 @@ RUN pip install --no-cache-dir --user -r requirements.txt && \
 # Stage 2: Runtime - minimal image with only runtime dependencies
 FROM python:3.11-slim@sha256:a3ab0b966bc4e91546a033e22093cb840908979487a9fc0e6e38295747e49ac0
 
-RUN useradd -m -u 1000 thoth && \
-    mkdir -p /app /home/thoth/.thoth && \
-    chown thoth:thoth /home/thoth/.thoth
+RUN useradd -m -u 1000 rowbot && \
+    mkdir -p /app /home/rowbot/.row-bot && \
+    chown rowbot:rowbot /home/rowbot/.row-bot
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ffmpeg git \
@@ -30,25 +30,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder --chown=thoth:thoth /app /app
-COPY --from=builder --chown=thoth:thoth /root/.local /home/thoth/.local
+COPY --from=builder --chown=rowbot:rowbot /app /app
+COPY --from=builder --chown=rowbot:rowbot /root/.local /home/rowbot/.local
 
 # Copy entrypoint script to ensure symlinks persist across container restarts
-COPY --chown=thoth:thoth docker/entrypoint.sh /home/thoth/entrypoint.sh
-RUN chmod +x /home/thoth/entrypoint.sh
+COPY --chown=rowbot:rowbot docker/entrypoint.sh /home/rowbot/entrypoint.sh
+RUN chmod +x /home/rowbot/entrypoint.sh
 
-USER thoth
+USER rowbot
 
 EXPOSE 8080
 
 ENV OLLAMA_BASE_URL=http://host.docker.internal:11434 \
-    THOTH_PORT=8080 \
-    HOME=/home/thoth \
-    PATH=/home/thoth/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-    PYTHONPATH=/home/thoth/.local/lib/python3.11/site-packages
+    ROWBOT_PORT=8080 \
+    HOME=/home/rowbot \
+    PATH=/home/rowbot/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    PYTHONPATH=/home/rowbot/.local/lib/python3.11/site-packages
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080 || exit 1
 
-ENTRYPOINT ["/home/thoth/entrypoint.sh"]
+ENTRYPOINT ["/home/rowbot/entrypoint.sh"]
 CMD ["python", "launcher.py", "--server", "--no-open", "--port", "8080"]

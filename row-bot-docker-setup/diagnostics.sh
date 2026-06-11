@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Thoth Docker Diagnostics
+# Row-Bot Docker Diagnostics
 # Collects system info for bug reports (sanitizes secrets)
 
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env"
-REPORT_FILE="$SCRIPT_DIR/thoth-diagnostics-$(date +%Y%m%d-%H%M%S).txt"
+REPORT_FILE="$SCRIPT_DIR/rowbot-diagnostics-$(date +%Y%m%d-%H%M%S).txt"
 
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
@@ -16,7 +16,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}         Thoth Docker Diagnostics Report Generator${NC}"
+echo -e "${BLUE}         Row-Bot Docker Diagnostics Report Generator${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo "This script collects diagnostic information for bug reports."
@@ -129,7 +129,7 @@ sanitize() {
     echo "═══════════════════════════════════════════════════════════════════"
     echo ""
 
-    if docker ps -a 2>/dev/null | grep -q thoth; then
+    if docker ps -a 2>/dev/null | grep -q rowbot; then
         echo "Container Status:"
         docker ps -a 2>/dev/null | grep thoth || echo "Container found but status unknown"
         echo ""
@@ -139,7 +139,7 @@ sanitize() {
         echo ""
 
         echo "Container Inspect (selected fields):"
-        docker inspect thoth-docker-setup_thoth_1 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
+        docker inspect row-bot-docker-setup_rowbot_1 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
     else
         echo "Thoth container not found"
     fi

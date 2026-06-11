@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Thoth LLM Cost Estimator
+# Row-Bot LLM Cost Estimator
 # Estimates monthly costs based on usage patterns
 
 BLUE='\033[0;34m'
@@ -11,7 +11,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}            Thoth LLM Monthly Cost Estimator${NC}"
+echo -e "${BLUE}            Row-Bot LLM Monthly Cost Estimator${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 echo "This tool estimates your monthly LLM costs based on usage."
@@ -187,7 +187,7 @@ echo -e "${BLUE}═════════════════════�
 echo ""
 echo "To use your chosen provider with Thoth:"
 echo "  1. Update .env with your API key"
-echo "  2. Restart container: docker-compose restart thoth"
+echo "  2. Restart container: docker-compose restart rowbot"
 echo "  3. Or re-run setup.sh to reconfigure"
 echo ""
 echo "Note: Prices and rates may change. Check provider websites for current prices."
