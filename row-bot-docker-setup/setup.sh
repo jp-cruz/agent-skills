@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Thoth Docker Secure Setup
+# Row-Bot Docker Secure Setup
 # Two pathways: Quick/Easy or Advanced
 # Security-first framing with smart defaults
 
@@ -11,11 +11,11 @@ ENV_FILE="$SCRIPT_DIR/.env"
 ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
 DOCKERFILE="$SCRIPT_DIR/docker/Dockerfile"
 
-# Script & Thoth versions
-SCRIPT_VERSION="0.7.0"
+# Script & Row-Bot versions
+SCRIPT_VERSION="0.5.0"
 
-# Extract Thoth version from Dockerfile
-THOTH_VERSION=$(grep -oP 'git checkout \K[^ ]+' "$DOCKERFILE" 2>/dev/null || echo "unknown")
+# Extract Row-Bot version from Dockerfile
+ROWBOT_VERSION=$(grep -oP 'git checkout \K[^ ]+' "$DOCKERFILE" 2>/dev/null || echo "unknown")
 
 # Colors for output
 RED='\033[0;31m'
@@ -30,10 +30,10 @@ NC='\033[0m' # No Color
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
-echo -e "${BLUE}                 Thoth Docker Setup${NC}"
+echo -e "${BLUE}                 Row-Bot Docker Setup${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "Setting up Thoth in Docker for safe, isolated AI agent deployment."
+echo "Setting up Row-Bot in Docker for safe, isolated AI agent deployment."
 echo ""
 
 # ============================================================================
@@ -167,7 +167,7 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
     echo ""
 
     # Determine recommended defaults
-    THOTH_BIND="127.0.0.1"  # Always localhost-only by default (most secure)
+    ROWBOT_BIND="127.0.0.1"  # Always localhost-only by default (most secure)
 
     if [[ "$RAM_GB" != "unknown" && "$RAM_GB" -lt 8 ]]; then
         RECOMMENDED_LLM="openrouter"
@@ -192,7 +192,7 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
     echo -e "${GREEN}Recommended Configuration (Based on Your System)${NC}"
     echo ""
     echo "  Network Access: Localhost only (this computer)"
-    echo "    → Access Thoth at: http://localhost:8080"
+    echo "    → Access Row-Bot at: http://localhost:8080"
     echo "    → Security: Maximum (not accessible from other machines)"
     echo ""
     echo "  LLM Provider: $RECOMMENDED_LLM_MSG"
@@ -216,8 +216,8 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
         cp "$ENV_EXAMPLE" "$ENV_FILE"
 
         # Apply defaults
-        sed -i.bak "s/^THOTH_BIND=.*/THOTH_BIND=$THOTH_BIND/" "$ENV_FILE" || \
-        sed -i '' "s/^THOTH_BIND=.*/THOTH_BIND=$THOTH_BIND/" "$ENV_FILE"
+        sed -i.bak "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE" || \
+        sed -i '' "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE"
 
         # Setup LLM provider
         if [[ "$RECOMMENDED_LLM" == "ollama" ]]; then
@@ -242,8 +242,8 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
                 sed -i.bak "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE" || \
                 sed -i '' "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE"
 
-                sed -i.bak '/^# THOTH_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
-                sed -i '' '/^# THOTH_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
+                sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
+                sed -i '' '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
 
                 echo "✓ API key saved to .env (keep this secret!)"
             fi
@@ -268,7 +268,7 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     cp "$ENV_EXAMPLE" "$ENV_FILE"
 
     # ===== Q1: NETWORK ACCESS =====
-    echo -e "${YELLOW}Q1: Who should access Thoth?${NC}"
+    echo -e "${YELLOW}Q1: Who should access Row-Bot?${NC}"
     echo "  a) Just this computer [DEFAULT - most secure]"
     echo "  b) Devices on my Local Area Network (LAN)"
     echo "  c) From the internet (requires secure tunnel)"
@@ -278,7 +278,7 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
 
     case "$network_choice" in
         b)
-            THOTH_BIND="0.0.0.0"
+            ROWBOT_BIND="0.0.0.0"
             echo -e "✓ Local Area Network (LAN) access enabled"
             echo "  Accessible from devices on your LAN:"
             echo "  • WiFi devices on your network"
@@ -296,8 +296,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
         c)
             echo -e "${RED}⚠️  IMPORTANT: Internet Access to Web UI${NC}"
             echo ""
-            echo "  We recommend using Thoth's SAFER remote access methods:"
-            echo "  • Discord bot — Full Thoth access via Discord (encrypted)"
+            echo "  We recommend using Row-Bot's SAFER remote access methods:"
+            echo "  • Discord bot — Full Row-Bot access via Discord (encrypted)"
             echo "  • SMS integration — Access via text message (no web needed)"
             echo "  • Signal bot — Private, secure messaging"
             echo "  • Messenger bot — Facebook Messenger integration"
@@ -311,7 +311,7 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
             if [[ "$use_safer" == "y" || "$use_safer" == "Y" ]]; then
                 echo "  ✓ Skip web UI internet access"
                 echo "  See: REMOTE_ACCESS_GUIDE.md for bot setup instructions"
-                THOTH_BIND="127.0.0.1"
+                ROWBOT_BIND="127.0.0.1"
             else
                 echo ""
                 echo -e "${YELLOW}You've chosen to expose the web UI to the internet.${NC}"
@@ -330,27 +330,27 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     echo ""
                     read -p "  Which will you use? [cloudflare/tailscale/other]: " tunnel_choice
                     if [[ "$tunnel_choice" == "cloudflare" ]]; then
-                        THOTH_BIND="127.0.0.1"
+                        ROWBOT_BIND="127.0.0.1"
                         echo "  ✓ Remember: Cloudflare Tunnel proxies all traffic"
                         echo "    Configure tunnel to: http://127.0.0.1:8080"
                         echo "    Setup guide: NETWORK_SETUP.md"
                     elif [[ "$tunnel_choice" == "tailscale" ]]; then
-                        THOTH_BIND="127.0.0.1"
+                        ROWBOT_BIND="127.0.0.1"
                         echo "  ✓ Remember: Connect devices to Tailscale VPN first"
                         echo "    Then access Thoth via private network"
                     else
-                        THOTH_BIND="127.0.0.1"
+                        ROWBOT_BIND="127.0.0.1"
                         echo "  ⚠️  Set up your chosen solution before accessing Thoth"
                         echo "    See: NETWORK_SETUP.md for detailed guides"
                     fi
                 else
                     echo "  ✓ Reverting to localhost-only (most secure)"
-                    THOTH_BIND="127.0.0.1"
+                    ROWBOT_BIND="127.0.0.1"
                 fi
             fi
             ;;
         *)
-            THOTH_BIND="127.0.0.1"
+            ROWBOT_BIND="127.0.0.1"
             echo "✓ Localhost only (most secure)"
             ;;
     esac
@@ -420,8 +420,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     fi
 
     # ===== APPLY NETWORK SETTINGS =====
-    sed -i.bak "s/^THOTH_BIND=.*/THOTH_BIND=$THOTH_BIND/" "$ENV_FILE" || \
-    sed -i '' "s/^THOTH_BIND=.*/THOTH_BIND=$THOTH_BIND/" "$ENV_FILE"
+    sed -i.bak "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE" || \
+    sed -i '' "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE"
 
     # ===== APPLY LLM SETTINGS =====
     if [[ "$USE_OLLAMA" == "true" ]]; then
@@ -447,8 +447,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE"
 
-                    sed -i.bak '/^# THOTH_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# THOTH_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
+                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
+                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
 
                     echo "✓ API key saved"
                 fi
@@ -465,8 +465,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak "s|sk-your-openai-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-your-openai-key-here|$api_key|" "$ENV_FILE"
 
-                    sed -i.bak '/^# THOTH_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# THOTH_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE"
+                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE" || \
+                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE"
 
                     echo "✓ API key saved"
                 fi
@@ -486,8 +486,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak '/^# ANTHROPIC_API_KEY/s/^# //' "$ENV_FILE" || \
                     sed -i '' '/^# ANTHROPIC_API_KEY/s/^# //' "$ENV_FILE"
 
-                    sed -i.bak '/^# THOTH_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# THOTH_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE"
+                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE" || \
+                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE"
 
                     echo "✓ API key saved"
                 fi
@@ -528,21 +528,21 @@ set +a
 # Final summary
 echo -e "${GREEN}Your Configuration:${NC}"
 echo ""
-if [[ "$THOTH_BIND" == "127.0.0.1" ]]; then
+if [[ "$ROWBOT_BIND" == "127.0.0.1" ]]; then
     echo "  Network: Localhost only (most secure) ✓"
     echo "  Access:  http://localhost:8080"
-elif [[ "$THOTH_BIND" == "0.0.0.0" ]]; then
+elif [[ "$ROWBOT_BIND" == "0.0.0.0" ]]; then
     echo "  Network: Home network accessible"
     echo "  Access:  http://<your-ip>:8080"
 fi
 
-if grep -q "^THOTH_LLM_PROVIDER=ollama" "$ENV_FILE"; then
+if grep -q "^ROWBOT_LLM_PROVIDER=ollama" "$ENV_FILE"; then
     echo "  LLM:     Ollama (local, private) ✓"
-elif grep -q "^THOTH_LLM_PROVIDER=openrouter" "$ENV_FILE"; then
+elif grep -q "^ROWBOT_LLM_PROVIDER=openrouter" "$ENV_FILE"; then
     echo "  LLM:     OpenRouter (cloud)"
-elif grep -q "^THOTH_LLM_PROVIDER=openai" "$ENV_FILE"; then
+elif grep -q "^ROWBOT_LLM_PROVIDER=openai" "$ENV_FILE"; then
     echo "  LLM:     OpenAI (cloud)"
-elif grep -q "^THOTH_LLM_PROVIDER=anthropic" "$ENV_FILE"; then
+elif grep -q "^ROWBOT_LLM_PROVIDER=anthropic" "$ENV_FILE"; then
     echo "  LLM:     Anthropic (cloud)"
 else
     echo "  LLM:     Ollama (default)"
@@ -573,8 +573,8 @@ echo ""
 echo "2. Verify everything works:"
 echo "   ./health-check.sh"
 echo ""
-echo "3. Access Thoth:"
-if [[ "$THOTH_BIND" == "127.0.0.1" ]]; then
+echo "3. Access Row-Bot:"
+if [[ "$ROWBOT_BIND" == "127.0.0.1" ]]; then
     echo "   http://localhost:8080"
 else
     echo "   http://<your-ip>:${THOTH_PORT:-8080}"

@@ -178,7 +178,7 @@ The Row-Bot container includes essential command-line utilities pre-installed an
 
 All utilities are installed as root during build and accessible to the `rowbot` user at runtime.
 
-See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on each utility.
+See [UTILITIES_ANALYSIS.md](references/UTILITIES_ANALYSIS.md) for detailed rationale on each utility.
 
 ## Docker Installation (Required)
 
@@ -203,7 +203,7 @@ docker-compose --version
 
 ## Local LLM Setup (Optional)
 
-Thoth can use local models (Ollama, llama.cpp, etc.) or cloud providers (OpenAI, Claude, OpenRouter).
+Row-Bot can use local models (Ollama, llama.cpp, etc.) or cloud providers (OpenAI, Claude, OpenRouter).
 
 **If you choose a local model**, you need Ollama (or another backend) running on your host machine.
 
@@ -242,15 +242,15 @@ ollama pull llama2
 
 Two Docker volumes store data across container restarts:
 
-1. **thoth-docker-setup_thoth-data**
+1. **row-bot-docker-setup_rowbot-data**
    - Thoth application state, memory.db, configuration, API keys
-   - Mounted at `/home/thoth/.thoth` inside container
-   - Location on host: `/var/lib/docker/volumes/thoth-docker-setup_thoth-data/_data`
+   - Mounted at `/home/rowbot/.row-bot` inside container
+   - Location on host: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-data/_data`
 
-2. **thoth-docker-setup_thoth-workspace**
+2. **row-bot-docker-setup_rowbot-workspace**
    - User workspace and projects
    - Mounted at `/app/workspace` inside container
-   - Location on host: `/var/lib/docker/volumes/thoth-docker-setup_thoth-workspace/_data`
+   - Location on host: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-workspace/_data`
 
 **Why Docker volumes (not bind mounts)?**
 - ✅ Portable: Same volumes work on any Docker host
@@ -265,7 +265,7 @@ See [CLAUDE.md](CLAUDE.md) for full backup and disaster recovery procedures.
 **Backup (full volume backup):**
 ```bash
 # Create backup of Thoth data volume
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
@@ -275,11 +275,11 @@ docker run --rm -v thoth-docker-setup_thoth-data:/data \
 docker-compose down
 
 # Restore volume
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
 
 # Fix ownership
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   alpine chown -R 1000:1000 /data
 
 # Restart
@@ -319,8 +319,8 @@ curl http://localhost:11434/api/tags
 
 **Check 2:** Docker can reach the host
 ```bash
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags  # macOS/Windows
-docker-compose exec thoth curl http://<your-local-ip>:11434/api/tags      # Linux
+docker-compose exec rowbot curl http://host.docker.internal:11434/api/tags  # macOS/Windows
+docker-compose exec rowbot curl http://<your-local-ip>:11434/api/tags      # Linux
 ```
 
 **Check 3:** Firewall isn't blocking port 11434
@@ -341,21 +341,21 @@ ping <ollama-host-ip>
 
 If you get "Permission denied" errors, ensure the directories are writable:
 ```bash
-chmod 755 "$(grep THOTH_DATA_DIR .env | cut -d= -f2)"
+chmod 755 "$(grep ROWBOT_DATA_DIR .env | cut -d= -f2)"
 chmod 755 "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
 ```
 
 If issues persist, check container user permissions:
 ```bash
-docker-compose exec thoth id
-docker-compose exec thoth ls -la /home/thoth/.thoth
+docker-compose exec rowbot id
+docker-compose exec rowbot ls -la /home/rowbot/.row-bot
 ```
 
 ### Container Won't Start
 
 Check logs for the error:
 ```bash
-docker-compose logs thoth
+docker-compose logs rowbot
 ```
 
 Common causes:
@@ -458,4 +458,4 @@ When making changes:
 
 ## License
 
-This template is provided as-is. See the [Thoth project](https://github.com/siddsachar/Thoth) for its license.
+This template is provided as-is. See the [Thoth project](https://github.com/siddsachar/row-bot) for its license.

@@ -1,20 +1,25 @@
-# CLAUDE.md
+# CLAUDE.md — Row-Bot Docker Development Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this skill repository.
 
 ## Project Overview
 
-**thoth-docker-template** is a Docker Compose configuration for running [Thoth](https://github.com/siddsachar/Thoth), an open-source application, in a containerized environment. The setup was derived from Jeli project experience and targets seamless local development with host-based Ollama integration.
+**row-bot-docker-setup** is a Docker Compose configuration for running [Row-Bot](https://github.com/siddsachar/row-bot), an open-source desktop AI application, in a containerized environment. The setup was derived from Thoth project experience and migration learnings (Thoth → Row-Bot rebrand, 2026-05-28 through 2026-06-05).
+
+Row-Bot is now a desktop application, but containerization provides:
+- Isolation: Failures contained to the container
+- Consistency: Same setup works on macOS, Linux, Windows
+- Reproducibility: Volumes backup/restore complete state
 
 ### Key Architecture Points
 
-- **Single-service setup**: The `thoth` container runs the main Thoth application at port 8080
-- **Host Ollama integration**: Thoth connects to Ollama running on the host machine via `host.docker.internal:11434` (Docker Desktop feature)
+- **Single-service setup**: The `rowbot` container runs Row-Bot at port 8080
+- **Host Ollama integration**: Row-Bot connects to Ollama on the host via `host.docker.internal:11434` (Docker Desktop) or `localhost:11434` (Linux with `--network=host`)
 - **Persistent volumes**: Two named volumes preserve application data and workspace files across container restarts
-- **Non-root user**: Thoth runs as user `thoth` (UID 1000) for security; all files are owned by this user
-- **Specific Git commit**: The Dockerfile pins Thoth to commit `deb5d11` to ensure reproducible builds
+- **Non-root user**: Row-Bot runs as user `rowbot` (UID 1000) for security; all files owned by this user
+- **Git source**: Dockerfile clones from `https://github.com/siddsachar/row-bot.git` (latest)
 
-### Architecture Improvements (v0.6.0+)
+### Architecture Improvements (v0.5.0)
 
 ✅ **Implemented:**
 - Multi-stage Dockerfile build (separate builder and runtime stages) — reduces final image size by ~50%
@@ -25,8 +30,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Health check in docker-compose.yml and Dockerfile
 - Automated setup.sh script to initialize directories and validate Ollama connectivity
 - **All required utilities in runtime** (git, nano, jq, less, tree, file, unzip, vim-tiny) — MUST NOT be removed
-- **Developer Studio symlink** for workspace accessibility (`/home/thoth/Documents/Thoth/projects`)
+- **Developer Studio symlink** for workspace accessibility (`/home/rowbot/Documents/Row-Bot/projects`)
 - Tested upgrade and disaster recovery procedures
+- **Lessons learned from bare-metal migrations:** SQLite WAL handling, path migration, API key management — documented in MIGRATION_NOTES.md
 
 ## Quick Start
 
@@ -41,20 +47,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    docker-compose up -d
    ```
 
-3. **Access Thoth** at `http://localhost:8080`
+3. **Access Row-Bot** at `http://localhost:8080`
 
 ## Important: Running from the Correct Directory
 
-All `docker-compose` commands must be run from the directory containing `docker-compose.yml`. The relative paths in `.env` (like `./thoth-data`) are resolved relative to this directory.
+All `docker-compose` commands must be run from the directory containing `docker-compose.yml`. The relative paths in `.env` (like `./rowbot-data`) are resolved relative to this directory.
 
 ```bash
 # ✓ Correct - run from the directory with docker-compose.yml
-cd /path/to/thoth-docker-setup
+cd /path/to/row-bot-docker-setup
 docker-compose up -d
 
 # ✗ Wrong - running from parent directory won't work with relative paths
 cd /path/to/parent
-docker-compose -f thoth-docker-setup/docker-compose.yml up -d
+docker-compose -f row-bot-docker-setup/docker-compose.yml up -d
 ```
 
 ## Common Commands
@@ -75,7 +81,7 @@ docker-compose up -d --build
 ### Running
 
 ```bash
-# Start the Thoth container in background (builds if needed)
+# Start the Row-Bot container in background (builds if needed)
 docker-compose up -d
 
 # Start in foreground and watch logs
@@ -98,7 +104,7 @@ docker-compose down -v --rmi all
 
 ```bash
 # Open a shell inside the running container
-docker-compose exec thoth bash
+docker-compose exec rowbot bash
 
 # View live logs (Ctrl+C to stop)
 docker-compose logs -f
@@ -107,30 +113,30 @@ docker-compose logs -f
 docker-compose logs --tail=100
 
 # View logs for specific service
-docker-compose logs -f thoth
+docker-compose logs -f rowbot
 
 # Check container status
 docker-compose ps
 
 # Inspect environment variables
-docker-compose exec thoth env | grep OLLAMA
-docker-compose exec thoth env | grep THOTH
+docker-compose exec rowbot env | grep OLLAMA
+docker-compose exec rowbot env | grep ROWBOT
 ```
 
 ### Testing Individual Components
 
 ```bash
 # Run a Python command inside the container
-docker-compose exec thoth python launcher.py --help
+docker-compose exec rowbot python launcher.py --help
 
 # Verify Ollama connectivity from inside container
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
+docker-compose exec rowbot curl http://host.docker.internal:11434/api/tags
 
-# Check Thoth is listening on correct port
-docker-compose exec thoth curl http://localhost:8080
+# Check Row-Bot is listening on correct port
+docker-compose exec rowbot curl http://localhost:8080
 
 # Verify all dependencies are installed
-docker-compose exec thoth pip list | grep -i thoth
+docker-compose exec rowbot pip list | grep -i row
 ```
 
 ## File Structure
@@ -141,10 +147,11 @@ docker-compose exec thoth pip list | grep -i thoth
 ├── .env.example               # Configuration template (copy to .env)
 ├── .gitignore                 # Git ignore patterns
 ├── README.md                  # Complete setup guide with platform-specific instructions
+├── MIGRATION_NOTES.md         # Bare-metal to Docker migration guide (lessons learned)
 ├── CLAUDE.md                  # This file - development guide
 └── docker/
-    ├── Dockerfile             # Python 3.11 slim base, Thoth source from GitHub
-    └── docker-compose.yml     # Service definition with environment variable support
+    ├── Dockerfile             # Python 3.11 slim base, Row-Bot from GitHub
+    └── entrypoint.sh          # Startup script for symlink/directory setup
 ```
 
 ## Configuration Notes
@@ -157,38 +164,39 @@ All paths and ports are configurable through `.env`:
   - Use `host.docker.internal` on macOS/Windows Docker Desktop
   - Use `http://localhost:11434` on Linux with `--network=host`
   - Use `http://<host-ip>:11434` on Linux with bridge network or remote Ollama
-- `THOTH_PORT`: Container port (default: 8080)
-- `THOTH_DATA_DIR`: Host path for application data (default: `./thoth-data`)
-- `THOTH_WORKSPACE_DIR`: Host path for workspace files (default: `./thoth-workspace`)
+- `ROWBOT_PORT`: Container port (default: 8080)
+- `ROWBOT_BIND`: Host binding for web access (default: 127.0.0.1 for localhost only)
+- `ROWBOT_DATA_DIR`: Host path for application data (deprecated, pure volumes used instead)
+- `ROWBOT_WORKSPACE_DIR`: Host path for workspace files (deprecated, pure volumes used instead)
 - `RESTART_POLICY`: Container restart behavior (default: `unless-stopped`)
 
 ### Runtime Environment (Inside Container)
 
-- `HOME`: `/home/thoth`
+- `HOME`: `/home/rowbot`
 - `PYTHONPATH`: Includes user-level pip packages
-- Container runs as non-root user `thoth` (UID 1000)
+- Container runs as non-root user `rowbot` (UID 1000)
 
 ### Volumes (Pure Docker Volumes - Production Ready)
 
 This setup uses **pure Docker volumes** (not host bind mounts) for maximum stability and portability:
 
-- `thoth-data`: Stores Thoth application state, cache, and configuration
-  - **Location**: `/var/lib/docker/volumes/thoth-docker-setup_thoth-data/_data`
-  - **Container path**: `/home/thoth/.thoth`
+- `rowbot-data`: Stores Row-Bot application state, cache, and configuration
+  - **Location**: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-data/_data`
+  - **Container path**: `/home/rowbot/.row-bot`
   - **Contents**: memory.db, memory_vectors, vault, api_keys.json, projects, configs
   - **Portability**: Works identically on any machine with Docker (no host path dependencies)
   
-- `thoth-workspace`: User workspace and project files
-  - **Location**: `/var/lib/docker/volumes/thoth-docker-setup_thoth-workspace/_data`
+- `rowbot-workspace`: User workspace and project files
+  - **Location**: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-workspace/_data`
   - **Container path**: `/app/workspace`
   - **Portability**: Fully portable
 
 **Why pure Docker volumes (not bind mounts)?**
 - ✅ Portable: Same volumes work on any Docker host (macOS, Linux, Windows, cloud)
-- ✅ Upgrades are safe: Volumes persist across image updates and Thoth version upgrades
+- ✅ Upgrades are safe: Volumes persist across image updates and Row-Bot version upgrades
 - ✅ Disaster recovery is clean: Backup/restore volumes anywhere
 - ✅ No host filesystem dependencies: Data stays with Docker, not tied to `/path/on/host`
-- ✅ Permission-safe: Consistent UID/GID handling (thoth user = UID 1000)
+- ✅ Permission-safe: Consistent UID/GID handling (rowbot user = UID 1000)
 
 ## Before Making Changes
 
@@ -196,9 +204,8 @@ This setup uses **pure Docker volumes** (not host bind mounts) for maximum stabi
 
 2. **Backup data before testing destructive changes**:
    ```bash
-   tar -czf thoth-backup-$(date +%Y%m%d).tar.gz \
-     "$(grep THOTH_DATA_DIR .env | cut -d= -f2)" \
-     "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+   docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+     -v ./backups:/backup alpine tar czf /backup/rowbot-data-$(date +%Y%m%d).tar.gz -C /data .
    ```
 
 3. **Test Ollama connectivity**: Verify Ollama is reachable before starting the container:
@@ -206,10 +213,10 @@ This setup uses **pure Docker volumes** (not host bind mounts) for maximum stabi
    curl ${OLLAMA_BASE_URL:-http://localhost:11434}/api/tags
    ```
 
-4. **Check port availability**: Ensure `THOTH_PORT` is not in use:
+4. **Check port availability**: Ensure `ROWBOT_PORT` is not in use:
    ```bash
-   lsof -i :${THOTH_PORT:-8080}  # macOS
-   netstat -tlnp | grep ${THOTH_PORT:-8080}  # Linux
+   lsof -i :${ROWBOT_PORT:-8080}  # macOS
+   netstat -tlnp | grep ${ROWBOT_PORT:-8080}  # Linux
    ```
 
 ## ⚠️ CRITICAL: Required Runtime Utilities
@@ -221,16 +228,16 @@ git curl ffmpeg nano vim-tiny less file tree jq unzip
 ```
 
 **Why they're mandatory:**
-- **git**: Required for committing/pushing changes, managing project state, and Thoth's developer tools
-- **curl/ffmpeg**: Core Thoth dependencies for API calls and media processing
+- **git**: Required for committing/pushing changes, managing project state, and Row-Bot's developer tools
+- **curl/ffmpeg**: Core Row-Bot dependencies for API calls and media processing
 - **nano/vim-tiny**: Essential for editing config files and scripts inside the container
-- **less/file/tree**: Debugging and exploration tools that Thoth and its skills depend on
+- **less/file/tree**: Debugging and exploration tools that Row-Bot and its skills depend on
 - **jq**: JSON processing for API response debugging
 - **unzip**: Archive extraction for model packages and configurations
 
-**Do NOT remove these from the runtime stage** even when optimizing image size. They are essential for Thoth's functionality and developer workflows. If size optimization is needed, use other strategies (layer caching, image compression, etc.) but keep these utilities installed.
+**Do NOT remove these from the runtime stage** even when optimizing image size. They are essential for Row-Bot's functionality and developer workflows. If size optimization is needed, use other strategies (layer caching, image compression, etc.) but keep these utilities installed.
 
-See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on each utility's necessity and safety.
+See [UTILITIES_ANALYSIS.md](references/UTILITIES_ANALYSIS.md) for detailed rationale on each utility's necessity and safety.
 
 ## Implementation Status
 
@@ -245,23 +252,25 @@ See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on eac
 - [x] Created skill structure for agent-skills repository
 - [x] Documented utilities analysis and rationale
 - [x] Created publication guide for agent-skills
+- [x] Added MIGRATION_NOTES.md with bare-metal migration lessons and challenges
+- [x] Thoth → Row-Bot rebrand (skill rename, manifest, docker-compose, scripts, documentation)
 
 ## Skill Packaging
 
 This is ready for distribution as an agent skill:
 - **Manifest:** `skill-manifest.json` with full metadata
-- **Publication Guide:** `PUBLISH.md` for agent-skills integration
+- **Publication Guide:** References in README point to agent-skills integration
 - **Quick Start:** Pre-configured setup scripts for all platforms
-- **Documentation:** README, CLAUDE, SKILL, UTILITIES_ANALYSIS
+- **Documentation:** README, CLAUDE, SKILL, MIGRATION_NOTES, UTILITIES_ANALYSIS
 
-## Upgrading Thoth (Safe & Stable)
+## Upgrading Row-Bot (Safe & Stable)
 
-To upgrade Thoth to a new version:
+To upgrade Row-Bot to a new version:
 
-1. **Update Dockerfile** (line 11):
+1. **Update Dockerfile** (line 10):
    ```dockerfile
-   RUN git clone https://github.com/siddsachar/Thoth.git . && \
-       git checkout <NEW_VERSION_TAG>  # e.g., v3.24.0
+   RUN git clone https://github.com/siddsachar/row-bot.git . && \
+       git checkout <TAG_OR_COMMIT>  # e.g., v1.0.0 or commit hash
    ```
 
 2. **Rebuild and restart**:
@@ -272,7 +281,7 @@ To upgrade Thoth to a new version:
 
 3. **Data is completely safe**: Volumes persist across this entire process
    - memory.db, vault, projects, configs all remain intact
-   - Container restarts with new Thoth code, same data
+   - Container restarts with new Row-Bot code, same data
    - Zero data loss risk
 
 ## Disaster Recovery
@@ -281,15 +290,14 @@ To upgrade Thoth to a new version:
 
 ```bash
 # Full volume backup (includes everything)
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  -v ./backups:/backup alpine tar czf /backup/rowbot-data-$(date +%Y%m%d).tar.gz -C /data .
 
 # Store backup off-machine (critical!)
 # Option A: External drive
-cp ./backups/thoth-data-*.tar.gz /Volumes/ExternalDrive/thoth-backups/
+cp ./backups/rowbot-data-*.tar.gz /Volumes/ExternalDrive/rowbot-backups/
 
-# Option B: GitHub (via thoth-memory-backup-to-github skill)
-# Option C: Cloud storage (S3, Google Drive, etc.)
+# Option B: Cloud storage (S3, Google Drive, etc.)
 ```
 
 ### Restoring from backup
@@ -300,11 +308,11 @@ docker-compose down
 
 # Restore volume (choose one)
 # From local backup:
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  -v ./backups:/backup alpine tar xzf /backup/rowbot-data-YYYYMMDD.tar.gz -C /data
 
 # Fix ownership (files may have different UID after restore)
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   alpine chown -R 1000:1000 /data
 
 # Restart
@@ -315,34 +323,34 @@ docker-compose up -d
 
 **You must test that backups actually work before you need them.** Untested backups often fail when you need them most.
 
-**Monthly backup test procedure:**
+**Quarterly backup test procedure:**
 
 ```bash
 # Step 1: Create a test backup
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar czf /backup/thoth-test-restore-$(date +%Y%m%d).tar.gz -C /data .
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  -v ./backups:/backup alpine tar czf /backup/rowbot-test-restore-$(date +%Y%m%d).tar.gz -C /data .
 
 # Step 2: Create a test volume for restore
-docker volume create thoth-test-restore
+docker volume create rowbot-test-restore
 
 # Step 3: Restore to test volume
-docker run --rm -v thoth-test-restore:/data \
-  -v ./backups:/backup alpine tar xzf /backup/thoth-test-restore-*.tar.gz -C /data
+docker run --rm -v rowbot-test-restore:/data \
+  -v ./backups:/backup alpine tar xzf /backup/rowbot-test-restore-*.tar.gz -C /data
 
 # Step 4: Fix ownership
-docker run --rm -v thoth-test-restore:/data \
+docker run --rm -v rowbot-test-restore:/data \
   alpine chown -R 1000:1000 /data
 
 # Step 5: Verify restore by mounting in temporary container
-docker run --rm -it -v thoth-test-restore:/data alpine ls -la /data/Documents/Thoth/projects/
+docker run --rm -it -v rowbot-test-restore:/data alpine ls -la /data/Documents/Row-Bot/projects/
 # Should list your projects
 
 # Step 6: Check file integrity (spot-check a few files)
-docker run --rm -v thoth-test-restore:/data alpine du -sh /data/memory.db
+docker run --rm -v rowbot-test-restore:/data alpine du -sh /data/memory.db
 # Should show non-zero size
 
 # Step 7: Clean up test volume
-docker volume rm thoth-test-restore
+docker volume rm rowbot-test-restore
 
 # Step 8: Document the test
 echo "Backup test passed on $(date)" >> backup-test-log.txt
@@ -374,27 +382,36 @@ echo "Backup test passed on $(date)" >> backup-test-log.txt
 - **Retention policy:** Keep at least 2-3 backups (daily, weekly, monthly)
 - **Test quarterly:** Test a full restore procedure at least every 3 months
 - **Document recovery:** Write down the exact commands you'd run (save them in a README in your backups folder)
-- The `thoth-memory-backup-to-github` skill backs up only memory.db. For full disaster recovery, also backup Docker volumes using the procedure above
 
 ## Troubleshooting Stability
 
 **Issue: Container restarts repeatedly**
-- Check logs: `docker-compose logs --tail=50 thoth`
+- Check logs: `docker-compose logs --tail=50 rowbot`
 - Often caused by file permission issues
-- Fix: `docker run --rm -v thoth-docker-setup_thoth-data:/data alpine chown -R 1000:1000 /data`
+- Fix: `docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine chown -R 1000:1000 /data`
 
 **Issue: Permission denied on files**
 - Happens after restoring backups (files may be owned by different UID)
-- Fix ownership: `docker run --rm -v thoth-docker-setup_thoth-data:/data alpine chown -R 1000:1000 /data`
+- Fix ownership: `docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine chown -R 1000:1000 /data`
 
 **Issue: Projects not visible in Developer Studio**
-- Ensure symlink exists: `docker-compose exec thoth ln -s /home/thoth/.thoth/Documents/Thoth/projects /home/thoth/Documents/Thoth/projects`
+- Ensure symlink exists: `docker-compose exec rowbot ln -s /home/rowbot/.row-bot/Documents/Row-Bot/projects /home/rowbot/Documents/Row-Bot/projects`
 - This should be automatic but may need recreation after container rebuilds
+
+## Migration from Bare-Metal Row-Bot
+
+If you're moving from a bare-metal installation, see **[MIGRATION_NOTES.md](MIGRATION_NOTES.md)** for:
+- Real-world migration challenges and solutions
+- Step-by-step migration procedures
+- Data preservation strategies
+- API key management
+- Validation checklist
+
+The migration guide incorporates lessons learned from actual bare-metal-to-Docker transitions and SQLite data migration pitfalls.
 
 ## Future Enhancements (Optional)
 
 - Automatic symlink creation in entrypoint script (for Developer Studio portability)
-- Expand backup skill to full volume backup (v0.4.0)
-- GitHub Actions CI/CD pipeline for cross-platform testing
 - Pre-built images on Docker Hub for instant startup
 - Kubernetes manifests for orchestration
+- Health check improvements for Row-Bot-specific endpoints
