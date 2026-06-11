@@ -1,6 +1,8 @@
-# Thoth Docker Template
+# Row-Bot Docker Setup
 
-Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/Thoth) across macOS, Windows, and Linux. Built on learnings from the Jeli project.
+Production-ready Docker Compose setup for [Row-Bot](https://github.com/siddsachar/row-bot) (formerly Thoth) across macOS, Windows, and Linux. Built on learnings from Thoth migrations, Jeli project experience, and bare-metal-to-container deployment challenges.
+
+> **Version 0.5.0 (Initial Release):** This is the first release after the Thoth → Row-Bot rebrand. Row-Bot is a desktop application that benefits from containerization for isolation and consistency. See [MIGRATION_NOTES.md](MIGRATION_NOTES.md) for migration guidance and lessons learned from bare-metal deployments.
 
 ---
 
@@ -11,10 +13,10 @@ Production-ready Docker Compose setup for [Thoth](https://github.com/siddsachar/
 - Compromised agents can access your files and API keys
 - Security breaches expose your entire computer
 
-**Docker solves this** by isolating Thoth in a container:
+**Docker solves this** by isolating Row-Bot in a container:
 - Your files are protected
 - Your API keys and credentials stay safe
-- If Thoth is compromised, the damage is contained
+- If Row-Bot is compromised, the damage is contained
 
 **Default setup is secure:** Localhost-only access, optional cloud LLM providers, non-root user.
 
@@ -30,7 +32,7 @@ Running `./setup.sh` guides you through two options:
 - System scans your hardware
 - Recommends safe defaults
 - One-click approval
-- Done — start Thoth immediately
+- Done — start Row-Bot immediately
 
 ### Advanced Setup (10 min)
 - Same intelligent defaults
@@ -49,14 +51,15 @@ Running `./setup.sh` guides you through two options:
 | Goal | Start Here | Time |
 |------|-----------|------|
 | **First time setup** | Run `./setup.sh` (Quick or Advanced) | 5-10 min |
+| **Migrating from bare-metal Row-Bot** | [MIGRATION_NOTES.md](MIGRATION_NOTES.md) | 15 min |
 | **Verify setup works** | Run `./health-check.sh` | 1 min |
 | **Estimate monthly costs** | Run `./estimate-costs.sh` | 5 min |
 | **Why Docker?** | [DOCKER_WHY.md](DOCKER_WHY.md) | 5 min |
 | **LLM options** | [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) | 10 min |
-| **First steps with Thoth** | [GETTING_STARTED.md](GETTING_STARTED.md) | 5 min |
+| **First steps with Row-Bot** | [GETTING_STARTED.md](GETTING_STARTED.md) | 5 min |
 | **Remote access (safe)** | [REMOTE_ACCESS_GUIDE.md](REMOTE_ACCESS_GUIDE.md) | 10 min |
 | **Bug report / debugging** | Run `./diagnostics.sh` | 2 min |
-| **Upgrading from v0.5.x** | [MIGRATION.md](MIGRATION.md) | 15 min |
+| **Upgrading Row-Bot versions** | [MIGRATION.md](MIGRATION.md) | 15 min |
 | **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
 | **Network/firewall setup** | [NETWORK_SETUP.md](references/NETWORK_SETUP.md) | 10 min |
 | **Disaster recovery** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
@@ -66,14 +69,14 @@ Running `./setup.sh` guides you through two options:
 ## Quick Start
 
 ```bash
-git clone <repo-url> thoth-docker-template
-cd thoth-docker-template
+git clone <repo-url> row-bot-docker-setup
+cd row-bot-docker-setup
 ./setup.sh
 ```
 
 That's it. The setup script detects your system, recommends optimal storage, and walks you through the only decisions that matter.
 
-Then start Thoth:
+Then start Row-Bot:
 ```bash
 docker-compose up -d
 ```
@@ -87,7 +90,7 @@ Open your browser to `http://localhost:8080`
 **Health Check (verify setup works):**
 ```bash
 ./health-check.sh
-# Checks: Docker, Thoth container, Ollama, disk space, LLM provider
+# Checks: Docker, Row-Bot container, Ollama, disk space, LLM provider
 ```
 
 **Cost Estimator (monthly LLM expenses):**
@@ -134,17 +137,17 @@ docker-compose logs --tail=100
 
 ```bash
 # Open shell inside container
-docker-compose exec thoth bash
+docker-compose exec rowbot bash
 
 # Run Python command
-docker-compose exec thoth python launcher.py --help
+docker-compose exec rowbot python launcher.py --help
 
 # Check Ollama connectivity from inside container
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
+docker-compose exec rowbot curl http://host.docker.internal:11434/api/tags
 
 # Inspect container environment
-docker-compose exec thoth env | grep OLLAMA
-docker-compose exec thoth env | grep THOTH
+docker-compose exec rowbot env | grep OLLAMA
+docker-compose exec rowbot env | grep ROWBOT
 ```
 
 ### Rebuild After Changes
@@ -159,21 +162,21 @@ docker-compose up -d --build
 
 ## Container Utilities
 
-The Thoth container includes essential command-line utilities pre-installed and accessible to the `thoth` user:
+The Row-Bot container includes essential command-line utilities pre-installed and accessible to the `rowbot` user:
 
 | Utility | Purpose | Example |
 |---------|---------|---------|
-| **nano** | Text editor | `docker-compose exec thoth nano /home/thoth/.thoth/config.yaml` |
-| **vim-tiny** | Vi implementation | `docker-compose exec thoth vim /home/thoth/.thoth/config.yaml` |
-| **jq** | JSON processing | `docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags \| jq '.'` |
-| **less** | File pager | `docker-compose exec thoth less /home/thoth/.thoth/logs.json` |
-| **tree** | Directory explorer | `docker-compose exec thoth tree -L 2 /home/thoth/.thoth` |
-| **file** | File type check | `docker-compose exec thoth file /home/thoth/workspace/model.gguf` |
-| **unzip** | Archive extraction | `docker-compose exec thoth unzip models.zip -d /home/thoth/.thoth/models` |
-| **curl** | HTTP requests | `docker-compose exec thoth curl http://host.docker.internal:11434/api/tags` |
-| **git** | Version control | `docker-compose exec thoth git clone <repo>` |
+| **nano** | Text editor | `docker-compose exec rowbot nano /home/rowbot/.row-bot/config.yaml` |
+| **vim-tiny** | Vi implementation | `docker-compose exec rowbot vim /home/rowbot/.row-bot/config.yaml` |
+| **jq** | JSON processing | `docker-compose exec rowbot curl -s http://host.docker.internal:11434/api/tags \| jq '.'` |
+| **less** | File pager | `docker-compose exec rowbot less /home/rowbot/.row-bot/logs.json` |
+| **tree** | Directory explorer | `docker-compose exec rowbot tree -L 2 /home/rowbot/.row-bot` |
+| **file** | File type check | `docker-compose exec rowbot file /home/rowbot/workspace/model.gguf` |
+| **unzip** | Archive extraction | `docker-compose exec rowbot unzip models.zip -d /home/rowbot/.row-bot/models` |
+| **curl** | HTTP requests | `docker-compose exec rowbot curl http://host.docker.internal:11434/api/tags` |
+| **git** | Version control | `docker-compose exec rowbot git clone <repo>` |
 
-All utilities are installed as root during build and accessible to the `thoth` user at runtime.
+All utilities are installed as root during build and accessible to the `rowbot` user at runtime.
 
 See [UTILITIES_ANALYSIS.md](UTILITIES_ANALYSIS.md) for detailed rationale on each utility.
 

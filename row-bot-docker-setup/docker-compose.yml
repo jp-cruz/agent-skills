@@ -1,19 +1,19 @@
 services:
-  thoth:
+  rowbot:
     build:
       context: ./docker
       dockerfile: Dockerfile
-    container_name: thoth-app
+    container_name: rowbot-app
     ports:
       # Default: localhost only (127.0.0.1:8080)
-      # To access from network: set THOTH_BIND=0.0.0.0 in .env
+      # To access from network: set ROWBOT_BIND=0.0.0.0 in .env
       # See NETWORK_SETUP.md for security guidance on network exposure
-      - "${THOTH_BIND:-127.0.0.1}:${THOTH_PORT:-8080}:8080"
+      - "${ROWBOT_BIND:-127.0.0.1}:${ROWBOT_PORT:-8080}:8080"
     environment:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
     volumes:
-      - thoth-data:/home/thoth/.thoth
-      - thoth-workspace:/app/workspace
+      - rowbot-data:/home/rowbot/.row-bot
+      - rowbot-workspace:/app/workspace
     restart: ${RESTART_POLICY:-unless-stopped}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
@@ -26,7 +26,7 @@ services:
     #   - host
 
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
-  thoth-workspace:
+  rowbot-workspace:
     driver: local

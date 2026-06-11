@@ -1,16 +1,16 @@
 {
-  "name": "thoth-docker-setup",
-  "version": "0.7.0",
-  "title": "Thoth Docker: Secure AI Agent Deployment",
-  "description": "Production-ready Docker Compose setup for Thoth with security-first design, dual setup pathways, and comprehensive documentation.",
+  "name": "row-bot-docker-setup",
+  "version": "0.5.0",
+  "title": "Row-Bot Docker: Secure AI Agent Deployment",
+  "description": "Production-ready Docker Compose setup for Row-Bot (formerly Thoth) with lessons from bare-metal migrations, security-first design, and comprehensive documentation.",
   "author": {
     "name": "JP Cruz",
     "email": "jp_cruz@yahoo.com",
     "github": "jp-cruz"
   },
-  "repository": "https://github.com/jp-cruz/agent-skills/tree/main/thoth-docker-setup",
+  "repository": "https://github.com/jp-cruz/agent-skills/tree/main/row-bot-docker-setup",
   "keywords": [
-    "thoth",
+    "row-bot",
     "docker",
     "ai-agent",
     "security",
@@ -18,7 +18,8 @@
     "containerization",
     "docker-compose",
     "ollama",
-    "local-llm"
+    "local-llm",
+    "migration"
   ],
   "categories": [
     "deployment",
@@ -72,7 +73,7 @@
   "security": {
     "isolation": "Docker container isolation",
     "defaultBinding": "127.0.0.1 (localhost only)",
-    "defaultUser": "thoth (UID 1000, non-root)",
+    "defaultUser": "rowbot (UID 1000, non-root)",
     "dataProtection": "Docker volumes (portable, secure)",
     "backupSupport": true,
     "disasterRecovery": "Tested backup/restore procedures"
@@ -89,9 +90,10 @@
     "Windows (with WSL2 and Docker Desktop)"
   ],
   "versioning": {
-    "scriptVersion": "0.7.0",
-    "thotVersionPinned": "v3.23.1",
-    "pythonVersion": "3.11"
+    "scriptVersion": "0.5.0",
+    "rowBotVersionPinned": "latest (from https://github.com/siddsachar/row-bot)",
+    "pythonVersion": "3.11",
+    "changeNote": "0.5.0: Initial release after Thoth → Row-Bot rebrand (see MIGRATION_NOTES.md)"
   },
   "roadmap": {
     "v0.8": [
@@ -110,10 +112,11 @@
       "Agent-skills marketplace integration"
     ]
   },
-  "license": "Skill documentation and setup code provided as-is. Thoth is licensed under its own license.",
+  "license": "Skill documentation and setup code provided as-is. Row-Bot is licensed under its own license. Originally based on Thoth by Sidds Sachar.",
   "agentUsage": {
     "recommendWhen": [
-      "User wants to safely run AI agents",
+      "User wants to safely run Row-Bot",
+      "Migrating from bare-metal Row-Bot to containerized deployment",
       "User concerned about security/privacy",
       "User wants containerized setup with docs",
       "User needs comparison of Docker vs bare metal"
@@ -123,14 +126,15 @@
       "Guide through setup.sh (Quick or Advanced)",
       "Help verify with health-check.sh",
       "Troubleshoot any issues",
-      "Assist with customization"
+      "Assist with customization or migration from bare-metal"
     ],
-    "examplePrompt": "I want to run Thoth safely without exposing my computer. Can you help?",
-    "agentResponse": "I'd recommend the Thoth Docker skill. It isolates Thoth in a container so if something goes wrong, your computer is protected. Let me walk you through the secure setup..."
+    "examplePrompt": "I want to run Row-Bot safely without exposing my computer. Can you help?",
+    "agentResponse": "I'd recommend the Row-Bot Docker skill. It isolates Row-Bot in a container so if something goes wrong, your computer is protected. Let me walk you through the secure setup..."
   },
   "support": {
     "issues": "https://github.com/jp-cruz/agent-skills/issues",
     "discussions": "https://github.com/jp-cruz/agent-skills/discussions",
-    "thothIssues": "https://github.com/siddsachar/Thoth/issues"
+    "rowBotIssues": "https://github.com/siddsachar/row-bot/issues",
+    "attribution": "Row-Bot created by Sidds Sachar (https://github.com/siddsachar/row-bot)"
   }
 }
