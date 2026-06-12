@@ -1,4 +1,4 @@
-# LLM Provider Options for Thoth
+# LLM Provider Options for Row-Bot
 
 **As of: 2026-05-25**  
 **Status:** Tested and verified working  
@@ -17,7 +17,7 @@
 - Download Ollama from https://ollama.ai
 - Run `ollama serve`
 - Pull a model: `ollama pull llama2` (or mistral, neural-chat, etc.)
-- Configure Thoth to use localhost:11434
+- Configure Row-Bot to use localhost:11434
 
 **Pros:**
 - ✅ Completely private (no data leaves your computer)
@@ -45,7 +45,7 @@
 2. Add credit card
 3. Buy $5 minimum credit (or more)
 4. Generate API key
-5. Configure Thoth with key + model
+5. Configure Row-Bot with key + model
 
 **Pricing Examples:**
 - Claude 3 Haiku: $0.0015 per 1K input tokens → $5 = ~1,000 requests
@@ -56,8 +56,7 @@
 ```bash
 # In .env:
 OPENROUTER_API_KEY=sk-or-your-actual-key-here
-THOTH_LLM_PROVIDER=openrouter
-THOTH_LLM_MODEL=anthropic/claude-3-haiku
+# Then pick the provider and model inside Row-Bot: Settings → Models
 ```
 
 **Pros:**
@@ -95,8 +94,7 @@ THOTH_LLM_MODEL=anthropic/claude-3-haiku
 ```bash
 # In .env:
 OPENROUTER_API_KEY=sk-or-your-actual-key-here
-THOTH_LLM_PROVIDER=openrouter
-THOTH_LLM_MODEL=openrouter/openrouter:free
+# Then pick the provider and model inside Row-Bot: Settings → Models
 ```
 
 **Pros:**
@@ -129,14 +127,13 @@ As of 2026-05-25, OpenAI allows ChatGPT Plus subscribers to access the API witho
 1. ChatGPT Plus subscription ($20/month)
 2. OpenAI API access via Plus subscription
 3. Generate API key
-4. Configure Thoth with key + GPT-4 model
+4. Configure Row-Bot with key + GPT-4 model
 
 **How to configure:**
 ```bash
 # In .env:
 OPENAI_API_KEY=sk-your-chatgpt-plus-key
-THOTH_LLM_PROVIDER=openai
-THOTH_LLM_MODEL=gpt-4-turbo
+# Then pick the provider and model inside Row-Bot: Settings → Models
 ```
 
 **Pros:**
@@ -226,21 +223,21 @@ Use OpenRouter with $5+ credits
 2. Run `ollama serve`
 3. Pull a model: `ollama pull llama2`
 4. Add to .env: `OLLAMA_BASE_URL=http://localhost:11434`
-5. Restart Thoth
+5. Restart Row-Bot
 
 ### OpenRouter (5 steps, 5 minutes)
 1. Sign up at https://openrouter.ai
 2. Add credit card + $5 minimum
 3. Generate API key
 4. Add to .env: `OPENROUTER_API_KEY=sk-or-...`
-5. Restart Thoth
+5. Restart Row-Bot
 
 ### ChatGPT Plus (Verify then 4 steps, 5 minutes)
 1. **First: Verify** at https://openai.com that Plus includes API access
 2. Sign up for ChatGPT Plus ($20/month)
 3. Generate API key from OpenAI dashboard
 4. Add to .env: `OPENAI_API_KEY=sk-...`
-5. Restart Thoth
+5. Restart Row-Bot
 
 ---
 
@@ -303,8 +300,8 @@ All information current as of May 25, 2026. Service offerings, pricing, and term
 1. **Choose your option** from above
 2. **Follow setup instructions** in OPENROUTER_SETUP.md or README.md
 3. **Configure .env** with API key
-4. **Restart Thoth:** `docker-compose restart`
-5. **Test in Thoth UI:** Settings → Test connection
+4. **Restart Row-Bot:** `docker-compose restart`
+5. **Test in Row-Bot UI:** Settings → Test connection
 
 ---
 

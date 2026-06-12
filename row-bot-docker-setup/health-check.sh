@@ -85,21 +85,26 @@ else
     check_pass ".env file exists"
 
     # Check required variables
-    if grep -q "^ROWBOT_BIND=" "$ENV_FILE"; then
-        ROWBOT_BIND=$(grep "^ROWBOT_BIND=" "$ENV_FILE" | cut -d= -f2)
-        check_pass "ROWBOT_BIND configured: $ROWBOT_BIND"
+    if grep -q "^ROW_BOT_BIND=" "$ENV_FILE"; then
+        ROW_BOT_BIND=$(grep "^ROW_BOT_BIND=" "$ENV_FILE" | cut -d= -f2)
+        check_pass "ROW_BOT_BIND configured: $ROW_BOT_BIND"
     else
-        check_warn "ROWBOT_BIND not configured (using default)"
+        check_warn "ROW_BOT_BIND not configured (using default)"
     fi
 
-    if grep -q "^ROWBOT_PORT=" "$ENV_FILE"; then
-        ROWBOT_PORT=$(grep "^ROWBOT_PORT=" "$ENV_FILE" | cut -d= -f2)
-        check_pass "ROWBOT_PORT configured: $ROWBOT_PORT"
+    if grep -q "^ROW_BOT_PORT=" "$ENV_FILE"; then
+        ROW_BOT_PORT=$(grep "^ROW_BOT_PORT=" "$ENV_FILE" | cut -d= -f2)
+        check_pass "ROW_BOT_PORT configured: $ROW_BOT_PORT"
     else
-        ROWBOT_PORT=8080
-        check_warn "ROWBOT_PORT not configured (using default: 8080)"
+        ROW_BOT_PORT=8080
+        check_warn "ROW_BOT_PORT not configured (using default: 8080)"
     fi
 fi
+
+# Resolve this instance's container name (multi-instance aware).
+# Avoids false positives from other Row-Bot containers on the same machine.
+INSTANCE_NAME=$(grep "^ROW_BOT_INSTANCE_NAME=" "$ENV_FILE" 2>/dev/null | cut -d= -f2)
+INSTANCE_NAME=${INSTANCE_NAME:-rowbot-app}
 
 # ============================================================================
 # CHECK 4: Port availability
@@ -108,12 +113,12 @@ fi
 echo ""
 echo -e "${YELLOW}Checking ports...${NC}"
 
-if lsof -i :${ROWBOT_PORT:-8080} > /dev/null 2>&1 || \
-   netstat -tln 2>/dev/null | grep -q ":${ROWBOT_PORT:-8080} "; then
-    check_warn "Port ${ROWBOT_PORT:-8080} is in use. Row-Bot may not be able to start."
-    check_warn "To use a different port, edit .env and set ROWBOT_PORT=8081"
+if lsof -i :${ROW_BOT_PORT:-8080} > /dev/null 2>&1 || \
+   netstat -tln 2>/dev/null | grep -q ":${ROW_BOT_PORT:-8080} "; then
+    check_warn "Port ${ROW_BOT_PORT:-8080} is in use. Row-Bot may not be able to start."
+    check_warn "To use a different port, edit .env and set ROW_BOT_PORT=8081"
 else
-    check_pass "Port ${ROWBOT_PORT:-8080} is available"
+    check_pass "Port ${ROW_BOT_PORT:-8080} is available"
 fi
 
 # ============================================================================
@@ -151,7 +156,7 @@ else
 fi
 
 if [[ "$FIREWALL_STATUS" == "disabled" ]]; then
-    check_warn "⚠️  If using ROWBOT_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
+    check_warn "⚠️  If using ROW_BOT_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
     check_warn "    Otherwise, Row-Bot may be exposed to the internet"
 fi
 
@@ -162,23 +167,23 @@ fi
 echo ""
 echo -e "${YELLOW}Checking Row-Bot container...${NC}"
 
-if ! docker ps --all 2>/dev/null | grep -q rowbot; then
-    check_warn "Row-Bot container not created yet. Run: docker-compose up -d"
+if [ -z "$(docker ps -a --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
+    check_warn "Row-Bot container ($INSTANCE_NAME) not created yet. Run: docker-compose up -d"
 else
-    if docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
-        check_pass "Row-Bot container is running"
+    if [ -n "$(docker ps --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
+        check_pass "Row-Bot container ($INSTANCE_NAME) is running"
 
         # Check container health
-        if docker ps 2>/dev/null | grep -q "rowbot.*(healthy)"; then
-            check_pass "Container health: Healthy"
-        elif docker ps 2>/dev/null | grep -q "rowbot.*(unhealthy)"; then
-            check_fail "Container health: Unhealthy"
-            check_warn "Container may still be starting. Wait 30 seconds and check again."
-        else
-            check_warn "Container health: Unknown (starting or no health check defined)"
-        fi
+        HEALTH=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$INSTANCE_NAME" 2>/dev/null)
+        case "$HEALTH" in
+            healthy)   check_pass "Container health: Healthy" ;;
+            starting)  check_warn "Container health: Starting (wait 30-60 seconds, then re-run)" ;;
+            unhealthy) check_fail "Container health: Unhealthy"
+                       check_warn "Check logs: docker-compose logs --tail=50 rowbot" ;;
+            *)         check_warn "Container health: Unknown (no health check defined)" ;;
+        esac
     else
-        check_fail "Row-Bot container is not running. Start with: docker-compose up -d"
+        check_fail "Row-Bot container ($INSTANCE_NAME) is not running. Start with: docker-compose up -d"
     fi
 fi
 
@@ -189,7 +194,7 @@ fi
 echo ""
 echo -e "${YELLOW}Checking Row-Bot connectivity...${NC}"
 
-if docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
+if [ -n "$(docker ps --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
     if docker-compose exec rowbot curl -s http://localhost:8080 > /dev/null 2>&1; then
         check_pass "Row-Bot is responding on port 8080"
     else
@@ -226,35 +231,25 @@ if grep -q "^OLLAMA_BASE_URL=" "$ENV_FILE"; then
         check_fail "Ollama is not reachable at $OLLAMA_URL"
         check_warn "Start Ollama and ensure it's accessible"
     fi
-elif grep -q "^ROWBOT_LLM_PROVIDER=" "$ENV_FILE"; then
-    LLM_PROVIDER=$(grep "^ROWBOT_LLM_PROVIDER=" "$ENV_FILE" | cut -d= -f2)
-    check_pass "LLM Provider configured: $LLM_PROVIDER"
-
-    case "$LLM_PROVIDER" in
-        openai)
-            if grep -q "^OPENAI_API_KEY=" "$ENV_FILE"; then
-                check_pass "OpenAI API key is set"
-            else
-                check_warn "OpenAI API key not configured"
-            fi
-            ;;
-        openrouter)
-            if grep -q "^OPENROUTER_API_KEY=" "$ENV_FILE"; then
-                check_pass "OpenRouter API key is set"
-            else
-                check_warn "OpenRouter API key not configured"
-            fi
-            ;;
-        anthropic)
-            if grep -q "^ANTHROPIC_API_KEY=" "$ENV_FILE"; then
-                check_pass "Anthropic API key is set"
-            else
-                check_warn "Anthropic API key not configured"
-            fi
-            ;;
-    esac
 else
-    check_warn "No LLM provider configured (Ollama will be used by default)"
+    # Provider/model selection happens inside Row-Bot (Settings → Models).
+    # Here we only verify which credentials are available to the container.
+    KEYS_FOUND=0
+    if grep -q "^OPENROUTER_API_KEY=" "$ENV_FILE"; then
+        check_pass "OpenRouter API key is set (select models in Row-Bot UI)"
+        KEYS_FOUND=1
+    fi
+    if grep -q "^OPENAI_API_KEY=" "$ENV_FILE"; then
+        check_pass "OpenAI API key is set (select models in Row-Bot UI)"
+        KEYS_FOUND=1
+    fi
+    if grep -q "^ANTHROPIC_API_KEY=" "$ENV_FILE"; then
+        check_pass "Anthropic API key is set (select models in Row-Bot UI)"
+        KEYS_FOUND=1
+    fi
+    if [ "$KEYS_FOUND" -eq 0 ]; then
+        check_warn "No cloud API keys in .env (Ollama will be used by default)"
+    fi
 fi
 
 # ============================================================================
@@ -303,7 +298,7 @@ else
     echo ""
     echo "Common fixes:"
     echo "  • Docker not running? → Start Docker Desktop"
-    echo "  • Port in use? → Change ROWBOT_PORT in .env"
+    echo "  • Port in use? → Change ROW_BOT_PORT in .env"
     echo "  • .env not found? → Run: ./setup.sh"
     echo "  • Ollama not found? → See LOCAL_LLM_OPTIONS.md"
     echo ""

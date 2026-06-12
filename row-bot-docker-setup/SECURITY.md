@@ -2,9 +2,9 @@
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in the Thoth Docker Template, please **do not** open a public issue. Instead:
+If you discover a security vulnerability in the Row-Bot Docker Template, please **do not** open a public issue. Instead:
 
-1. **Email:** security@legionforge.org with subject `[SECURITY] Thoth Docker Template`
+1. **Email:** security@legionforge.org with subject `[SECURITY] Row-Bot Docker Template`
 2. **Include:**
    - Description of the vulnerability
    - Steps to reproduce (if applicable)
@@ -19,7 +19,7 @@ If you discover a security vulnerability in the Thoth Docker Template, please **
 
 This project uses Docker to provide security isolation:
 
-- **Non-root user**: Thoth runs as `thoth` user (UID 1000), not root
+- **Non-root user**: Row-Bot runs as `rowbot` user (UID 1000), not root
 - **Limited filesystem**: Container only has access to mounted volumes
 - **Network isolation**: Configurable networking (bridge or host mode)
 - **Secrets management**: API keys stored via system keyring, not in code
@@ -113,9 +113,9 @@ The latest version will receive security updates. We recommend upgrading to the 
 
 ## License
 
-This security policy applies to the Thoth Docker Template project and is provided as-is.
+This security policy applies to the Row-Bot Docker Template project and is provided as-is.
 
-For the Thoth project itself, see [Thoth Security Policy](https://github.com/siddsachar/Thoth/security).
+For the Row-Bot project itself, see [Row-Bot Security Policy](https://github.com/siddsachar/row-bot/security).
 
 ---
 

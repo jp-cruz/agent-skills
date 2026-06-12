@@ -1,12 +1,19 @@
-# Migration Guide: Bind Mounts → Pure Docker Volumes
+# Migration Guide: Bind Mounts → Pure Docker Volumes (Legacy)
+
+> **Who needs this?** Only users coming from the old **thoth-docker-setup**
+> template that used host bind mounts. All current row-bot-docker-setup
+> releases (v0.5.0+) already use pure Docker volumes — fresh installs can
+> ignore this guide. To upgrade the Row-Bot version itself, see the
+> "Upgrading Row-Bot" section in [CLAUDE.md](CLAUDE.md). Migrating from a
+> bare-metal (non-Docker) Row-Bot? See [MIGRATION_NOTES.md](MIGRATION_NOTES.md).
 
 ## Overview
 
-Version 0.6.0+ uses **pure Docker volumes** instead of host bind mounts. This guide helps you migrate from the old setup to the new stable architecture.
+This setup uses **pure Docker volumes** instead of host bind mounts. This guide helps you migrate from the old bind-mount setup to the new stable architecture.
 
 **Why migrate?**
 - ✅ **Portable**: Volumes work on any Docker host (macOS, Linux, Windows, cloud)
-- ✅ **Upgrade-safe**: Thoth upgrades don't risk data loss or permission issues
+- ✅ **Upgrade-safe**: Row-Bot upgrades don't risk data loss or permission issues
 - ✅ **Disaster-recovery ready**: Backup/restore works seamlessly
 - ✅ **Permission-clean**: No UID/GID mismatch issues
 
@@ -16,12 +23,12 @@ Version 0.6.0+ uses **pure Docker volumes** instead of host bind mounts. This gu
 
 ```bash
 # Create a full backup of your current setup
-tar -czf thoth-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
-  $(grep THOTH_DATA_DIR .env | cut -d= -f2) \
-  $(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)
+tar -czf rowbot-data-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+  $(grep ROW_BOT_DATA_DIR .env | cut -d= -f2) \
+  $(grep ROW_BOT_WORKSPACE_DIR .env | cut -d= -f2)
 
 # Verify backup was created
-ls -lh thoth-data-backup-*.tar.gz
+ls -lh rowbot-data-backup-*.tar.gz
 ```
 
 ### Step 2: Stop the Container
@@ -34,10 +41,10 @@ docker-compose down
 
 ```bash
 # List current volumes
-docker volume ls | grep thoth
+docker volume ls | grep rowbot
 
 # Delete the old bind-mount volumes
-docker volume rm thoth-docker-setup_thoth-data thoth-docker-setup_thoth-workspace
+docker volume rm row-bot-docker-setup_rowbot-data row-bot-docker-setup_rowbot-workspace
 ```
 
 ### Step 4: Update docker-compose.yml
@@ -46,21 +53,21 @@ Ensure your `docker-compose.yml` has pure Docker volumes (no `driver_opts`):
 
 ```yaml
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
-  thoth-workspace:
+  rowbot-workspace:
     driver: local
 ```
 
 **NOT like this (old bind mount way):**
 ```yaml
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ./thoth-data
+      device: ./rowbot-data
 ```
 
 ### Step 5: Start Container (Creates New Pure Volumes)
@@ -76,12 +83,12 @@ Docker will create new pure Docker volumes automatically.
 ```bash
 # Copy your backed-up data into the new volumes
 docker run --rm \
-  -v thoth-docker-setup_thoth-data:/data \
+  -v row-bot-docker-setup_rowbot-data:/data \
   -v $(pwd):/backup \
-  alpine tar xzf /backup/thoth-data-backup-*.tar.gz -C /data
+  alpine tar xzf /backup/rowbot-data-backup-*.tar.gz -C /data
 
 # Fix ownership (restored files may have wrong UID)
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   alpine chown -R 1000:1000 /data
 
 # Restart container to apply changes
@@ -93,7 +100,7 @@ docker-compose up -d
 
 ```bash
 # Check that volumes are pure Docker volumes (not bind mounts)
-docker volume inspect thoth-docker-setup_thoth-data | grep -i "options"
+docker volume inspect row-bot-docker-setup_rowbot-data | grep -i "options"
 # Should show: "Options": null
 
 # Verify container is healthy
@@ -101,7 +108,7 @@ docker-compose ps
 # Should show: STATUS: Up X seconds (healthy)
 
 # Verify data is accessible
-docker-compose exec thoth ls -la /home/thoth/.thoth/memory.db
+docker-compose exec rowbot ls -la /home/rowbot/.row-bot/memory.db
 ```
 
 ## Troubleshooting Migration
@@ -111,7 +118,7 @@ docker-compose exec thoth ls -la /home/thoth/.thoth/memory.db
 This warning means Docker found old volumes with the old config. Solution:
 ```bash
 docker-compose down
-docker volume rm thoth-docker-setup_thoth-data thoth-docker-setup_thoth-workspace
+docker volume rm row-bot-docker-setup_rowbot-data row-bot-docker-setup_rowbot-workspace
 docker-compose up -d
 ```
 
@@ -119,7 +126,7 @@ docker-compose up -d
 
 Files were restored with wrong UID. Fix with:
 ```bash
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
   alpine chown -R 1000:1000 /data
 ```
 
@@ -127,9 +134,9 @@ docker run --rm -v thoth-docker-setup_thoth-data:/data \
 
 Recreate the symlink:
 ```bash
-docker-compose exec thoth mkdir -p /home/thoth/Documents/Thoth
-docker-compose exec thoth ln -s /home/thoth/.thoth/Documents/Thoth/projects \
-  /home/thoth/Documents/Thoth/projects
+docker-compose exec rowbot mkdir -p /home/rowbot/Documents/Row-Bot
+docker-compose exec rowbot ln -s /home/rowbot/.row-bot/Documents/Row-Bot/projects \
+  /home/rowbot/Documents/Row-Bot/projects
 ```
 
 ## Verifying the New Setup
@@ -142,19 +149,19 @@ docker-compose ps
 # STATUS should be "Up X seconds (healthy)"
 
 # Test 2: Data is accessible with correct ownership
-docker-compose exec thoth ls -lh /home/thoth/.thoth/memory.db
-# Should show: thoth:thoth ownership, readable
+docker-compose exec rowbot ls -lh /home/rowbot/.row-bot/memory.db
+# Should show: rowbot:rowbot ownership, readable
 
 # Test 3: Projects are accessible
-docker-compose exec thoth ls -1 /home/thoth/Documents/Thoth/projects/ | wc -l
+docker-compose exec rowbot ls -1 /home/rowbot/Documents/Row-Bot/projects/ | wc -l
 # Should show number of projects
 
 # Test 4: Git is available
-docker-compose exec thoth git --version
+docker-compose exec rowbot git --version
 # Should show: git version X.Y.Z
 
 # Test 5: Volume is pure Docker (not bind mount)
-docker volume inspect thoth-docker-setup_thoth-data | grep -E '"Options"|"Mountpoint"'
+docker volume inspect row-bot-docker-setup_rowbot-data | grep -E '"Options"|"Mountpoint"'
 # Should show: "Options": null and Mountpoint: /var/lib/docker/volumes/...
 ```
 
@@ -162,7 +169,7 @@ docker volume inspect thoth-docker-setup_thoth-data | grep -E '"Options"|"Mountp
 
 Once migrated, you can:
 
-1. **Safely upgrade Thoth**:
+1. **Safely upgrade Row-Bot**:
    ```bash
    # Edit Dockerfile to new version
    docker-compose build --no-cache
@@ -172,16 +179,16 @@ Once migrated, you can:
 
 2. **Reliably back up**:
    ```bash
-   docker run --rm -v thoth-docker-setup_thoth-data:/data \
-     -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
+   docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+     -v ./backups:/backup alpine tar czf /backup/rowbot-data-$(date +%Y%m%d).tar.gz -C /data .
    ```
 
 3. **Restore from backup**:
    ```bash
    docker-compose down
-   docker run --rm -v thoth-docker-setup_thoth-data:/data \
-     -v ./backups:/backup alpine tar xzf /backup/thoth-data-*.tar.gz -C /data
-   docker run --rm -v thoth-docker-setup_thoth-data:/data \
+   docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+     -v ./backups:/backup alpine tar xzf /backup/rowbot-data-*.tar.gz -C /data
+   docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
      alpine chown -R 1000:1000 /data
    docker-compose up -d
    ```
@@ -192,13 +199,13 @@ After successful migration, you can remove the old host directories (optional):
 
 ```bash
 # Verify you have backups first!
-ls -la ./thoth-data-backup-*.tar.gz
+ls -la ./rowbot-data-backup-*.tar.gz
 
 # Remove old directories (if you're sure)
-rm -rf ./thoth-data ./thoth-workspace
+rm -rf ./rowbot-data ./rowbot-workspace
 
 # Remove old backup location (if it exists)
-rm -rf /path/to/old/thoth-data.backup-*
+rm -rf /path/to/old/rowbot-data.backup-*
 ```
 
 **Important**: Keep at least one backup before deleting these directories!

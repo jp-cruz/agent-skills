@@ -4,12 +4,14 @@
 
 set -e
 
-# Create directory structure for Developer Studio path access
-mkdir -p /home/rowbot/Documents/Row-Bot
+# Workspace (~/Documents/Row-Bot) is a mounted volume; ensure the projects
+# symlink target exists inside the data volume so the link is never dangling
+mkdir -p /home/rowbot/.row-bot/Documents/Row-Bot/projects
 
 # Recreate symlink if it doesn't exist
-# (lost after container rebuild, but needs to persist for Developer Studio access)
-if [ ! -L /home/rowbot/Documents/Row-Bot/projects ]; then
+# (keeps projects in the data volume for continuity with existing
+# deployments and bare-metal migrations; Developer Studio reads this path)
+if [ ! -e /home/rowbot/Documents/Row-Bot/projects ]; then
     ln -s /home/rowbot/.row-bot/Documents/Row-Bot/projects /home/rowbot/Documents/Row-Bot/projects 2>/dev/null || true
 fi
 

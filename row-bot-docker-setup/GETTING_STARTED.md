@@ -5,7 +5,7 @@ This guide walks you through your first steps after setup.sh completes.
 ## Prerequisites
 
 You've already:
-- Run `./setup.sh` (or `scripts/setup.sh` on Windows)
+- Run `./setup.sh` (macOS/Linux) or `scripts\setup.bat` (Windows)
 - Created a `.env` file with your configuration
 - Started the container with `docker-compose up -d`
 
@@ -63,7 +63,7 @@ netstat -ano | findstr :8080  # Windows
 
 If something else is using port 8080, either:
 - Stop that service, OR
-- Edit `.env` and change `ROWBOT_PORT=8081` (or any free port), then restart:
+- Edit `.env` and change `ROW_BOT_PORT=8081` (or any free port), then restart:
   ```bash
   docker-compose down
   docker-compose up -d
@@ -152,6 +152,16 @@ Press `Ctrl+C` to stop watching logs.
 docker-compose restart rowbot
 ```
 
+### Changed `.env` (added/updated an API key)?
+
+A plain `restart` does **not** reload `.env` — recreate the container instead:
+
+```bash
+docker-compose up -d
+```
+
+Your data is safe; it lives in Docker volumes, not the container.
+
 ### Stop Row-Bot (but keep data):
 
 ```bash
@@ -189,7 +199,7 @@ docker-compose down -v  # Deletes all data!
 **Solutions:**
 - If using Ollama: `curl http://localhost:11434/api/tags` (should list models)
 - If using cloud LLM: check API key in `.env` is correct
-- Check `.env` has `ROWBOT_LLM_PROVIDER=ollama|openai|anthropic|openrouter`
+- Pick your provider/model inside Row-Bot: Settings → Models (not via .env)
 - View logs: `docker-compose logs --tail=50 rowbot | grep -i "llm\|ollama\|api"`
 
 ---
@@ -209,6 +219,31 @@ docker-compose down -v  # Deletes all data!
 - Make sure you're running `docker-compose` commands from the **row-bot-docker-setup** directory (where `docker-compose.yml` lives)
 - The service name is **`rowbot`** (not `thoth`)
 - The container name is **`rowbot-app`** (for direct `docker` commands)
+
+---
+
+## Can Row-Bot Touch My Files?
+
+No. Docker isolates the container — Row-Bot can only see:
+- `/home/rowbot/.row-bot` (its data, stored in the `rowbot-data` volume)
+- `/home/rowbot/Documents/Row-Bot` (your workspace, stored in the `rowbot-workspace` volume)
+
+It cannot read your host files, wipe your drive, or change your system. That isolation is the whole point of this setup — see [DOCKER_WHY.md](DOCKER_WHY.md).
+
+---
+
+## Quick FAQ
+
+| Q | A |
+|---|---|
+| Do I need to know Docker? | No — setup.sh and these guides handle it. |
+| Will this break my computer? | No — Row-Bot is isolated inside the container. |
+| Where is my data? | In Docker volumes (`rowbot-data`, `rowbot-workspace`), safe across restarts and upgrades. |
+| How do I uninstall? | `docker-compose down` (keep data) or `docker-compose down -v` (⚠️ deletes data), then delete this folder. |
+| Can I move to another computer? | Yes, but your data lives in Docker volumes — back them up first (see [CLAUDE.md](CLAUDE.md)), don't just copy the folder. |
+| Can I run multiple Row-Bots? | Yes — setup.sh asks and configures it (own folder, name, and port per instance; see README "Running Multiple Row-Bot Instances"). |
+| How much does it cost? | Free with Ollama; cloud APIs bill per request — run `./estimate-costs.sh`. |
+| Is my data private? | With Ollama, everything stays on your machine. Cloud providers see what you send them. |
 
 ---
 

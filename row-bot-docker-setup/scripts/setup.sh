@@ -91,9 +91,9 @@ fi
 source "$(dirname "$0")/disk-check.sh" --export-only 2>/dev/null || true
 
 # Extract paths from .env
-ROWBOT_DATA_DIR=$(grep "^ROWBOT_DATA_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
-ROWBOT_WORKSPACE_DIR=$(grep "^ROWBOT_WORKSPACE_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
-ROWBOT_PORT=$(grep "^ROWBOT_PORT=" .env | cut -d= -f2)
+ROW_BOT_DATA_DIR=$(grep "^ROW_BOT_DATA_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
+ROW_BOT_WORKSPACE_DIR=$(grep "^ROW_BOT_WORKSPACE_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
+ROW_BOT_PORT=$(grep "^ROW_BOT_PORT=" .env | cut -d= -f2)
 OLLAMA_BASE_URL=$(grep "^OLLAMA_BASE_URL=" .env | cut -d= -f2)
 
 # Check Ollama
@@ -113,11 +113,11 @@ fi
 # Check port
 PORT_AVAILABLE=0
 if [ "$OS" = "macos" ]; then
-    if ! lsof -i ":${ROWBOT_PORT}" > /dev/null 2>&1; then
+    if ! lsof -i ":${ROW_BOT_PORT}" > /dev/null 2>&1; then
         PORT_AVAILABLE=1
     fi
 elif [ "$OS" = "linux" ]; then
-    if ! netstat -tlnp 2>/dev/null | grep -q ":${ROWBOT_PORT} "; then
+    if ! netstat -tlnp 2>/dev/null | grep -q ":${ROW_BOT_PORT} "; then
         PORT_AVAILABLE=1
     fi
 fi
@@ -154,12 +154,12 @@ if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ]; then
     STORAGE_ICON="${GREEN}⭐${NC}"
     DATA_PATH="$DISK_CHECK_RECOMMENDED_DATA_DIR"
     WORKSPACE_PATH="$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
-    ROWBOT_DATA_DIR="$DATA_PATH"
-    ROWBOT_WORKSPACE_DIR="$WORKSPACE_PATH"
+    ROW_BOT_DATA_DIR="$DATA_PATH"
+    ROW_BOT_WORKSPACE_DIR="$WORKSPACE_PATH"
 else
     STORAGE_ICON=" "
-    DATA_PATH="$ROWBOT_DATA_DIR"
-    WORKSPACE_PATH="$ROWBOT_WORKSPACE_DIR"
+    DATA_PATH="$ROW_BOT_DATA_DIR"
+    WORKSPACE_PATH="$ROW_BOT_WORKSPACE_DIR"
     if [ $SYSTEM_FREE_GB -lt 100 ]; then
         echo -e "${YELLOW}  ⚠ Using system drive (${SYSTEM_FREE_GB}GB free).${NC}"
         echo -e "${YELLOW}    External SSD recommended for long-term use.${NC}"
@@ -174,7 +174,7 @@ echo ""
 # Network
 echo "  Network"
 echo "    Ollama:  $OLLAMA_STATUS ($MODEL_COUNT models)"
-echo "    Port:    ${ROWBOT_PORT} — $([ $PORT_AVAILABLE -eq 1 ] && echo "${GREEN}Available ✓${NC}" || echo "${RED}In use ✗${NC}")"
+echo "    Port:    ${ROW_BOT_PORT} — $([ $PORT_AVAILABLE -eq 1 ] && echo "${GREEN}Available ✓${NC}" || echo "${RED}In use ✗${NC}")"
 echo ""
 
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
@@ -189,7 +189,7 @@ read -p "Apply this configuration? [Y/n] " CONFIRM
 if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
     echo ""
     echo "To customize:"
-    echo "  1. Edit .env manually (e.g., change ROWBOT_DATA_DIR)"
+    echo "  1. Edit .env manually (e.g., change ROW_BOT_DATA_DIR)"
     echo "  2. Re-run: ./setup.sh"
     echo ""
     echo "For detailed guidance:"
@@ -205,13 +205,13 @@ echo ""
 # ============================================================================
 
 echo -e "${GREEN}[1/4] Creating data directories${NC}"
-mkdir -p "$ROWBOT_DATA_DIR"
-mkdir -p "$ROWBOT_WORKSPACE_DIR"
+mkdir -p "$ROW_BOT_DATA_DIR"
+mkdir -p "$ROW_BOT_WORKSPACE_DIR"
 
 # Update .env only if external drive was recommended and used
-if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ] && [ "$DATA_PATH" != "$(grep '^ROWBOT_DATA_DIR=' .env | cut -d= -f2 | sed "s|~|$HOME|g")" ]; then
-    sed -i.bak "s|^ROWBOT_DATA_DIR=.*|ROWBOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR|" .env
-    sed -i.bak "s|^ROWBOT_WORKSPACE_DIR=.*|ROWBOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR|" .env
+if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ] && [ "$DATA_PATH" != "$(grep '^ROW_BOT_DATA_DIR=' .env | cut -d= -f2 | sed "s|~|$HOME|g")" ]; then
+    sed -i.bak "s|^ROW_BOT_DATA_DIR=.*|ROW_BOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR|" .env
+    sed -i.bak "s|^ROW_BOT_WORKSPACE_DIR=.*|ROW_BOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR|" .env
 fi
 
 echo -e "${GREEN}[2/4] Verifying Docker${NC}"
@@ -228,7 +228,7 @@ else
 fi
 
 echo -e "${GREEN}[4/4] Port check${NC}"
-echo -e "${GREEN}  Port ${ROWBOT_PORT} available${NC}"
+echo -e "${GREEN}  Port ${ROW_BOT_PORT} available${NC}"
 
 echo ""
 
@@ -242,8 +242,8 @@ echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━
 echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "  1. Ensure Ollama is running: ollama serve"
-echo "  2. Start Thoth: docker-compose up -d"
-echo "  3. Open: http://localhost:${ROWBOT_PORT}"
+echo "  2. Start Row-Bot: docker-compose up -d"
+echo "  3. Open: http://localhost:${ROW_BOT_PORT}"
 echo ""
 
 # Progressive disclosure for maintenance

@@ -299,10 +299,10 @@ if [[ "$OS" == "windows" ]]; then
 fi
 
 # Environment variables check
-if [[ -n "$THOTH_SECRETS_BACKEND" ]]; then
-    echo -e "  ℹ THOTH_SECRETS_BACKEND set to: $THOTH_SECRETS_BACKEND"
+if [[ -n "$ROW_BOT_SECRETS_BACKEND" ]]; then
+    echo -e "  ℹ ROW_BOT_SECRETS_BACKEND set to: $ROW_BOT_SECRETS_BACKEND"
 else
-    echo -e "  ℹ THOTH_SECRETS_BACKEND not set (will auto-detect)"
+    echo -e "  ℹ ROW_BOT_SECRETS_BACKEND not set (will auto-detect)"
 fi
 
 # ============================================================================
@@ -362,7 +362,7 @@ fi
 echo -e "\n${GREEN}ENVIRONMENT VARIABLES${NC}"
 
 # Check for relevant env vars
-RELEVANT_VARS=("OLLAMA_HOST" "OLLAMA_BASE_URL" "THOTH_PORT" "ROWBOT_DATA_DIR" "ROWBOT_WORKSPACE_DIR" "THOTH_SECRETS_BACKEND" "PYTHONPATH" "PYTHON_KEYRING_BACKEND")
+RELEVANT_VARS=("OLLAMA_HOST" "OLLAMA_BASE_URL" "ROW_BOT_PORT" "ROW_BOT_DATA_DIR" "ROW_BOT_WORKSPACE_DIR" "ROW_BOT_SECRETS_BACKEND" "PYTHONPATH" "PYTHON_KEYRING_BACKEND")
 
 for var in "${RELEVANT_VARS[@]}"; do
     if [[ -n "${!var}" ]]; then
@@ -387,8 +387,8 @@ echo "# ============================================"
 echo ""
 
 # Port
-echo "# Port for Thoth"
-echo "THOTH_PORT=8080"
+echo "# Port for Row-Bot"
+echo "ROW_BOT_PORT=8080"
 echo ""
 
 # LLM Backend
@@ -432,14 +432,14 @@ echo ""
 # Data directories
 echo "# Data Persistence Paths"
 if [[ "$OS" == "macos" ]]; then
-    echo "ROWBOT_DATA_DIR=/Users/$(whoami)/rowbot-data"
-    echo "ROWBOT_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace"
+    echo "ROW_BOT_DATA_DIR=/Users/$(whoami)/rowbot-data"
+    echo "ROW_BOT_WORKSPACE_DIR=/Users/$(whoami)/rowbot-workspace"
 elif [[ "$OS" == "linux" ]]; then
-    echo "ROWBOT_DATA_DIR=/home/$(whoami)/rowbot-data"
-    echo "ROWBOT_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace"
+    echo "ROW_BOT_DATA_DIR=/home/$(whoami)/rowbot-data"
+    echo "ROW_BOT_WORKSPACE_DIR=/home/$(whoami)/rowbot-workspace"
 elif [[ "$OS" == "windows" ]]; then
-    echo "ROWBOT_DATA_DIR=C:\\Users\\$(whoami)\\rowbot-data"
-    echo "ROWBOT_WORKSPACE_DIR=C:\\Users\\$(whoami)\\thoth-workspace"
+    echo "ROW_BOT_DATA_DIR=C:\\Users\\$(whoami)\\rowbot-data"
+    echo "ROW_BOT_WORKSPACE_DIR=C:\\Users\\$(whoami)\\rowbot-workspace"
 fi
 echo ""
 
@@ -457,7 +457,7 @@ elif [[ "$OS" == "linux" ]]; then
 elif [[ "$OS" == "windows" ]]; then
     echo "PYTHON_KEYRING_BACKEND=keyrings.alt.windows.CredentialVaultKeyring"
 fi
-echo "THOTH_SECRETS_BACKEND=keyring"
+echo "ROW_BOT_SECRETS_BACKEND=keyring"
 echo ""
 
 # ============================================================================
@@ -479,7 +479,7 @@ if [[ -z "$LLM_BACKEND" ]]; then
     echo -e "   ${GREEN}Option A: Local LLM (Free, Private)${NC}"
     echo "   → Install Ollama: https://ollama.ai"
     echo "   → Download a model: ollama pull llama2"
-    echo "   → Restart Thoth with local backend"
+    echo "   → Restart Row-Bot with local backend"
     echo ""
     echo -e "   ${GREEN}Option B: OpenRouter (Cloud, Paid, Fast)${NC}"
     echo "   → Sign up: https://openrouter.ai"
@@ -494,11 +494,11 @@ echo "   docker --version"
 echo "   docker-compose --version"
 echo ""
 
-echo -e "${GREEN}4. Start Thoth${NC}"
+echo -e "${GREEN}4. Start Row-Bot${NC}"
 echo "   docker-compose up -d"
 echo ""
 
-echo -e "${GREEN}5. Access Thoth${NC}"
+echo -e "${GREEN}5. Access Row-Bot${NC}"
 if [[ "$OS" == "windows" ]]; then
     echo "   start http://localhost:8080"
 else
@@ -537,7 +537,7 @@ if [[ -z "$LLM_BACKEND" ]]; then
     echo "  3. Create API key in settings"
     echo "  4. In .env, set:"
     echo "     OPENROUTER_API_KEY=sk-or-your-key-here"
-    echo "  5. In Thoth UI, set provider to OpenAI with:"
+    echo "  5. In Row-Bot UI, set provider to OpenAI with:"
     echo "     Base URL: https://openrouter.ai/api/v1"
     echo "     Model: anthropic/claude-3-haiku"
     echo ""

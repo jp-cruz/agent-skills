@@ -1,6 +1,6 @@
 # Row-Bot Docker Setup
 
-Production-ready Docker Compose setup for [Row-Bot](https://github.com/siddsachar/row-bot) (formerly Thoth) across macOS, Windows, and Linux. Built on learnings from Thoth migrations, Jeli project experience, and bare-metal-to-container deployment challenges.
+Production-ready Docker Compose setup for [Row-Bot](https://github.com/siddsachar/row-bot) (formerly Thoth) across macOS, Windows, and Linux. Built on lessons learned from real bare-metal-to-container migrations.
 
 > **Version 0.5.0 (Initial Release):** This is the first release after the Thoth → Row-Bot rebrand. Row-Bot is a desktop application that benefits from containerization for isolation and consistency. See [MIGRATION_NOTES.md](MIGRATION_NOTES.md) for migration guidance and lessons learned from bare-metal deployments.
 
@@ -59,7 +59,8 @@ Running `./setup.sh` guides you through two options:
 | **First steps with Row-Bot** | [GETTING_STARTED.md](GETTING_STARTED.md) | 5 min |
 | **Remote access (safe)** | [REMOTE_ACCESS_GUIDE.md](REMOTE_ACCESS_GUIDE.md) | 10 min |
 | **Bug report / debugging** | Run `./diagnostics.sh` | 2 min |
-| **Upgrading Row-Bot versions** | [MIGRATION.md](MIGRATION.md) | 15 min |
+| **Upgrading Row-Bot versions** | [CLAUDE.md](CLAUDE.md) (Upgrading Row-Bot section) | 5 min |
+| **Migrating from old bind-mount setup (legacy)** | [MIGRATION.md](MIGRATION.md) | 15 min |
 | **Troubleshooting issues** | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | 10 min |
 | **Network/firewall setup** | [NETWORK_SETUP.md](references/NETWORK_SETUP.md) | 10 min |
 | **Disaster recovery** | [CLAUDE.md](CLAUDE.md) (Disaster Recovery section) | 20 min |
@@ -248,13 +249,14 @@ Two Docker volumes store data across container restarts:
    - Location on host: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-data/_data`
 
 2. **row-bot-docker-setup_rowbot-workspace**
-   - User workspace and projects
-   - Mounted at `/app/workspace` inside container
+   - User workspace files (documents, exports, agent-written files)
+   - Mounted at `/home/rowbot/Documents/Row-Bot` inside container (Row-Bot's default workspace root)
    - Location on host: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-workspace/_data`
+   - Note: `projects/` is symlinked into the data volume for continuity with bare-metal migrations
 
 **Why Docker volumes (not bind mounts)?**
 - ✅ Portable: Same volumes work on any Docker host
-- ✅ Safe upgrades: Data persists across Thoth version upgrades
+- ✅ Safe upgrades: Data persists across Row-Bot version upgrades
 - ✅ Portable backups: Volumes can be backed up and restored anywhere
 - ✅ Permission-safe: Automatic UID/GID handling
 
@@ -300,7 +302,7 @@ See [CLAUDE.md](CLAUDE.md) for complete backup, restore, and disaster recovery p
 
 If port 8080 is in use, change it in `.env`:
 ```bash
-ROWBOT_PORT=8081
+ROW_BOT_PORT=8081
 ```
 
 Then restart:
@@ -341,8 +343,8 @@ ping <ollama-host-ip>
 
 If you get "Permission denied" errors, ensure the directories are writable:
 ```bash
-chmod 755 "$(grep ROWBOT_DATA_DIR .env | cut -d= -f2)"
-chmod 755 "$(grep ROWBOT_WORKSPACE_DIR .env | cut -d= -f2)"
+chmod 755 "$(grep ROW_BOT_DATA_DIR .env | cut -d= -f2)"
+chmod 755 "$(grep ROW_BOT_WORKSPACE_DIR .env | cut -d= -f2)"
 ```
 
 If issues persist, check container user permissions:
@@ -405,6 +407,29 @@ Row-Bot's memory system grows 1–3 GB/week. On smaller drives, plan ahead.
 
 ---
 
+## Running Multiple Row-Bot Instances
+
+Want two (or more) Row-Bots on one machine — e.g., one per family member, or a stable one plus a test one?
+
+`./setup.sh` asks: **"Will you be installing multiple Row-Bot instances on this machine?"**
+Answer yes and it configures everything below for you. To do it manually:
+
+1. **Each instance gets its own copy of this folder** (e.g., `row-bot-1/`, `row-bot-2/`)
+2. In each copy's `.env`, set a unique identity:
+   ```bash
+   COMPOSE_PROJECT_NAME=row-bot-2        # namespaces volumes & networks
+   ROW_BOT_INSTANCE_NAME=row-bot-2-app   # unique container name
+   ROW_BOT_PORT=8081                     # unique host port
+   ```
+3. Start each instance from its own folder: `docker-compose up -d`
+
+Naming convention suggestion: `row-bot-1`, `row-bot-2`, … — or any name you like (`dylan-bot`).
+Each instance gets fully separate data volumes (`<name>_rowbot-data`), so they never share or clobber each other's memory.
+
+> ⚠️ Set the instance name **before** the first `docker-compose up`. Changing `COMPOSE_PROJECT_NAME` later orphans the old volumes (data isn't deleted, but the renamed project won't see it).
+
+---
+
 ## Multi-Machine Deployments
 
 To run Row-Bot and Ollama on different machines:
@@ -427,7 +452,7 @@ docker-compose up -d
 ## Architecture
 
 - **Base:** Python 3.11 slim
-- **Runtime:** Row-Bot (GitHub commit `main`)
+- **Runtime:** Row-Bot **v4.0.1** (pinned release tag — this setup is built and tested for v4.0.1 and has not been validated against later Row-Bot versions)
 - **Port:** 8080 (configurable)
 - **User:** `rowbot` (UID 1000, non-root)
 - **Restart:** Automatic unless stopped

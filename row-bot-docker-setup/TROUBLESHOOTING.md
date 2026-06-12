@@ -26,7 +26,7 @@ docker-compose logs --tail=100 rowbot
 
 **Error: "Port 8080 already in use"**
 - Find what's using it: `lsof -i :8080` (macOS/Linux) or `netstat -ano | findstr :8080` (Windows)
-- Change port in `.env`: set `ROWBOT_PORT=8081` (or any free port)
+- Change port in `.env`: set `ROW_BOT_PORT=8081` (or any free port)
 - Restart: `docker-compose down && docker-compose up -d`
 
 **Error: "Out of memory" or killed unexpectedly**
@@ -56,7 +56,7 @@ Should return HTML. If error:
 
 **Can't access from other machine:**
 - By default, Row-Bot only listens on localhost (secure)
-- To access from network, change `.env`: set `ROWBOT_BIND=0.0.0.0`
+- To access from network, change `.env`: set `ROW_BOT_BIND=0.0.0.0`
 - Restart: `docker-compose down && docker-compose up -d`
 - **Security warning:** This exposes Row-Bot to your local network. See NETWORK_SETUP.md for safer alternatives (tunnel, VPN).
 
@@ -68,7 +68,7 @@ Should return HTML. If error:
 
 **Check LLM provider is configured:**
 ```bash
-grep "^ROWBOT_LLM_PROVIDER\|^OLLAMA_BASE_URL\|^OPENROUTER_API_KEY\|^OPENAI_API_KEY\|^ANTHROPIC_API_KEY" .env
+grep "^OLLAMA_BASE_URL\|^OPENROUTER_API_KEY\|^OPENAI_API_KEY\|^ANTHROPIC_API_KEY" .env
 ```
 
 Should show at least one provider configured.

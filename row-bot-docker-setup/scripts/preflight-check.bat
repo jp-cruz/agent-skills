@@ -181,8 +181,8 @@ echo                      RECOMMENDED .env
 echo ======================================================================
 echo.
 
-echo # Port for Thoth
-echo THOTH_PORT=8080
+echo # Port for Row-Bot
+echo ROW_BOT_PORT=8080
 echo.
 
 echo # LLM Backend Configuration
@@ -202,8 +202,8 @@ if "!LLM_BACKEND!"=="ollama" (
 echo.
 
 echo # Data Persistence Paths
-echo ROWBOT_DATA_DIR=C:\Users\%USERNAME%\rowbot-data
-echo ROWBOT_WORKSPACE_DIR=C:\Users\%USERNAME%\thoth-workspace
+echo ROW_BOT_DATA_DIR=C:\Users\%USERNAME%\rowbot-data
+echo ROW_BOT_WORKSPACE_DIR=C:\Users\%USERNAME%\rowbot-workspace
 echo.
 
 echo # Container Restart Policy
@@ -212,7 +212,7 @@ echo.
 
 echo # Secrets Management (Windows)
 echo PYTHON_KEYRING_BACKEND=keyrings.alt.windows.CredentialVaultKeyring
-echo THOTH_SECRETS_BACKEND=keyring
+echo ROW_BOT_SECRETS_BACKEND=keyring
 echo.
 
 REM ====================================================================
@@ -242,11 +242,11 @@ echo    docker --version
 echo    docker-compose --version
 echo.
 
-echo 4. Start Thoth
+echo 4. Start Row-Bot
 echo    docker-compose up -d
 echo.
 
-echo 5. Access Thoth
+echo 5. Access Row-Bot
 echo    start http://localhost:8080
 echo.
 

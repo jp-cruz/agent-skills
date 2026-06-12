@@ -6,7 +6,7 @@
 
 ## Overview
 
-You have three options for setting up Thoth Docker:
+You have three options for setting up Row-Bot Docker:
 
 | Option | Time | Method | Best For |
 |--------|------|--------|----------|
@@ -26,7 +26,7 @@ You have three options for setting up Thoth Docker:
 ### Steps
 
 ```bash
-cd thoth-docker-setup
+cd row-bot-docker-setup
 
 # 1. Run setup (auto-creates .env from defaults)
 ./setup.sh
@@ -34,7 +34,7 @@ cd thoth-docker-setup
 # 2. Optional: Customize .env
 vim .env
 
-# 3. Start Thoth
+# 3. Start Row-Bot
 docker-compose up -d
 
 # 4. Access
@@ -55,9 +55,9 @@ open http://localhost:8080
 ✓ Setup complete!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Configuration:
-  Data Directory:      ./thoth-data
-  Workspace Directory: ./thoth-workspace
-  Thoth Port:          8080
+  Data Directory:      ./rowbot-data
+  Workspace Directory: ./rowbot-workspace
+  Row-Bot Port:          8080
   Ollama URL:          http://host.docker.internal:11434
 
 ✓ Docker is installed
@@ -68,7 +68,7 @@ Configuration:
 Next steps:
   1. Review and customize .env if needed
   2. Ensure Ollama is running: ollama serve
-  3. Start Thoth: docker-compose up -d
+  3. Start Row-Bot: docker-compose up -d
   4. Open http://localhost:8080
 ```
 
@@ -85,7 +85,7 @@ Next steps:
 ### Steps
 
 ```bash
-cd thoth-docker-setup
+cd row-bot-docker-setup
 
 # 1. Run comprehensive assessment
 ./preflight-check.sh
@@ -101,7 +101,7 @@ cp .env.example .env
 pip install keyring
 pip install keyrings.alt  # Windows
 
-# 5. Start Thoth
+# 5. Start Row-Bot
 docker-compose up -d
 ```
 
@@ -140,7 +140,7 @@ docker-compose up -d
 
 ```
 ╔════════════════════════════════════════════════════════════════════════╗
-║         THOTH DOCKER SETUP — ENVIRONMENT ASSESSMENT                   ║
+║         ROW-BOT DOCKER SETUP — ENVIRONMENT ASSESSMENT                   ║
 ╚════════════════════════════════════════════════════════════════════════╝
 
 [1/5] DETECTING OPERATING SYSTEM
@@ -180,30 +180,30 @@ Suggested .env Configuration:
 # RECOMMENDED .env (based on your system)
 # ============================================
 
-# Port for Thoth
-THOTH_PORT=8080
+# Port for Row-Bot
+ROW_BOT_PORT=8080
 
 # LLM Backend Configuration
 # Using Ollama (detected on host)
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 
 # Data Persistence Paths
-THOTH_DATA_DIR=/Users/jp/thoth-data
-THOTH_WORKSPACE_DIR=/Users/jp/thoth-workspace
+ROW_BOT_DATA_DIR=/Users/<user>/rowbot-data
+ROW_BOT_WORKSPACE_DIR=/Users/<user>/rowbot-workspace
 
 # Container Restart Policy
 RESTART_POLICY=unless-stopped
 
 # Secrets Management
 PYTHON_KEYRING_BACKEND=keyring.backends.macOS.Keyring
-THOTH_SECRETS_BACKEND=keyring
+ROW_BOT_SECRETS_BACKEND=keyring
 
 ═══════════════════════════════════════════════════════════════════════════
 
 NEXT STEPS
 1. Copy recommended config above to .env
 2. Ensure Ollama is running: ollama serve
-3. Start Thoth: docker-compose up -d
+3. Start Row-Bot: docker-compose up -d
 4. Open http://localhost:8080
 ```
 
@@ -221,11 +221,11 @@ NEXT STEPS
 ### Steps
 
 ```bash
-cd thoth-docker-setup
+cd row-bot-docker-setup
 
 # Option A: Direct Agent Call
 # Open Claude Code and ask:
-# "Assess my Thoth environment and generate .env"
+# "Assess my Row-Bot environment and generate .env"
 # or
 # "I have Ollama and LM Studio, which should I use?"
 
@@ -235,7 +235,7 @@ cd thoth-docker-setup
 
 # Option C: Chat-based Setup
 # Ask Claude Code:
-# "Guide me through Thoth Docker setup on [Windows|Mac|Linux]"
+# "Guide me through Row-Bot Docker setup on [Windows|Mac|Linux]"
 # Agent runs checks and guides you through each step
 ```
 
@@ -270,7 +270,7 @@ cd thoth-docker-setup
 **You ask:**
 ```
 I have Ollama, LM Studio, and vLLM installed on my Mac.
-Which should I use with Thoth?
+Which should I use with Row-Bot?
 I also want to use macOS Keychain for secrets.
 Generate my .env file.
 ```
@@ -317,7 +317,7 @@ Your system supports macOS Keychain perfectly.
 This is the best option for secure credential storage.
 
 PYTHON_KEYRING_BACKEND=keyring.backends.macOS.Keyring
-THOTH_SECRETS_BACKEND=keyring
+ROW_BOT_SECRETS_BACKEND=keyring
 
 GENERATED .env:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -495,35 +495,35 @@ python -c "import keyrings.alt; print('OK')"
 ### macOS
 ```bash
 # Default paths work
-THOTH_DATA_DIR=/Users/$(whoami)/thoth-data
+ROW_BOT_DATA_DIR=/Users/$(whoami)/rowbot-data
 
 # Or custom
-THOTH_DATA_DIR=/Volumes/ExternalDrive/thoth-data
+ROW_BOT_DATA_DIR=/Volumes/ExternalDrive/rowbot-data
 
 # Verify path exists
-ls -la $THOTH_DATA_DIR
+ls -la $ROW_BOT_DATA_DIR
 ```
 
 ### Linux
 ```bash
 # Default paths work
-THOTH_DATA_DIR=/home/$(whoami)/thoth-data
+ROW_BOT_DATA_DIR=/home/$(whoami)/rowbot-data
 
 # Or NFS mount
-THOTH_DATA_DIR=/mnt/data/thoth
+ROW_BOT_DATA_DIR=/mnt/data/rowbot
 
 # Verify path
-mkdir -p $THOTH_DATA_DIR
-chmod 755 $THOTH_DATA_DIR
+mkdir -p $ROW_BOT_DATA_DIR
+chmod 755 $ROW_BOT_DATA_DIR
 ```
 
 ### Windows (WSL2)
 ```bash
 # Windows paths
-THOTH_DATA_DIR=C:\Users\%USERNAME%\thoth-data
+ROW_BOT_DATA_DIR=C:\Users\%USERNAME%\rowbot-data
 
 # Or WSL path
-THOTH_DATA_DIR=/home/username/thoth-data
+ROW_BOT_DATA_DIR=/home/username/rowbot-data
 
 # Verify mount
 ls /mnt/c/Users/

@@ -1,17 +1,17 @@
-# Thoth Disk Management Guide
+# Row-Bot Disk Management Guide
 
 ## Overview
 
-Thoth's memory system can grow rapidly. Understanding where data lives, why it grows, and how to manage it is critical for maintaining a healthy system — especially on space-constrained hardware like a Mac Mini M4 with 256GB.
+Row-Bot's memory system can grow rapidly. Understanding where data lives, why it grows, and how to manage it is critical for maintaining a healthy system — especially on space-constrained hardware like a Mac Mini M4 with 256GB.
 
 ---
 
-## Where Thoth Data Lives
+## Where Row-Bot Data Lives
 
 ### On-Disk Structure
 
 ```
-THOTH_DATA_DIR (default: ./thoth-data)
+ROW_BOT_DATA_DIR (default: ./rowbot-data)
 ├── memory.db              # Main memory/context database
 ├── threads.db             # Conversation threads
 ├── tasks.db               # Task tracking database
@@ -19,12 +19,12 @@ THOTH_DATA_DIR (default: ./thoth-data)
 ├── cloud_models_cache.json
 ├── context_catalog_cache.json
 ├── dream_journal.json
-├── thoth_app.log          # Application logs (rotates to .prev)
-├── thoth_app.log.prev
+├── rowbot_app.log          # Application logs (rotates to .prev)
+├── rowbot_app.log.prev
 ├── memory_extraction_state.json
 └── tools_config.json
 
-THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
+ROW_BOT_WORKSPACE_DIR (default: ./rowbot-workspace)
 ├── projects/
 ├── files/
 ├── artifacts/
@@ -39,7 +39,7 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 | **threads.db** | 2–5 MB/week | Full conversation history, including all messages. |
 | **tasks.db** | 1–3 MB/week | Task completions and state changes. |
 | **Cache files** | 500 MB–2 GB | LLM model catalogs, model weights, context embeddings stored locally. |
-| **Logs** | 100 MB–500 MB | thoth_app.log grows as Thoth runs. |
+| **Logs** | 100 MB–500 MB | rowbot_app.log grows as Row-Bot runs. |
 | **Workspace files** | User-dependent | Projects, code, artifacts you create. |
 
 ### Docker Image & Layers
@@ -48,7 +48,7 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 |-------|------|-------|
 | Docker image (uncompressed) | ~5 GB | Pulled once, cached |
 | Build cache | 1–3 GB | Intermediate layers from `docker-compose build` |
-| Volumes (thoth-data, workspace) | Grows over time | Separate from image, lives on host filesystem |
+| Volumes (rowbot-data, workspace) | Grows over time | Separate from image, lives on host filesystem |
 
 ---
 
@@ -56,7 +56,7 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 
 ### Conservative Use (1–2 hours/day)
 
-| Week | Thoth Data | Docker | Workspace | Total |
+| Week | Row-Bot Data | Docker | Workspace | Total |
 |------|-----------|--------|-----------|-------|
 | 1 | 500 MB | 5 GB | 100 MB | ~5.6 GB |
 | 2 | 1 GB | 5 GB | 200 MB | ~6.2 GB |
@@ -66,7 +66,7 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 
 ### Heavy Use (4+ hours/day)
 
-| Week | Thoth Data | Docker | Workspace | Total |
+| Week | Row-Bot Data | Docker | Workspace | Total |
 |------|-----------|--------|-----------|-------|
 | 1 | 2 GB | 5 GB | 500 MB | ~7.5 GB |
 | 2 | 4 GB | 5 GB | 1 GB | ~10 GB |
@@ -83,13 +83,13 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 ### Option 1: System Drive (Default) — Use If
 
 - You have > 100GB free on system drive
-- You use Thoth < 5 hours/week
+- You use Row-Bot < 5 hours/week
 - You don't mind potential slowdown over months
 
 ### Option 2: External Thunderbolt SSD — Recommended If
 
 - You have a Mac Mini M4 with 256GB
-- You use Thoth regularly (> 5 hours/week)
+- You use Row-Bot regularly (> 5 hours/week)
 - You want seamless performance and longevity
 
 **Drive specs:**
@@ -104,7 +104,7 @@ THOTH_WORKSPACE_DIR (default: ./thoth-workspace)
 
 - Thunderbolt/USB-C not available
 - Budget is critical
-- Thoth performance is not a concern
+- Row-Bot performance is not a concern
 
 **Caveats:**
 - USB-A (older) is 10–20x slower than Thunderbolt
@@ -138,42 +138,42 @@ $ ./scripts/setup.sh
   ✓ ExternalSSD — Thunderbolt | 450GB free of 500GB
 
 Recommended data storage location:
-  /Volumes/ExternalSSD/thoth-data
+  /Volumes/ExternalSSD/rowbot-data
 
-Use this location for Thoth data? [Y/n] Y
+Use this location for Row-Bot data? [Y/n] Y
 ✓ .env updated with recommended paths
 ```
 
 This updates your `.env`:
 
 ```bash
-THOTH_DATA_DIR=/Volumes/ExternalSSD/thoth-data
-THOTH_WORKSPACE_DIR=/Volumes/ExternalSSD/thoth-workspace
+ROW_BOT_DATA_DIR=/Volumes/ExternalSSD/rowbot-data
+ROW_BOT_WORKSPACE_DIR=/Volumes/ExternalSSD/rowbot-workspace
 ```
 
 ### Moving Existing Data
 
-If you've already set up Thoth on system drive and want to move it:
+If you've already set up Row-Bot on system drive and want to move it:
 
 ```bash
 # Stop the container
 docker-compose down
 
 # Create new directories on external drive
-mkdir -p /Volumes/ExternalSSD/thoth-data
-mkdir -p /Volumes/ExternalSSD/thoth-workspace
+mkdir -p /Volumes/ExternalSSD/rowbot-data
+mkdir -p /Volumes/ExternalSSD/rowbot-workspace
 
 # Copy existing data
-cp -r ./thoth-data/* /Volumes/ExternalSSD/thoth-data/
-cp -r ./thoth-workspace/* /Volumes/ExternalSSD/thoth-workspace/
+cp -r ./rowbot-data/* /Volumes/ExternalSSD/rowbot-data/
+cp -r ./rowbot-workspace/* /Volumes/ExternalSSD/rowbot-workspace/
 
 # Update .env
-sed -i.bak 's|^THOTH_DATA_DIR=.*|THOTH_DATA_DIR=/Volumes/ExternalSSD/thoth-data|' .env
-sed -i.bak 's|^THOTH_WORKSPACE_DIR=.*|THOTH_WORKSPACE_DIR=/Volumes/ExternalSSD/thoth-workspace|' .env
+sed -i.bak 's|^ROW_BOT_DATA_DIR=.*|ROW_BOT_DATA_DIR=/Volumes/ExternalSSD/rowbot-data|' .env
+sed -i.bak 's|^ROW_BOT_WORKSPACE_DIR=.*|ROW_BOT_WORKSPACE_DIR=/Volumes/ExternalSSD/rowbot-workspace|' .env
 
 # Verify permissions
-chmod 755 /Volumes/ExternalSSD/thoth-data
-chmod 755 /Volumes/ExternalSSD/thoth-workspace
+chmod 755 /Volumes/ExternalSSD/rowbot-data
+chmod 755 /Volumes/ExternalSSD/rowbot-workspace
 
 # Restart the container
 docker-compose up -d
@@ -245,11 +245,11 @@ sudo systemctl restart docker
 ### Check Current Usage
 
 ```bash
-# Show Thoth data size
-du -sh $(grep THOTH_DATA_DIR .env | cut -d= -f2)
+# Show Row-Bot data size
+du -sh $(grep ROW_BOT_DATA_DIR .env | cut -d= -f2)
 
 # Show workspace size
-du -sh $(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)
+du -sh $(grep ROW_BOT_WORKSPACE_DIR .env | cut -d= -f2)
 
 # Show Docker usage
 docker system df
@@ -259,7 +259,7 @@ docker system df
 
 ```bash
 # Run maintenance tool
-./scripts/thoth-maintenance.sh
+./scripts/rowbot-maintenance.sh
 
 # Or schedule for weekly execution
 # (the tool offers to set up a cron job)
@@ -269,7 +269,7 @@ docker system df
 - Docker build cache (frees 500MB–2GB)
 - Stopped containers
 - Dangling images
-- Old logs (truncates thoth_app.log)
+- Old logs (truncates rowbot_app.log)
 
 ### Manual Cleanup
 
@@ -293,12 +293,12 @@ docker system prune -a --volumes
 
 ```bash
 # Compress and move to external drive for archival
-tar -czf /Volumes/ExternalSSD/thoth-workspace-backup.tar.gz \
-    ./thoth-workspace
+tar -czf /Volumes/ExternalSSD/rowbot-workspace-backup.tar.gz \
+    ./rowbot-workspace
 
 # Remove the large directory to free space
-rm -rf ./thoth-workspace
-mkdir -p ./thoth-workspace
+rm -rf ./rowbot-workspace
+mkdir -p ./rowbot-workspace
 ```
 
 #### Reset Everything (Nuclear Option)
@@ -310,13 +310,13 @@ docker-compose down
 # Remove all volumes
 docker-compose down -v
 
-# Delete Thoth data
-rm -rf $(grep THOTH_DATA_DIR .env | cut -d= -f2)
-rm -rf $(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)
+# Delete Row-Bot data
+rm -rf $(grep ROW_BOT_DATA_DIR .env | cut -d= -f2)
+rm -rf $(grep ROW_BOT_WORKSPACE_DIR .env | cut -d= -f2)
 
 # Recreate empty directories
-mkdir -p $(grep THOTH_DATA_DIR .env | cut -d= -f2)
-mkdir -p $(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)
+mkdir -p $(grep ROW_BOT_DATA_DIR .env | cut -d= -f2)
+mkdir -p $(grep ROW_BOT_WORKSPACE_DIR .env | cut -d= -f2)
 
 # Restart
 docker-compose up -d
@@ -329,23 +329,23 @@ docker-compose up -d
 | Signal | Action |
 |--------|--------|
 | System drive < 30GB free | **URGENT:** Add external drive or clean aggressively |
-| System drive < 50GB free | Consider external drive if using Thoth regularly |
-| Thoth container slow | May be disk I/O contention; move data to faster drive |
+| System drive < 50GB free | Consider external drive if using Row-Bot regularly |
+| Row-Bot container slow | May be disk I/O contention; move data to faster drive |
 | `docker-compose up` fails with "disk full" | Run cleanup immediately |
-| thoth-data > 20GB | Archive old sessions or truncate logs |
+| rowbot-data > 20GB | Archive old sessions or truncate logs |
 
 ---
 
 ## FAQ
 
 **Q: Can I use an external HDD instead of SSD?**  
-A: Yes, but Thoth will be slow (memory.db is a database with many small lookups). Thunderbolt/USB-C SSD is strongly recommended.
+A: Yes, but Row-Bot will be slow (memory.db is a database with many small lookups). Thunderbolt/USB-C SSD is strongly recommended.
 
 **Q: Can I use a network drive (NAS)?**  
 A: Yes, but expect latency. NFS/SMB adds ~5–20ms per disk operation. For development, Thunderbolt is better.
 
 **Q: How often should I clean up?**  
-A: Monthly for most users. Weekly if you use Thoth >5 hours/day.
+A: Monthly for most users. Weekly if you use Row-Bot >5 hours/day.
 
 **Q: Will cleanup remove my work?**  
 A: No. Cleanup only removes:
@@ -356,22 +356,22 @@ A: No. Cleanup only removes:
 **Q: Can I shrink memory.db?**  
 A: SQLite doesn't automatically shrink on delete. You can:
 ```bash
-docker-compose exec thoth sqlite3 /home/thoth/.thoth/memory.db "VACUUM;"
+docker-compose exec rowbot sqlite3 /home/rowbot/.row-bot/memory.db "VACUUM;"
 ```
 
 **Q: What if I run out of space unexpectedly?**  
 A: See "Signs You Need to Act" table above. Quick fix:
 ```bash
-./scripts/thoth-maintenance.sh  # Choose [6] for deep clean
+./scripts/rowbot-maintenance.sh  # Choose [6] for deep clean
 ```
 
 ---
 
 ## Summary
 
-1. **Plan ahead:** Use external Thunderbolt SSD for Thoth on Mac Mini M4 (256GB)
+1. **Plan ahead:** Use external Thunderbolt SSD for Row-Bot on Mac Mini M4 (256GB)
 2. **During setup:** Let `disk-check.sh` recommend storage; approve it
-3. **Ongoing:** Run `./scripts/thoth-maintenance.sh` monthly to clean up
+3. **Ongoing:** Run `./scripts/rowbot-maintenance.sh` monthly to clean up
 4. **If moving data:** Stop container → copy files → update .env → restart
 5. **Long-term:** Monitor with `du -sh`, react when approaching 50% of available space
 

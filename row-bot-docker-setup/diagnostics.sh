@@ -9,6 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="$SCRIPT_DIR/.env"
 REPORT_FILE="$SCRIPT_DIR/rowbot-diagnostics-$(date +%Y%m%d-%H%M%S).txt"
 
+# Resolve this instance's container name (multi-instance aware)
+INSTANCE_NAME=$(grep "^ROW_BOT_INSTANCE_NAME=" "$ENV_FILE" 2>/dev/null | cut -d= -f2)
+INSTANCE_NAME=${INSTANCE_NAME:-rowbot-app}
+
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -129,9 +133,9 @@ sanitize() {
     echo "═══════════════════════════════════════════════════════════════════"
     echo ""
 
-    if docker ps -a 2>/dev/null | grep -q rowbot; then
-        echo "Container Status:"
-        docker ps -a 2>/dev/null | grep rowbot || echo "Container found but status unknown"
+    if [ -n "$(docker ps -a --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
+        echo "Container Status ($INSTANCE_NAME):"
+        docker ps -a --filter "name=^${INSTANCE_NAME}$" 2>/dev/null || echo "Container found but status unknown"
         echo ""
 
         echo "Container Logs (last 50 lines):"
@@ -139,9 +143,9 @@ sanitize() {
         echo ""
 
         echo "Container Inspect (selected fields):"
-        docker inspect rowbot-app 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
+        docker inspect "$INSTANCE_NAME" 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
     else
-        echo "Row-Bot container not found"
+        echo "Row-Bot container ($INSTANCE_NAME) not found"
     fi
     echo ""
 
@@ -236,8 +240,8 @@ sanitize() {
     fi
 
     # Check container
-    if ! docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
-        echo "⚠️  Row-Bot container is not running"
+    if [ -z "$(docker ps --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
+        echo "⚠️  Row-Bot container ($INSTANCE_NAME) is not running"
         ((ISSUES++))
     fi
 

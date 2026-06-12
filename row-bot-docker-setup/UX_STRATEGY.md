@@ -100,8 +100,8 @@ Detect:
 ```
 
 ### Defaults Applied
-- `ROWBOT_BIND=127.0.0.1` (localhost only — most secure)
-- `ROWBOT_PORT=8080` (standard, available)
+- `ROW_BOT_BIND=127.0.0.1` (localhost only — most secure)
+- `ROW_BOT_PORT=8080` (standard, available)
 - `LLM_PROVIDER=ollama` (if RAM ≥ 8GB and Ollama detected)
 - `LLM_PROVIDER=openrouter` (if RAM < 8GB, no Ollama, ask for API key)
 - `RESTART_POLICY=unless-stopped`
@@ -231,21 +231,21 @@ Detect:
 
 | Risk | Bare Metal | Docker Container |
 |------|-----------|------------------|
-| **Hard drive wipe** | ⚠️ Possible — malicious code runs as you | ✅ Blocked — confined to /home/thoth |
+| **Hard drive wipe** | ⚠️ Possible — malicious code runs as you | ✅ Blocked — confined to /home/rowbot |
 | **App manipulation** | ⚠️ Possible — code can modify any app | ✅ Blocked — can't access host processes |
 | **Site access as user** | ⚠️ Possible — network requests use your IP | ✅ Blocked — requests come from container |
 | **Data breach cascade** | ⚠️ Entire system at risk if Row-Bot compromised | ✅ Only container data at risk |
 | **Credential theft** | ⚠️ Access to ~/.ssh, API keys, passwords | ✅ Can't access host home directory |
 
 **This doesn't mean no risk:**
-- If Thoth itself is malicious, bad actor has container access
+- If Row-Bot itself is malicious, bad actor has container access
 - Container networking could be exploited by advanced attackers
 - Always use trusted AI models and updates
 
 **Our defaults reduce risk further:**
 - Localhost-only networking (no external access by default)
 - Ollama keeps data private on your machine (no cloud)
-- Non-root user (thoth) even inside container
+- Non-root user (rowbot) even inside container
 
 ---
 

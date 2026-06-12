@@ -1,6 +1,6 @@
 # Docker Guide for Beginners
 
-**Learn what Docker is, why it's essential for Thoth, and how to install it.**
+**Learn what Docker is, why it's essential for Row-Bot, and how to install it.**
 
 ---
 
@@ -41,12 +41,12 @@ Docker Engine (the interpreter)
     ↓
 Container (lightweight virtual environment)
     ├─ Python 3.11
-    ├─ Thoth application
+    ├─ Row-Bot application
     ├─ nano, jq, vim editors
     ├─ All dependencies
     └─ Pre-configured and ready to go
     ↓
-Result: Thoth runs perfectly every time
+Result: Row-Bot runs perfectly every time
 ```
 
 **Key difference from Virtual Machines:**
@@ -55,11 +55,11 @@ Result: Thoth runs perfectly every time
 
 ---
 
-## Why Docker is Essential for Thoth
+## Why Docker is Essential for Row-Bot
 
 ### Problem 1: Dependency Hell
 
-Thoth needs:
+Row-Bot needs:
 - Python 3.11 (not 3.10, not 3.12)
 - Specific pip packages (keyring, keyrings.alt, etc.)
 - System utilities (nano, jq, curl, ffmpeg, gcc)
@@ -73,7 +73,7 @@ Thoth needs:
 
 ### Problem 2: System Pollution
 
-Thoth needs to modify your environment:
+Row-Bot needs to modify your environment:
 - Store config files
 - Create data directories
 - Install Python packages globally
@@ -88,9 +88,9 @@ Thoth needs to modify your environment:
 ### Problem 3: Multi-Provider Setup
 
 You might want to run:
-- Thoth with Ollama (local)
-- Thoth with OpenAI (cloud)
-- Thoth with Groq (cloud)
+- Row-Bot with Ollama (local)
+- Row-Bot with OpenAI (cloud)
+- Row-Bot with Groq (cloud)
 - All at the same time
 
 **Without Docker:** Install each separately, manage versions, potential conflicts.
@@ -99,7 +99,7 @@ You might want to run:
 
 ### Problem 4: Portability
 
-You want to use Thoth on:
+You want to use Row-Bot on:
 - Your Mac
 - Your Windows laptop
 - Your Linux server
@@ -116,13 +116,13 @@ You want to use Thoth on:
 ## Why Docker is Perfect for AI Agents
 
 ### Security & Isolation
-- **Agent can't break your system** — If Thoth goes rogue, just delete the container
+- **Agent can't break your system** — If Row-Bot goes rogue, just delete the container
 - **Limited filesystem access** — Agent only sees what you allow
 - **No system-wide changes** — Agent can't modify your OS
 
 ### Reproducibility
 - **Same setup for everyone** — No "works on my machine" problems
-- **Version control** — Can run different versions of Thoth side-by-side
+- **Version control** — Can run different versions of Row-Bot side-by-side
 - **Easy testing** — Spin up, test, destroy in seconds
 
 ### Dependency Management
@@ -413,13 +413,13 @@ When you install Docker:
 
 **Docker Compose** (~20 MB)
 - Tool to run multiple containers
-- Used for Thoth (defines: network, ports, volumes, environment)
+- Used for Row-Bot (defines: network, ports, volumes, environment)
 
 **Docker CLI** (~50 MB)
 - Command-line interface
 - Used for: `docker run`, `docker build`, etc.
 
-**Total:** ~200 MB, plus space for container images (~300 MB for Thoth)
+**Total:** ~200 MB, plus space for container images (~300 MB for Row-Bot)
 
 ---
 
@@ -453,10 +453,10 @@ Docker Desktop can use a lot of RAM by default.
 **Linux:**
 No configuration needed, Docker uses what's available.
 
-### 3. Test with Thoth
+### 3. Test with Row-Bot
 
 ```bash
-cd /path/to/thoth-docker-setup
+cd /path/to/row-bot-docker-setup
 
 # Run preflight check
 ./preflight-check.sh
@@ -464,10 +464,10 @@ cd /path/to/thoth-docker-setup
 # Quick setup
 ./setup.sh
 
-# Build Thoth image
+# Build Row-Bot image
 docker-compose build
 
-# Start Thoth
+# Start Row-Bot
 docker-compose up -d
 
 # Verify it's running
@@ -481,10 +481,10 @@ docker-compose ps
 ### Basic Commands
 
 ```bash
-# Start Thoth
+# Start Row-Bot
 docker-compose up -d
 
-# Stop Thoth
+# Stop Row-Bot
 docker-compose stop
 
 # See what's running
@@ -493,8 +493,8 @@ docker-compose ps
 # View logs
 docker-compose logs -f
 
-# Open shell in Thoth container
-docker-compose exec thoth bash
+# Open shell in Row-Bot container
+docker-compose exec rowbot bash
 
 # Stop and remove everything
 docker-compose down
@@ -523,7 +523,7 @@ docker system df
 
 ## Alternative: Without Docker (Not Recommended)
 
-If you absolutely cannot use Docker, you can install Thoth locally, but:
+If you absolutely cannot use Docker, you can install Row-Bot locally, but:
 
 ❌ **Disadvantages:**
 - Requires Python 3.11 exactly (not 3.10, not 3.12)
@@ -537,9 +537,9 @@ If you absolutely cannot use Docker, you can install Thoth locally, but:
 ✅ **If you insist:**
 
 ```bash
-# Clone Thoth
-git clone https://github.com/siddsachar/Thoth.git
-cd Thoth
+# Clone Row-Bot
+git clone https://github.com/siddsachar/row-bot.git
+cd Row-Bot
 
 # Install Python 3.11
 # (platform-specific, not detailed here)
@@ -552,7 +552,7 @@ source venv/bin/activate  # or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 pip install keyring keyrings.alt
 
-# Run Thoth
+# Run Row-Bot
 python launcher.py --server --port 8080
 
 # Access at http://localhost:8080
@@ -564,7 +564,7 @@ python launcher.py --server --port 8080
 
 ## Why This Setup Uses Docker
 
-The Thoth Docker setup includes:
+The Row-Bot Docker setup includes:
 - **Python 3.11** (exact version, guaranteed)
 - **All dependencies** (pip packages, system utilities)
 - **Development tools** (nano, jq, vim for debugging)
@@ -585,16 +585,16 @@ The Thoth Docker setup includes:
 docker-compose logs
 
 # See detailed logs
-docker-compose logs --follow thoth
+docker-compose logs --follow rowbot
 
 # Check if container is healthy
 docker ps
 
 # Inspect container
-docker inspect thoth-app
+docker inspect rowbot-app
 
 # Test connectivity
-docker-compose exec thoth curl http://localhost:8080
+docker-compose exec rowbot curl http://localhost:8080
 ```
 
 ### Common Questions
@@ -602,26 +602,26 @@ docker-compose exec thoth curl http://localhost:8080
 **Q: Does Docker slow things down?**
 A: Negligible. Docker has <5% performance overhead on modern systems.
 
-**Q: Can I run multiple instances of Thoth?**
-A: Yes! Change THOTH_PORT in .env and run another docker-compose.
+**Q: Can I run multiple instances of Row-Bot?**
+A: Yes! Change ROW_BOT_PORT in .env and run another docker-compose.
 
 **Q: What if Docker updates break things?**
 A: Your container uses a specific base image (Python 3.11-slim), so updates don't affect you.
 
 **Q: Can I edit files in the container?**
-A: Yes! Use `docker-compose exec thoth nano /path/to/file` or edit host-mounted volumes directly.
+A: Yes! Use `docker-compose exec rowbot nano /path/to/file` or edit host-mounted volumes directly.
 
 **Q: Does Docker work offline?**
 A: Yes! Once the image is built, you don't need internet (except for cloud API providers).
 
 **Q: Can I inspect what's inside the container?**
-A: Yes! `docker-compose exec thoth bash` opens a shell.
+A: Yes! `docker-compose exec rowbot bash` opens a shell.
 
 ---
 
 ## Summary
 
-**Docker is essential for Thoth because it:**
+**Docker is essential for Row-Bot because it:**
 1. ✅ Guarantees identical setup on all machines
 2. ✅ Eliminates "works on my machine" problems
 3. ✅ Provides isolation and security
@@ -639,13 +639,13 @@ A: Yes! `docker-compose exec thoth bash` opens a shell.
 docker run hello-world
 ```
 
-**You're ready to use Thoth when:**
+**You're ready to use Row-Bot when:**
 ```bash
 docker-compose up -d
 # Access at http://localhost:8080
 ```
 
-**Next:** Follow the [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for intelligent Thoth configuration.
+**Next:** Follow the [SETUP_WORKFLOW.md](SETUP_WORKFLOW.md) for intelligent Row-Bot configuration.
 
 ---
 

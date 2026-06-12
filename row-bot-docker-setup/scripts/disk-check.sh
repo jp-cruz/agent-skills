@@ -223,13 +223,13 @@ if [ -f "$DRIVES_FILE" ] && [ -s "$DRIVES_FILE" ]; then
 
     if [ -n "$BEST_DRIVE" ]; then
         DISK_CHECK_RECOMMENDED_DATA_DIR="${BEST_DRIVE}/rowbot-data"
-        DISK_CHECK_RECOMMENDED_WORKSPACE_DIR="${BEST_DRIVE}/thoth-workspace"
+        DISK_CHECK_RECOMMENDED_WORKSPACE_DIR="${BEST_DRIVE}/rowbot-workspace"
 
         log "  ${GREEN}✓ Recommended external drive found:${NC}"
         log "    Location: $BEST_DRIVE"
         log "    Suggested paths:"
-        log "      ROWBOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR"
-        log "      ROWBOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
+        log "      ROW_BOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR"
+        log "      ROW_BOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
     fi
 else
     log "  ${YELLOW}⚠ No external drive found${NC}"
@@ -245,17 +245,17 @@ fi
 # ============================================================================
 
 log "\n${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-log "${BLUE}║                   THOTH GROWTH EXPECTATIONS                            ║${NC}"
+log "${BLUE}║                   ROW-BOT GROWTH EXPECTATIONS                            ║${NC}"
 log "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
 
 log ""
 log "${YELLOW}⚠  DISK SPACE GROWTH:${NC}"
-log "  • Thoth memory grows 1–3 GB per week of active use"
+log "  • Row-Bot memory grows 1–3 GB per week of active use"
 log "  • After 2–3 weeks: ~10 GB typical"
 log "  • After 1 month: ~15–20 GB"
 log "  • Long-running systems: can reach 50+ GB"
 log ""
-log "  Plan accordingly: use external storage for rowbot-data and thoth-workspace"
+log "  Plan accordingly: use external storage for rowbot-data and rowbot-workspace"
 log "  See references/DISK_MANAGEMENT.md for cleanup and archival strategies"
 
 # Export variables

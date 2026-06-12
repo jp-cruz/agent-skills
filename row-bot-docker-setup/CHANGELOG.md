@@ -20,6 +20,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.5.0] - 2026-06-12
+
+**Status:** Initial release of **row-bot-docker-setup** (Thoth → Row-Bot rebrand). Built and tested for **Row-Bot v4.0.1**; not validated against later Row-Bot releases.
+
+### Added
+
+- 🏷️ **Row-Bot version pin** — Dockerfile builds release tag `v4.0.1` via `ARG ROW_BOT_VERSION` (reproducible builds; no more `main`-branch drift between users)
+- 🗂️ **Correct workspace mount** — `rowbot-workspace` volume now mounts at `/home/rowbot/Documents/Row-Bot` (Row-Bot's real workspace root), so agent-written files persist across rebuilds
+- 🛑 **Graceful shutdown** — `stop_signal: SIGINT` + 30s grace period so `docker stop` flushes SQLite WAL files instead of hard-killing
+- 🔑 **Cloud API key forwarding** — `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` pass from `.env` into the container (verified against Row-Bot's `api_keys.py` env precedence)
+- 📚 **MIGRATION_NOTES.md** — lessons from real bare-metal → Docker migrations (SQLite WAL, path handling, key management, file ownership)
+
+### Changed
+
+- 🔄 **Full rebrand** — all Thoth references, paths (`.thoth` → `.row-bot`), users, container/volume names updated
+- 🏷️ **Env vars renamed** — `ROWBOT_*` → `ROW_BOT_*` to match Row-Bot's own convention and row-bot.ai branding
+
+### Removed
+
+- ❌ **Fictional `ROWBOT_LLM_PROVIDER` / `ROWBOT_LLM_MODEL` vars** — Row-Bot never read these; provider/model selection happens in Row-Bot's UI (Settings → Models)
+
+---
+
+# Legacy history (thoth-docker-setup era)
+
+> ⚠️ The entries below predate the Thoth → Row-Bot rebrand. Their version
+> numbers belong to the predecessor **thoth-docker-setup** template and do
+> NOT align with the new 0.5.0 numbering above. Kept for historical record.
+
+---
+
 ## [0.6.2] - 2026-05-29
 
 **Status:** Production-ready. Pure Docker volumes, tested upgrade path, disaster recovery procedures.

@@ -14,8 +14,9 @@ DOCKERFILE="$SCRIPT_DIR/docker/Dockerfile"
 # Script & Row-Bot versions
 SCRIPT_VERSION="0.5.0"
 
-# Extract Row-Bot version from Dockerfile
-ROWBOT_VERSION=$(grep -oP 'git checkout \K[^ ]+' "$DOCKERFILE" 2>/dev/null || echo "unknown")
+# Extract pinned Row-Bot version from Dockerfile (portable: no GNU grep -P)
+ROW_BOT_VERSION=$(sed -n 's/^ARG ROW_BOT_VERSION=//p' "$DOCKERFILE" 2>/dev/null | head -1)
+ROW_BOT_VERSION=${ROW_BOT_VERSION:-unknown}
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,6 +24,58 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# ============================================================================
+# MULTI-INSTANCE CONFIGURATION (shared by both setup pathways)
+# ============================================================================
+
+configure_instance() {
+    echo -e "${YELLOW}Will you be installing multiple Row-Bot instances on this machine${NC}"
+    echo -e "${YELLOW}(now or in the future)?${NC}"
+    echo ""
+    echo "  Each instance runs in its own copy of this folder with its own"
+    echo "  name, port, and data volumes — they won't interfere with each other."
+    echo ""
+    read -p "Set up instance naming? [y/N]: " multi_choice
+
+    if [[ "$multi_choice" == "y" || "$multi_choice" == "Y" ]]; then
+        echo ""
+        echo "Naming convention: row-bot-1, row-bot-2, ... (or pick your own, e.g. dylan-bot)"
+        read -p "Name for THIS instance [row-bot-1]: " instance_name
+        instance_name=${instance_name:-row-bot-1}
+        # Sanitize: lowercase letters, digits, dashes only
+        instance_name=$(echo "$instance_name" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9-')
+        if [ -z "$instance_name" ]; then
+            instance_name="row-bot-1"
+            echo "  (name contained no usable characters — using row-bot-1)"
+        fi
+
+        read -p "Port for this instance [8080]: " instance_port
+        instance_port=${instance_port:-8080}
+
+        # Apply port to the existing .env entry
+        sed -i.bak "s/^ROW_BOT_PORT=.*/ROW_BOT_PORT=$instance_port/" "$ENV_FILE" || \
+        sed -i '' "s/^ROW_BOT_PORT=.*/ROW_BOT_PORT=$instance_port/" "$ENV_FILE"
+
+        # Append instance identity
+        {
+            echo ""
+            echo "# Multi-instance settings (added by setup.sh)"
+            echo "COMPOSE_PROJECT_NAME=$instance_name"
+            echo "ROW_BOT_INSTANCE_NAME=${instance_name}-app"
+        } >> "$ENV_FILE"
+
+        echo ""
+        echo -e "${GREEN}✓${NC} Instance configured: $instance_name"
+        echo "    Container: ${instance_name}-app"
+        echo "    Port:      $instance_port → http://localhost:$instance_port"
+        echo "    Volumes:   ${instance_name}_rowbot-data, ${instance_name}_rowbot-workspace"
+        echo ""
+        echo "  To add another instance later: copy this folder, run setup.sh there,"
+        echo "  and give it a different name and port (e.g. row-bot-2, port 8081)."
+    fi
+    echo ""
+}
 
 # ============================================================================
 # WELCOME & VERSION CHECK
@@ -167,7 +220,7 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
     echo ""
 
     # Determine recommended defaults
-    ROWBOT_BIND="127.0.0.1"  # Always localhost-only by default (most secure)
+    ROW_BOT_BIND="127.0.0.1"  # Always localhost-only by default (most secure)
 
     if [[ "$RAM_GB" != "unknown" && "$RAM_GB" -lt 8 ]]; then
         RECOMMENDED_LLM="openrouter"
@@ -216,8 +269,11 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
         cp "$ENV_EXAMPLE" "$ENV_FILE"
 
         # Apply defaults
-        sed -i.bak "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE" || \
-        sed -i '' "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE"
+        sed -i.bak "s/^ROW_BOT_BIND=.*/ROW_BOT_BIND=$ROW_BOT_BIND/" "$ENV_FILE" || \
+        sed -i '' "s/^ROW_BOT_BIND=.*/ROW_BOT_BIND=$ROW_BOT_BIND/" "$ENV_FILE"
+
+        # Multi-instance naming (optional)
+        configure_instance
 
         # Setup LLM provider
         if [[ "$RECOMMENDED_LLM" == "ollama" ]]; then
@@ -242,10 +298,8 @@ if [[ "$pathway_choice" == "a" || "$pathway_choice" == "A" ]]; then
                 sed -i.bak "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE" || \
                 sed -i '' "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE"
 
-                sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
-                sed -i '' '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
-
                 echo "✓ API key saved to .env (keep this secret!)"
+                echo "  Select your provider and model inside Row-Bot (Settings → Models)"
             fi
         fi
 
@@ -267,6 +321,9 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     # Start with a fresh copy
     cp "$ENV_EXAMPLE" "$ENV_FILE"
 
+    # ===== Q0: MULTI-INSTANCE (optional) =====
+    configure_instance
+
     # ===== Q1: NETWORK ACCESS =====
     echo -e "${YELLOW}Q1: Who should access Row-Bot?${NC}"
     echo "  a) Just this computer [DEFAULT - most secure]"
@@ -278,7 +335,7 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
 
     case "$network_choice" in
         b)
-            ROWBOT_BIND="0.0.0.0"
+            ROW_BOT_BIND="0.0.0.0"
             echo -e "✓ Local Area Network (LAN) access enabled"
             echo "  Accessible from devices on your LAN:"
             echo "  • WiFi devices on your network"
@@ -311,7 +368,7 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
             if [[ "$use_safer" == "y" || "$use_safer" == "Y" ]]; then
                 echo "  ✓ Skip web UI internet access"
                 echo "  See: REMOTE_ACCESS_GUIDE.md for bot setup instructions"
-                ROWBOT_BIND="127.0.0.1"
+                ROW_BOT_BIND="127.0.0.1"
             else
                 echo ""
                 echo -e "${YELLOW}You've chosen to expose the web UI to the internet.${NC}"
@@ -330,27 +387,27 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     echo ""
                     read -p "  Which will you use? [cloudflare/tailscale/other]: " tunnel_choice
                     if [[ "$tunnel_choice" == "cloudflare" ]]; then
-                        ROWBOT_BIND="127.0.0.1"
+                        ROW_BOT_BIND="127.0.0.1"
                         echo "  ✓ Remember: Cloudflare Tunnel proxies all traffic"
                         echo "    Configure tunnel to: http://127.0.0.1:8080"
                         echo "    Setup guide: NETWORK_SETUP.md"
                     elif [[ "$tunnel_choice" == "tailscale" ]]; then
-                        ROWBOT_BIND="127.0.0.1"
+                        ROW_BOT_BIND="127.0.0.1"
                         echo "  ✓ Remember: Connect devices to Tailscale VPN first"
                         echo "    Then access Row-Bot via private network"
                     else
-                        ROWBOT_BIND="127.0.0.1"
+                        ROW_BOT_BIND="127.0.0.1"
                         echo "  ⚠️  Set up your chosen solution before accessing Row-Bot"
                         echo "    See: NETWORK_SETUP.md for detailed guides"
                     fi
                 else
                     echo "  ✓ Reverting to localhost-only (most secure)"
-                    ROWBOT_BIND="127.0.0.1"
+                    ROW_BOT_BIND="127.0.0.1"
                 fi
             fi
             ;;
         *)
-            ROWBOT_BIND="127.0.0.1"
+            ROW_BOT_BIND="127.0.0.1"
             echo "✓ Localhost only (most secure)"
             ;;
     esac
@@ -420,8 +477,8 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
     fi
 
     # ===== APPLY NETWORK SETTINGS =====
-    sed -i.bak "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE" || \
-    sed -i '' "s/^ROWBOT_BIND=.*/ROWBOT_BIND=$ROWBOT_BIND/" "$ENV_FILE"
+    sed -i.bak "s/^ROW_BOT_BIND=.*/ROW_BOT_BIND=$ROW_BOT_BIND/" "$ENV_FILE" || \
+    sed -i '' "s/^ROW_BOT_BIND=.*/ROW_BOT_BIND=$ROW_BOT_BIND/" "$ENV_FILE"
 
     # ===== APPLY LLM SETTINGS =====
     if [[ "$USE_OLLAMA" == "true" ]]; then
@@ -447,9 +504,6 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-or-your-actual-key-here|$api_key|" "$ENV_FILE"
 
-                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=openrouter/s/^# //' "$ENV_FILE"
-
                     echo "✓ API key saved"
                 fi
                 ;;
@@ -465,9 +519,6 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak "s|sk-your-openai-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-your-openai-key-here|$api_key|" "$ENV_FILE"
 
-                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=openai/s/^# //' "$ENV_FILE"
-
                     echo "✓ API key saved"
                 fi
                 ;;
@@ -482,9 +533,6 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
 
                     sed -i.bak "s|sk-ant-your-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-ant-your-key-here|$api_key|" "$ENV_FILE"
-
-                    sed -i.bak '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE"
 
                     echo "✓ API key saved"
                 fi
@@ -506,14 +554,12 @@ echo -e "${BLUE}                    SETUP COMPLETE!${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Version check (informational only, after setup completes)
-if [[ "$ROWBOT_VERSION" != "unknown" && ! "$ROWBOT_VERSION" =~ ^v[0-9] ]]; then
-    echo -e "${YELLOW}ℹ️  Note: Dockerfile uses Row-Bot commit $ROWBOT_VERSION${NC}"
-    echo "    This script was tested with Row-Bot main branch"
-    echo ""
-elif [[ "$SCRIPT_VERSION" < "$ROWBOT_VERSION" ]]; then
-    echo -e "${YELLOW}ℹ️  Note: You may have a newer Row-Bot version${NC}"
-    echo "    This script v$SCRIPT_VERSION was tested with Row-Bot $ROWBOT_VERSION"
+# Version notice (informational only, after setup completes)
+if [[ "$ROW_BOT_VERSION" != "unknown" ]]; then
+    echo -e "${BLUE}ℹ️  This setup builds Row-Bot $ROW_BOT_VERSION${NC}"
+    echo "    This skill (v$SCRIPT_VERSION) is built and tested for Row-Bot $ROW_BOT_VERSION."
+    echo "    It has NOT been validated against later Row-Bot releases."
+    echo "    Check for newer releases: https://github.com/siddsachar/row-bot/releases"
     echo ""
 fi
 
@@ -525,24 +571,24 @@ set +a
 # Final summary
 echo -e "${GREEN}Your Configuration:${NC}"
 echo ""
-if [[ "$ROWBOT_BIND" == "127.0.0.1" ]]; then
+if [[ "$ROW_BOT_BIND" == "127.0.0.1" ]]; then
     echo "  Network: Localhost only (most secure) ✓"
     echo "  Access:  http://localhost:8080"
-elif [[ "$ROWBOT_BIND" == "0.0.0.0" ]]; then
+elif [[ "$ROW_BOT_BIND" == "0.0.0.0" ]]; then
     echo "  Network: Home network accessible"
     echo "  Access:  http://<your-ip>:8080"
 fi
 
-if grep -q "^ROWBOT_LLM_PROVIDER=ollama" "$ENV_FILE"; then
-    echo "  LLM:     Ollama (local, private) ✓"
-elif grep -q "^ROWBOT_LLM_PROVIDER=openrouter" "$ENV_FILE"; then
-    echo "  LLM:     OpenRouter (cloud)"
-elif grep -q "^ROWBOT_LLM_PROVIDER=openai" "$ENV_FILE"; then
-    echo "  LLM:     OpenAI (cloud)"
-elif grep -q "^ROWBOT_LLM_PROVIDER=anthropic" "$ENV_FILE"; then
-    echo "  LLM:     Anthropic (cloud)"
+# Provider/model selection happens inside Row-Bot (Settings → Models);
+# we just report which credentials are available to the container.
+if grep -q "^OPENROUTER_API_KEY=" "$ENV_FILE"; then
+    echo "  LLM:     OpenRouter key configured (pick models in Row-Bot UI)"
+elif grep -q "^OPENAI_API_KEY=" "$ENV_FILE"; then
+    echo "  LLM:     OpenAI key configured (pick models in Row-Bot UI)"
+elif grep -q "^ANTHROPIC_API_KEY=" "$ENV_FILE"; then
+    echo "  LLM:     Anthropic key configured (pick models in Row-Bot UI)"
 else
-    echo "  LLM:     Ollama (default)"
+    echo "  LLM:     Ollama (local, private) ✓ — pick models in Row-Bot UI"
 fi
 echo ""
 
@@ -571,10 +617,10 @@ echo "2. Verify everything works:"
 echo "   ./health-check.sh"
 echo ""
 echo "3. Access Row-Bot:"
-if [[ "$ROWBOT_BIND" == "127.0.0.1" ]]; then
+if [[ "$ROW_BOT_BIND" == "127.0.0.1" ]]; then
     echo "   http://localhost:8080"
 else
-    echo "   http://<your-ip>:${ROWBOT_PORT:-8080}"
+    echo "   http://<your-ip>:${ROW_BOT_PORT:-8080}"
 fi
 echo ""
 

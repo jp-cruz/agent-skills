@@ -1,6 +1,13 @@
 # docker-compose.yml — Line-by-Line Explanation
 
-This document explains every part of the `docker/docker-compose.yml` file and why it's there.
+This document explains every part of the `docker-compose.yml` file and why it's there.
+
+> **Note:** The snippets and line numbers below may lag behind the current
+> `docker-compose.yml` (e.g., older revisions used configurable bind-mount
+> `device:` paths; current releases use plain named volumes, mount the
+> workspace at `/home/rowbot/Documents/Row-Bot`, and add `stop_signal: SIGINT`).
+> The concepts explained here still apply — treat the real
+> `docker-compose.yml` as the source of truth.
 
 ---
 
@@ -8,36 +15,36 @@ This document explains every part of the `docker/docker-compose.yml` file and wh
 
 ```yaml
  1  services:
- 2    thoth:
+ 2    rowbot:
  3      build:
  4        context: .
  5        dockerfile: Dockerfile
- 6      container_name: thoth-app
+ 6      container_name: rowbot-app
  7      ports:
- 8        - "${THOTH_PORT:-8080}:8080"
+ 8        - "${ROW_BOT_PORT:-8080}:8080"
  9      environment:
 10        OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
 11      volumes:
-12        - thoth-data:/home/thoth/.thoth
-13        - thoth-workspace:/app/workspace
+12        - rowbot-data:/home/rowbot/.row-bot
+13        - rowbot-workspace:/home/rowbot/Documents/Row-Bot
 14      restart: ${RESTART_POLICY:-unless-stopped}
 15      # On Linux, uncomment the line below and comment out the one above to use host network
 16      # networks:
 17      #   - host
 18
 19  volumes:
-20    thoth-data:
+20    rowbot-data:
 21      driver: local
 22      driver_opts:
 23        type: none
 24        o: bind
-25        device: ${THOTH_DATA_DIR:-./thoth-data}
-26    thoth-workspace:
+25        device: ${ROW_BOT_DATA_DIR:-./rowbot-data}
+26    rowbot-workspace:
 27      driver: local
 28      driver_opts:
 29        type: none
 30        o: bind
-31        device: ${THOTH_WORKSPACE_DIR:-./thoth-workspace}
+31        device: ${ROW_BOT_WORKSPACE_DIR:-./rowbot-workspace}
 ```
 
 ---
@@ -52,20 +59,20 @@ services:
 
 **What:** Declares the start of service definitions.
 
-**Why:** Docker Compose can orchestrate multiple services (database, cache, web server, etc.). Here we have just one service: `thoth`.
+**Why:** Docker Compose can orchestrate multiple services (database, cache, web server, etc.). Here we have just one service: `rowbot`.
 
 ---
 
-### Service Definition: `thoth:` (Line 2)
+### Service Definition: `rowbot:` (Line 2)
 
 ```yaml
-  thoth:
+  rowbot:
 ```
 
-**What:** Names this service `thoth`.
+**What:** Names this service `rowbot`.
 
 **Why:** 
-- Used in commands: `docker-compose exec thoth bash`
+- Used in commands: `docker-compose exec rowbot bash`
 - Shows up in `docker-compose ps` as the service name
 - Referenced in volume mounts and networking
 - Allows multiple services to reference each other
@@ -103,13 +110,13 @@ docker-compose build --no-cache   # Rebuild without using cached layers
 ### Container Name (Line 6)
 
 ```yaml
-    container_name: thoth-app
+    container_name: rowbot-app
 ```
 
-**What:** Names the running container `thoth-app`.
+**What:** Names the running container `rowbot-app`.
 
 **Why:**
-- Makes it easier to reference: `docker exec thoth-app bash`
+- Makes it easier to reference: `docker exec rowbot-app bash`
 - Shows up clearly in `docker ps`
 - Easier to remember than a random container ID
 - Must be unique (only one container with this name at a time)
@@ -118,7 +125,7 @@ docker-compose build --no-cache   # Rebuild without using cached layers
 ```bash
 $ docker ps
 CONTAINER ID   IMAGE            NAMES
-abc123def456   python:3.11-slim thoth-app    ← This is the container name
+abc123def456   python:3.11-slim rowbot-app    ← This is the container name
 ```
 
 ---
@@ -127,7 +134,7 @@ abc123def456   python:3.11-slim thoth-app    ← This is the container name
 
 ```yaml
     ports:
-      - "${THOTH_PORT:-8080}:8080"
+      - "${ROW_BOT_PORT:-8080}:8080"
 ```
 
 **What:** Maps a port from the container to the host machine.
@@ -137,27 +144,27 @@ abc123def456   python:3.11-slim thoth-app    ← This is the container name
 - Right side (after colon) — Port inside the container
 
 **Why:** 
-- The Thoth application listens on port 8080 inside the container
+- The Row-Bot application listens on port 8080 inside the container
 - To access it from your browser, it needs to be mapped to a port on your machine
 - The container doesn't know about your host's network directly
 
-**The `${THOTH_PORT:-8080}` Syntax:**
-- `${VAR_NAME}` — Use environment variable `THOTH_PORT`
-- `:-8080` — If `THOTH_PORT` is not set, default to `8080`
+**The `${ROW_BOT_PORT:-8080}` Syntax:**
+- `${VAR_NAME}` — Use environment variable `ROW_BOT_PORT`
+- `:-8080` — If `ROW_BOT_PORT` is not set, default to `8080`
 
 **Examples:**
 
-If `.env` has `THOTH_PORT=8080`:
+If `.env` has `ROW_BOT_PORT=8080`:
 ```yaml
 - "8080:8080"    # Access at http://localhost:8080
 ```
 
-If `.env` has `THOTH_PORT=9000`:
+If `.env` has `ROW_BOT_PORT=9000`:
 ```yaml
 - "9000:8080"    # Access at http://localhost:9000
 ```
 
-If `.env` is missing `THOTH_PORT`:
+If `.env` is missing `ROW_BOT_PORT`:
 ```yaml
 - "8080:8080"    # Defaults to 8080
 ```
@@ -165,12 +172,12 @@ If `.env` is missing `THOTH_PORT`:
 **Real-world use:**
 ```bash
 # User 1 (default)
-THOTH_PORT=8080
+ROW_BOT_PORT=8080
 docker-compose up -d
 # Access at http://localhost:8080
 
 # User 2 (different machine, port taken)
-THOTH_PORT=9000
+ROW_BOT_PORT=9000
 docker-compose up -d
 # Access at http://localhost:9000 (same docker-compose.yml!)
 ```
@@ -186,14 +193,14 @@ docker-compose up -d
 
 **What:** Sets environment variables inside the running container.
 
-**Why:** The Thoth application needs to know where Ollama is located. This is passed as an environment variable.
+**Why:** The Row-Bot application needs to know where Ollama is located. This is passed as an environment variable.
 
 **How it works:**
 1. Read from `.env` file (or command line)
 2. If set, use that value
 3. If not set, use the default
 4. Pass into container as `OLLAMA_BASE_URL` environment variable
-5. Thoth application reads this environment variable to connect to Ollama
+5. Row-Bot application reads this environment variable to connect to Ollama
 
 **Examples:**
 
@@ -206,7 +213,7 @@ OLLAMA_BASE_URL=http://host.docker.internal:11434
 $ echo $OLLAMA_BASE_URL
 http://host.docker.internal:11434
 
-# Thoth uses this to connect
+# Row-Bot uses this to connect
 curl http://host.docker.internal:11434/api/tags
 ```
 
@@ -236,8 +243,8 @@ http://host.docker.internal:11434
 
 ```yaml
     volumes:
-      - thoth-data:/home/thoth/.thoth
-      - thoth-workspace:/app/workspace
+      - rowbot-data:/home/rowbot/.row-bot
+      - rowbot-workspace:/home/rowbot/Documents/Row-Bot
 ```
 
 **What:** Mounts storage volumes so data persists across container restarts.
@@ -259,32 +266,32 @@ With volumes:
 
 **What These Two Volumes Do:**
 
-**1. `thoth-data:/home/thoth/.thoth`**
+**1. `rowbot-data:/home/rowbot/.row-bot`**
 - **Purpose:** Application state, configuration, cache
-- **Inside container:** `/home/thoth/.thoth`
-- **On your host:** `${THOTH_DATA_DIR}` (default: `./thoth-data`)
+- **Inside container:** `/home/rowbot/.row-bot`
+- **On your host:** `${ROW_BOT_DATA_DIR}` (default: `./rowbot-data`)
 - **Example:**
   ```bash
   # On your machine
-  ls ./thoth-data/
+  ls ./rowbot-data/
   → contains: config.yaml, logs, cache, etc.
   
   # Inside container
-  ls /home/thoth/.thoth/
+  ls /home/rowbot/.row-bot/
   → same files!
   ```
 
-**2. `thoth-workspace:/app/workspace`**
+**2. `rowbot-workspace:/home/rowbot/Documents/Row-Bot`**
 - **Purpose:** User workspace, projects, files
-- **Inside container:** `/app/workspace`
-- **On your host:** `${THOTH_WORKSPACE_DIR}` (default: `./thoth-workspace`)
+- **Inside container:** `/home/rowbot/Documents/Row-Bot`
+- **On your host:** `${ROW_BOT_WORKSPACE_DIR}` (default: `./rowbot-workspace`)
 - **Example:**
   ```bash
   # Edit a file on your host machine
-  echo "test content" > ./thoth-workspace/myfile.txt
+  echo "test content" > ./rowbot-workspace/myfile.txt
   
   # It's immediately visible in the container
-  docker-compose exec thoth cat /app/workspace/myfile.txt
+  docker-compose exec rowbot cat /home/rowbot/Documents/Row-Bot/myfile.txt
   → test content
   ```
 
@@ -313,7 +320,7 @@ With volumes:
 |--------|----------|----------|
 | `no` | Never restart | Development (manual control) |
 | `always` | Always restart, even if you stopped it | Critical services |
-| `unless-stopped` | Restart unless explicitly stopped | ✅ **Default for Thoth** |
+| `unless-stopped` | Restart unless explicitly stopped | ✅ **Default for Row-Bot** |
 | `on-failure` | Restart only if it crashed with error | Testing specific failures |
 | `on-failure:3` | Restart up to 3 times on failure | Limit restart attempts |
 
@@ -326,7 +333,7 @@ docker-compose up -d
 CONTAINER CRASHED
 
 # Docker automatically restarts it (unless-stopped)
-docker-compose logs thoth
+docker-compose logs rowbot
 # → shows crash, then clean restart
 
 # You explicitly stop it
@@ -338,8 +345,8 @@ docker-compose up -d
 # Container is running again
 ```
 
-**Why `unless-stopped` for Thoth:**
-- If Thoth crashes, we want it to auto-restart
+**Why `unless-stopped` for Row-Bot:**
+- If Row-Bot crashes, we want it to auto-restart
 - If you stop it intentionally (`docker-compose stop`), stay stopped
 - Perfect for production deployments that should be resilient
 
@@ -386,33 +393,33 @@ networks:
 
 ```yaml
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${THOTH_DATA_DIR:-./thoth-data}
-  thoth-workspace:
+      device: ${ROW_BOT_DATA_DIR:-./rowbot-data}
+  rowbot-workspace:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${THOTH_WORKSPACE_DIR:-./thoth-workspace}
+      device: ${ROW_BOT_WORKSPACE_DIR:-./rowbot-workspace}
 ```
 
 **What:** Defines the two named volumes referenced earlier.
 
 **Why:** Named volumes must be defined at the end of the compose file.
 
-### Volume `thoth-data` (Lines 20-25)
+### Volume `rowbot-data` (Lines 20-25)
 
 ```yaml
-  thoth-data:
+  rowbot-data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${THOTH_DATA_DIR:-./thoth-data}
+      device: ${ROW_BOT_DATA_DIR:-./rowbot-data}
 ```
 
 **Breaking it down:**
@@ -425,22 +432,22 @@ volumes:
   - vs. `type: tmpfs` (in-memory)
   - vs. `type: nfs` (network filesystem)
 
-- **`device: ${THOTH_DATA_DIR:-./thoth-data}`** — Physical location on host
-  - If `.env` has `THOTH_DATA_DIR=/Users/jp/thoth-data` → use that
-  - Otherwise → use `./thoth-data` (relative to docker-compose.yml)
+- **`device: ${ROW_BOT_DATA_DIR:-./rowbot-data}`** — Physical location on host
+  - If `.env` has `ROW_BOT_DATA_DIR=/Users/<user>/rowbot-data` → use that
+  - Otherwise → use `./rowbot-data` (relative to docker-compose.yml)
 
 **What happens:**
 
 ```bash
 # On your host machine
-./thoth-data/
+./rowbot-data/
   ├── config.yaml
   ├── logs/
   ├── cache/
   └── models/
 
 # Inside container
-/home/thoth/.thoth/
+/home/rowbot/.row-bot/
   ├── config.yaml    ← same files!
   ├── logs/
   ├── cache/
@@ -460,7 +467,7 @@ volumes:
 **Option 1: Docker-managed volume (not used here)**
 ```yaml
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
     # Docker manages the location automatically
     # You don't know where files actually are
@@ -473,22 +480,22 @@ driver_opts:
 # Data disappears when container stops
 ```
 
-### Volume `thoth-workspace` (Lines 26-31)
+### Volume `rowbot-workspace` (Lines 26-31)
 
 ```yaml
-  thoth-workspace:
+  rowbot-workspace:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: ${THOTH_WORKSPACE_DIR:-./thoth-workspace}
+      device: ${ROW_BOT_WORKSPACE_DIR:-./rowbot-workspace}
 ```
 
-**Identical to thoth-data, just different path.**
+**Identical to rowbot-data, just different path.**
 
 Maps:
-- `./thoth-workspace` (default) → `/app/workspace` in container
-- Or `${THOTH_WORKSPACE_DIR}` (from .env) → `/app/workspace` in container
+- `./rowbot-workspace` (default) → `/home/rowbot/Documents/Row-Bot` in container
+- Or `${ROW_BOT_WORKSPACE_DIR}` (from .env) → `/home/rowbot/Documents/Row-Bot` in container
 
 ---
 
@@ -498,10 +505,10 @@ The file uses `${VAR:-default}` syntax throughout:
 
 | Line | Syntax | Meaning |
 |------|--------|---------|
-| 8 | `${THOTH_PORT:-8080}` | Use THOTH_PORT from .env, or 8080 |
+| 8 | `${ROW_BOT_PORT:-8080}` | Use ROW_BOT_PORT from .env, or 8080 |
 | 10 | `${OLLAMA_BASE_URL:-http://host.docker.internal:11434}` | Use OLLAMA_BASE_URL from .env, or default Ollama endpoint |
-| 25 | `${THOTH_DATA_DIR:-./thoth-data}` | Use THOTH_DATA_DIR from .env, or ./thoth-data |
-| 31 | `${THOTH_WORKSPACE_DIR:-./thoth-workspace}` | Use THOTH_WORKSPACE_DIR from .env, or ./thoth-workspace |
+| 25 | `${ROW_BOT_DATA_DIR:-./rowbot-data}` | Use ROW_BOT_DATA_DIR from .env, or ./rowbot-data |
+| 31 | `${ROW_BOT_WORKSPACE_DIR:-./rowbot-workspace}` | Use ROW_BOT_WORKSPACE_DIR from .env, or ./rowbot-workspace |
 
 **Why this pattern:**
 - ✅ Works without .env (uses sensible defaults)
@@ -517,9 +524,9 @@ The file uses `${VAR:-default}` syntax throughout:
 
 ```bash
 # 1. Create .env
-THOTH_PORT=8080
-THOTH_DATA_DIR=/Users/jp/thoth-data
-THOTH_WORKSPACE_DIR=/Users/jp/thoth-workspace
+ROW_BOT_PORT=8080
+ROW_BOT_DATA_DIR=/Users/<user>/rowbot-data
+ROW_BOT_WORKSPACE_DIR=/Users/<user>/rowbot-workspace
 OLLAMA_BASE_URL=http://host.docker.internal:11434
 RESTART_POLICY=unless-stopped
 
@@ -533,46 +540,46 @@ docker-compose up -d
 
 ```yaml
 services:
-  thoth:
+  rowbot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: thoth-app
+    container_name: rowbot-app
     ports:
       - "8080:8080"                           # ← substituted
     environment:
       OLLAMA_BASE_URL: http://host.docker.internal:11434  # ← substituted
     volumes:
-      - thoth-data:/home/thoth/.thoth
-      - thoth-workspace:/app/workspace
+      - rowbot-data:/home/rowbot/.row-bot
+      - rowbot-workspace:/home/rowbot/Documents/Row-Bot
     restart: unless-stopped                   # ← substituted
 
 volumes:
-  thoth-data:
+  rowbot-data:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /Users/jp/thoth-data            # ← substituted
-  thoth-workspace:
+      device: /Users/<user>/rowbot-data            # ← substituted
+  rowbot-workspace:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /Users/jp/thoth-workspace       # ← substituted
+      device: /Users/<user>/rowbot-workspace       # ← substituted
 ```
 
 **What happens at runtime:**
 
 ```
 1. Docker builds image from Dockerfile
-2. Starts container named "thoth-app"
+2. Starts container named "rowbot-app"
 3. Maps host port 8080 → container port 8080
 4. Sets OLLAMA_BASE_URL environment variable in container
-5. Mounts /Users/jp/thoth-data to /home/thoth/.thoth
-6. Mounts /Users/jp/thoth-workspace to /app/workspace
+5. Mounts /Users/<user>/rowbot-data to /home/rowbot/.row-bot
+6. Mounts /Users/<user>/rowbot-workspace to /home/rowbot/Documents/Row-Bot
 7. Sets restart policy to "unless-stopped"
-8. Thoth application reads OLLAMA_BASE_URL and connects to Ollama
+8. Row-Bot application reads OLLAMA_BASE_URL and connects to Ollama
 ```
 
 ---
@@ -586,9 +593,9 @@ volumes:
 ✅ **Defaults are sensible** — Works out-of-box if no .env exists
 
 ✅ **Flexible paths** — Works whether you want to store data in:
-- Current directory (`./thoth-data`)
+- Current directory (`./rowbot-data`)
 - Home directory (`~`)
-- Custom location (`/mnt/data/thoth`)
+- Custom location (`/mnt/data/rowbot`)
 
 ✅ **Production safe** — Auto-restart, persistent volumes, proper isolation
 
@@ -604,7 +611,7 @@ volumes:
 
 **Solution:** Change in .env
 ```bash
-THOTH_PORT=9000
+ROW_BOT_PORT=9000
 docker-compose up -d
 # Access at http://localhost:9000
 ```
@@ -629,8 +636,8 @@ OLLAMA_BASE_URL=http://192.168.1.100:11434
 
 **Solution:** Docker usually handles this, but if issues:
 ```bash
-chmod 755 ./thoth-data
-chmod 755 ./thoth-workspace
+chmod 755 ./rowbot-data
+chmod 755 ./rowbot-workspace
 ```
 
 ### Issue: "Can't find .env file"
@@ -639,7 +646,7 @@ chmod 755 ./thoth-workspace
 ```bash
 # This still works, just uses defaults:
 docker-compose up -d
-# THOTH_PORT=8080
+# ROW_BOT_PORT=8080
 # OLLAMA_BASE_URL=http://host.docker.internal:11434
 # etc.
 ```
@@ -650,7 +657,7 @@ docker-compose up -d
 
 The docker-compose.yml is designed to be:
 
-1. **Simple** — One service definition (Thoth)
+1. **Simple** — One service definition (Row-Bot)
 2. **Portable** — Works on macOS, Windows, Linux
 3. **Configurable** — All settings via .env, no file editing needed
 4. **Persistent** — Data survives container restarts

@@ -31,15 +31,15 @@ source "$ENV_FILE"
 set +a
 
 # Resolve paths
-ROWBOT_DATA_DIR="${ROWBOT_DATA_DIR:-.}"
-ROWBOT_WORKSPACE_DIR="${ROWBOT_WORKSPACE_DIR:-.}"
+ROW_BOT_DATA_DIR="${ROW_BOT_DATA_DIR:-.}"
+ROW_BOT_WORKSPACE_DIR="${ROW_BOT_WORKSPACE_DIR:-.}"
 
 # Make paths absolute
-if [[ "$ROWBOT_DATA_DIR" != /* ]]; then
-    ROWBOT_DATA_DIR="$SCRIPT_DIR/$ROWBOT_DATA_DIR"
+if [[ "$ROW_BOT_DATA_DIR" != /* ]]; then
+    ROW_BOT_DATA_DIR="$SCRIPT_DIR/$ROW_BOT_DATA_DIR"
 fi
-if [[ "$ROWBOT_WORKSPACE_DIR" != /* ]]; then
-    ROWBOT_WORKSPACE_DIR="$SCRIPT_DIR/$ROWBOT_WORKSPACE_DIR"
+if [[ "$ROW_BOT_WORKSPACE_DIR" != /* ]]; then
+    ROW_BOT_WORKSPACE_DIR="$SCRIPT_DIR/$ROW_BOT_WORKSPACE_DIR"
 fi
 
 if [[ $AUTO_MODE -eq 0 ]]; then
@@ -55,18 +55,18 @@ fi
 if [[ $AUTO_MODE -eq 0 ]]; then
     echo -e "\n${GREEN}[1/3] CURRENT DISK USAGE${NC}\n"
 
-    if [[ -d "$ROWBOT_DATA_DIR" ]]; then
-        DATA_SIZE=$(du -sh "$ROWBOT_DATA_DIR" 2>/dev/null | awk '{print $1}')
+    if [[ -d "$ROW_BOT_DATA_DIR" ]]; then
+        DATA_SIZE=$(du -sh "$ROW_BOT_DATA_DIR" 2>/dev/null | awk '{print $1}')
         echo "  Row-Bot Data: $DATA_SIZE"
     else
-        echo "  Row-Bot Data: Not found ($ROWBOT_DATA_DIR)"
+        echo "  Row-Bot Data: Not found ($ROW_BOT_DATA_DIR)"
     fi
 
-    if [[ -d "$ROWBOT_WORKSPACE_DIR" ]]; then
-        WORKSPACE_SIZE=$(du -sh "$ROWBOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}')
+    if [[ -d "$ROW_BOT_WORKSPACE_DIR" ]]; then
+        WORKSPACE_SIZE=$(du -sh "$ROW_BOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}')
         echo "  Workspace: $WORKSPACE_SIZE"
     else
-        echo "  Workspace: Not found ($ROWBOT_WORKSPACE_DIR)"
+        echo "  Workspace: Not found ($ROW_BOT_WORKSPACE_DIR)"
     fi
 
     # Docker usage
@@ -78,12 +78,12 @@ if [[ $AUTO_MODE -eq 0 ]]; then
     fi
 
     # Estimate total
-    THOTH_DATA_MB=$(du -sm "$ROWBOT_DATA_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
-    THOTH_WORKSPACE_MB=$(du -sm "$ROWBOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
-    TOTAL_MB=$((THOTH_DATA_MB + THOTH_WORKSPACE_MB))
+    ROW_BOT_DATA_MB=$(du -sm "$ROW_BOT_DATA_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
+    ROW_BOT_WORKSPACE_MB=$(du -sm "$ROW_BOT_WORKSPACE_DIR" 2>/dev/null | awk '{print $1}' || echo 0)
+    TOTAL_MB=$((ROW_BOT_DATA_MB + ROW_BOT_WORKSPACE_MB))
 
     echo ""
-    echo -e "  ${YELLOW}Total Thoth Usage: ~${TOTAL_MB} MB${NC}"
+    echo -e "  ${YELLOW}Total Row-Bot Usage: ~${TOTAL_MB} MB${NC}"
     echo ""
 fi
 
@@ -96,7 +96,7 @@ if [[ $AUTO_MODE -eq 0 ]]; then
     echo "  [1] Clean Docker build cache (frees 500MB–2GB)"
     echo "  [2] Remove stopped containers"
     echo "  [3] Remove dangling images"
-    echo "  [4] Truncate Thoth logs"
+    echo "  [4] Truncate Row-Bot logs"
     echo "  [5] Archive old workspace (interactive)"
     echo "  [6] Deep clean (all of 1–4)"
     echo "  [0] Exit"
@@ -139,9 +139,9 @@ cleanup_dangling_images() {
 }
 
 truncate_logs() {
-    if [[ -f "$ROWBOT_DATA_DIR/thoth_app.log" ]]; then
-        > "$ROWBOT_DATA_DIR/thoth_app.log"
-        echo -e "  ${GREEN}✓ Thoth logs truncated${NC}"
+    if [[ -f "$ROW_BOT_DATA_DIR/rowbot_app.log" ]]; then
+        > "$ROW_BOT_DATA_DIR/rowbot_app.log"
+        echo -e "  ${GREEN}✓ Row-Bot logs truncated${NC}"
     fi
     return 0
 }
@@ -175,16 +175,16 @@ execute_cleanup() {
         5)
             if [[ $AUTO_MODE -eq 0 ]]; then
                 echo -e "\n${YELLOW}Archive workspace${NC}\n"
-                read -p "Destination path for archive (e.g., /Volumes/External/thoth-backup): " ARCHIVE_DEST
+                read -p "Destination path for archive (e.g., /Volumes/External/rowbot-backup): " ARCHIVE_DEST
 
                 if [[ ! -d "$ARCHIVE_DEST" ]]; then
                     echo -e "${RED}✗ Destination not found: $ARCHIVE_DEST${NC}"
                     return 1
                 fi
 
-                ARCHIVE_FILE="$ARCHIVE_DEST/thoth-workspace-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+                ARCHIVE_FILE="$ARCHIVE_DEST/rowbot-workspace-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
                 echo -e "  Creating archive: $ARCHIVE_FILE"
-                tar -czf "$ARCHIVE_FILE" -C "$(dirname "$ROWBOT_WORKSPACE_DIR")" "$(basename "$ROWBOT_WORKSPACE_DIR")"
+                tar -czf "$ARCHIVE_FILE" -C "$(dirname "$ROW_BOT_WORKSPACE_DIR")" "$(basename "$ROW_BOT_WORKSPACE_DIR")"
                 echo -e "  ${GREEN}✓ Workspace archived${NC}"
             fi
             ;;
@@ -220,10 +220,10 @@ if [[ $AUTO_MODE -eq 0 ]] && [[ "$CHOICE" != "0" ]]; then
     read -p "Schedule automatic weekly cleanup? [y/N] " SCHEDULE_CRON
 
     if [[ "$SCHEDULE_CRON" == "y" || "$SCHEDULE_CRON" == "Y" ]]; then
-        CRON_CMD="0 3 * * 0 $SCRIPT_DIR/scripts/thoth-maintenance.sh auto >> ~/.thoth-maintenance.log 2>&1"
+        CRON_CMD="0 3 * * 0 $SCRIPT_DIR/scripts/rowbot-maintenance.sh auto >> ~/.row-bot-maintenance.log 2>&1"
 
         # Check if already scheduled
-        if crontab -l 2>/dev/null | grep -q "thoth-maintenance.sh auto"; then
+        if crontab -l 2>/dev/null | grep -q "rowbot-maintenance.sh auto"; then
             echo -e "${YELLOW}⚠ Cron job already scheduled${NC}"
         else
             # Add to crontab
@@ -234,7 +234,7 @@ if [[ $AUTO_MODE -eq 0 ]] && [[ "$CHOICE" != "0" ]]; then
 
             echo -e "${GREEN}✓ Cron job scheduled${NC}"
             echo "  Runs: Every Sunday at 3:00 AM"
-            echo "  Log: ~/.thoth-maintenance.log"
+            echo "  Log: ~/.row-bot-maintenance.log"
         fi
     fi
 

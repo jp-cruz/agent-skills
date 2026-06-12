@@ -4,10 +4,10 @@
 
 | Scenario | Setup | Tool | Access | Protection |
 |----------|-------|------|--------|------------|
-| **Localhost only** | `THOTH_BIND=127.0.0.1` | None | This computer only | ✅ Maximum |
-| **Local Area Network** | `THOTH_BIND=0.0.0.0` | Firewall | WiFi, Ethernet, same LAN | ✅ Firewall-protected |
-| **Remote private** | `THOTH_BIND=127.0.0.1` | Tailscale VPN | Anywhere on private network | ✅ Encrypted VPN |
-| **Internet public** | `THOTH_BIND=127.0.0.1` | Cloudflare Tunnel | Anywhere on internet | ✅ DDoS + Auth |
+| **Localhost only** | `ROW_BOT_BIND=127.0.0.1` | None | This computer only | ✅ Maximum |
+| **Local Area Network** | `ROW_BOT_BIND=0.0.0.0` | Firewall | WiFi, Ethernet, same LAN | ✅ Firewall-protected |
+| **Remote private** | `ROW_BOT_BIND=127.0.0.1` | Tailscale VPN | Anywhere on private network | ✅ Encrypted VPN |
+| **Internet public** | `ROW_BOT_BIND=127.0.0.1` | Cloudflare Tunnel | Anywhere on internet | ✅ DDoS + Auth |
 
 **Recommendation:** Start with localhost (127.0.0.1), add LAN access only if needed.
 
@@ -15,20 +15,20 @@
 
 ## Default: Localhost Only (Secure)
 
-By default, Thoth listens on `127.0.0.1:8080` — accessible **only from this computer**.
+By default, Row-Bot listens on `127.0.0.1:8080` — accessible **only from this computer**.
 
 ```bash
 # This is the default
-THOTH_BIND=127.0.0.1
+ROW_BOT_BIND=127.0.0.1
 ```
 
 **Access:** `http://localhost:8080` (local machine only)
 
 ---
 
-## Network Access: Exposing Thoth Over Network
+## Network Access: Exposing Row-Bot Over Network
 
-If you want to access Thoth from other machines on your network or the internet, you need to:
+If you want to access Row-Bot from other machines on your network or the internet, you need to:
 
 1. Change the bind address
 2. Add security hardening
@@ -36,7 +36,7 @@ If you want to access Thoth from other machines on your network or the internet,
 
 ### Option 1: Local Area Network (LAN) Access
 
-**Scenario:** Access Thoth from other devices on your Local Area Network
+**Scenario:** Access Row-Bot from other devices on your Local Area Network
 - WiFi devices (phone, tablet, laptop)
 - Wired (Ethernet) devices
 - Any device on the same local network
@@ -45,14 +45,14 @@ If you want to access Thoth from other machines on your network or the internet,
 
 ```bash
 # In .env:
-THOTH_BIND=0.0.0.0
-THOTH_PORT=8080
+ROW_BOT_BIND=0.0.0.0
+ROW_BOT_PORT=8080
 ```
 
 **Access:** `http://<your-machine-ip>:8080`
 
 **How it works:**
-- `0.0.0.0` tells Thoth to listen on all local network interfaces
+- `0.0.0.0` tells Row-Bot to listen on all local network interfaces
 - **Assumes:** Your router/firewall blocks external internet access
 - Only devices on your LAN can reach it
 
@@ -83,7 +83,7 @@ sudo firewall-cmd --state
 **If firewall is disabled:**
 - ⚠️ LAN access may be exposed to the internet
 - Enable your router's firewall (check router admin panel)
-- Or switch to `THOTH_BIND=127.0.0.1` (localhost only)
+- Or switch to `ROW_BOT_BIND=127.0.0.1` (localhost only)
 
 **Security considerations:**
 - ⚠️ No authentication by default (anyone on LAN can access)
@@ -93,11 +93,11 @@ sudo firewall-cmd --state
 
 ### Option 2: Internet Access (Production)
 
-**Scenario:** Access Thoth from anywhere on the internet
+**Scenario:** Access Row-Bot from anywhere on the internet
 
-**⚠️ NEVER expose Thoth directly to the internet without:**
+**⚠️ NEVER expose Row-Bot directly to the internet without:**
 
-1. **Authentication** — Thoth has no built-in auth; use reverse proxy
+1. **Authentication** — Row-Bot has no built-in auth; use reverse proxy
 2. **HTTPS** — Use TLS/SSL encryption
 3. **Rate limiting** — Prevent abuse
 4. **DDoS protection** — Consider Cloudflare, AWS Shield, etc.
@@ -114,10 +114,10 @@ Use **Nginx**, **Caddy**, or **Cloudflare Tunnel** to:
 #### Example: Nginx Reverse Proxy (Local Network)
 
 ```nginx
-# /etc/nginx/sites-available/thoth
+# /etc/nginx/sites-available/rowbot
 server {
     listen 80;
-    server_name thoth.local;  # or your machine hostname
+    server_name rowbot.local;  # or your machine hostname
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -137,9 +137,9 @@ limit_req_zone $binary_remote_addr zone=api:10m rate=100r/m;
 
 **Start with:**
 ```bash
-# Set Thoth to localhost (behind proxy)
-THOTH_BIND=127.0.0.1
-THOTH_PORT=8080
+# Set Row-Bot to localhost (behind proxy)
+ROW_BOT_BIND=127.0.0.1
+ROW_BOT_PORT=8080
 
 # Install and run nginx
 brew install nginx  # macOS
@@ -163,21 +163,21 @@ nginx
 3. Create tunnel:
    ```bash
    cloudflared tunnel login
-   cloudflared tunnel create thoth
+   cloudflared tunnel create rowbot
    ```
-4. Configure tunnel to point to Thoth:
+4. Configure tunnel to point to Row-Bot:
    ```bash
-   cloudflared tunnel route dns thoth your-domain.com
+   cloudflared tunnel route dns rowbot your-domain.com
    # Or create a config file pointing to http://127.0.0.1:8080
    ```
 5. Run tunnel:
    ```bash
-   cloudflared tunnel run thoth
+   cloudflared tunnel run rowbot
    ```
-6. Access from anywhere: `https://thoth.your-domain.com`
+6. Access from anywhere: `https://rowbot.your-domain.com`
 
 **Add Password Protection (optional):**
-Use Cloudflare Access to require login before accessing Thoth.
+Use Cloudflare Access to require login before accessing Row-Bot.
 
 ---
 
@@ -187,7 +187,7 @@ If you want access from anywhere but prefer a **private network** (not internet)
 
 1. Install Tailscale: https://tailscale.com
 2. Connect your home computer and other devices
-3. Access Thoth at: `http://<home-computer-tailscale-ip>:8080`
+3. Access Row-Bot at: `http://<home-computer-tailscale-ip>:8080`
 
 **Pros:** More private, peer-to-peer, no central server  
 **Cons:** Only works for devices on your Tailscale network (not true internet)
@@ -212,10 +212,10 @@ ngrok http 8080
 
 If exposing over network:
 
-- [ ] **Change THOTH_BIND from default 127.0.0.1**
+- [ ] **Change ROW_BOT_BIND from default 127.0.0.1**
   ```bash
   # Enable network access
-  THOTH_BIND=0.0.0.0
+  ROW_BOT_BIND=0.0.0.0
   ```
 
 - [ ] **Add reverse proxy** (nginx, Caddy, or Cloudflare)
@@ -244,7 +244,7 @@ If exposing over network:
   OPENAI_API_KEY=sk-...
   ```
 
-- [ ] **Disable Thoth if not in use**
+- [ ] **Disable Row-Bot if not in use**
   ```bash
   docker-compose down
   ```
@@ -263,7 +263,7 @@ If exposing over network:
 **Use default (localhost):**
 ```bash
 # .env
-THOTH_BIND=127.0.0.1  # or omit (this is default)
+ROW_BOT_BIND=127.0.0.1  # or omit (this is default)
 ```
 
 Access: `http://localhost:8080`
@@ -286,7 +286,7 @@ hostname -I
 **Step 2:** Enable network binding
 ```bash
 # .env
-THOTH_BIND=0.0.0.0
+ROW_BOT_BIND=0.0.0.0
 ```
 
 **Step 3:** Access from phone
@@ -342,10 +342,10 @@ ifconfig | grep "inet "
 
 # Test from command line
 curl http://127.0.0.1:8080  # Should work
-curl http://<your-ip>:8080  # Should work if THOTH_BIND=0.0.0.0
+curl http://<your-ip>:8080  # Should work if ROW_BOT_BIND=0.0.0.0
 ```
 
-**Problem: THOTH_BIND changes don't take effect**
+**Problem: ROW_BOT_BIND changes don't take effect**
 
 ```bash
 # Rebuild container
@@ -357,7 +357,7 @@ docker-compose up -d --build
 
 ## Summary
 
-| Scenario | THOTH_BIND | Access | Security |
+| Scenario | ROW_BOT_BIND | Access | Security |
 |----------|-----------|--------|----------|
 | Local only | `127.0.0.1` | `localhost:8080` | ✅ Maximum |
 | Home WiFi | `0.0.0.0` | `192.168.x.x:8080` | ⚠️ Add proxy |

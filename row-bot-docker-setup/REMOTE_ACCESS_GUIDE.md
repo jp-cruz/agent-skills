@@ -1,6 +1,6 @@
-# Remote Access to Thoth (Safe Methods)
+# Remote Access to Row-Bot (Safe Methods)
 
-**Don't expose the web UI to the internet.** Thoth offers better ways to access it remotely.
+**Don't expose the web UI to the internet.** Row-Bot offers better ways to access it remotely.
 
 ---
 
@@ -12,22 +12,22 @@ Direct web access requires:
 - ❌ HTTPS certificates (maintenance)
 - ❌ Constant exposure (DDoS risk)
 
-## Better: Thoth's Native Integrations
+## Better: Row-Bot's Native Integrations
 
-Thoth can be accessed through messaging platforms you already use:
+Row-Bot can be accessed through messaging platforms you already use:
 
 ---
 
 ## Option 1: Discord Bot (Recommended)
 
-Access Thoth directly from Discord. All the power, safer interface.
+Access Row-Bot directly from Discord. All the power, safer interface.
 
 **Setup:**
-1. In Thoth, go to Settings → Integrations
+1. In Row-Bot, go to Settings → Integrations
 2. Enable Discord bot
 3. Create a Discord server or use existing one
 4. Add bot to your server
-5. Start chatting with Thoth via Discord
+5. Start chatting with Row-Bot via Discord
 
 **Advantages:**
 - ✅ Authenticated (only your Discord account)
@@ -41,20 +41,20 @@ Access Thoth directly from Discord. All the power, safer interface.
 - Discord API rate limits
 - Message length limits (Discord's 2000 char limit)
 
-**Setup Link:** [Thoth Discord Integration](https://github.com/siddsachar/Thoth#discord-integration)
+**Setup Link:** [Row-Bot Discord Integration](https://github.com/siddsachar/row-bot#discord-integration)
 
 ---
 
 ## Option 2: SMS/Text Message Integration
 
-Control Thoth by texting it. Simple, no app needed.
+Control Row-Bot by texting it. Simple, no app needed.
 
 **Setup:**
-1. In Thoth, go to Settings → Integrations
+1. In Row-Bot, go to Settings → Integrations
 2. Enable SMS integration
 3. Link your phone number
 4. Configure SMS provider (Twilio, AWS SNS, etc.)
-5. Start texting Thoth
+5. Start texting Row-Bot
 
 **Advantages:**
 - ✅ Authenticated (only your phone number)
@@ -68,19 +68,19 @@ Control Thoth by texting it. Simple, no app needed.
 - Longer response times (SMS latency)
 - Character limits
 
-**Setup Link:** [Thoth SMS Integration](https://github.com/siddsachar/Thoth#sms-integration)
+**Setup Link:** [Row-Bot SMS Integration](https://github.com/siddsachar/row-bot#sms-integration)
 
 ---
 
 ## Option 3: Signal Bot
 
-Use Signal's secure messaging to control Thoth.
+Use Signal's secure messaging to control Row-Bot.
 
 **Setup:**
 1. Install Signal (https://signal.org)
-2. In Thoth, go to Settings → Integrations
+2. In Row-Bot, go to Settings → Integrations
 3. Enable Signal bot
-4. Link Signal to Thoth
+4. Link Signal to Row-Bot
 5. Start chatting privately
 
 **Advantages:**
@@ -94,16 +94,16 @@ Use Signal's secure messaging to control Thoth.
 - Requires Signal app
 - Smaller user base
 
-**Setup Link:** [Thoth Signal Integration](https://github.com/siddsachar/Thoth#signal-integration)
+**Setup Link:** [Row-Bot Signal Integration](https://github.com/siddsachar/row-bot#signal-integration)
 
 ---
 
 ## Option 4: Facebook/Instagram Messenger Bot
 
-Control Thoth via Messenger if you use Meta's platforms.
+Control Row-Bot via Messenger if you use Meta's platforms.
 
 **Setup:**
-1. In Thoth, go to Settings → Integrations
+1. In Row-Bot, go to Settings → Integrations
 2. Enable Messenger bot
 3. Connect Facebook app
 4. Add bot to your Messenger
@@ -119,7 +119,7 @@ Control Thoth via Messenger if you use Meta's platforms.
 - Requires Meta account
 - Dependent on Meta's infrastructure
 
-**Setup Link:** [Thoth Messenger Integration](https://github.com/siddsachar/Thoth#messenger-integration)
+**Setup Link:** [Row-Bot Messenger Integration](https://github.com/siddsachar/row-bot#messenger-integration)
 
 ---
 
@@ -130,7 +130,7 @@ If you absolutely need web UI access from the internet:
 1. **Use Tailscale** (VPN-style, private network)
    - Install on home computer and other devices
    - Create private network
-   - Access Thoth as if you're home
+   - Access Row-Bot as if you're home
    - Secure, peer-to-peer
 
 2. **Use Cloudflare Tunnel** (with authentication)
@@ -160,7 +160,7 @@ See [NETWORK_SETUP.md](references/NETWORK_SETUP.md) for detailed setup.
 
 **Start with Discord Bot** — it's the best balance of:
 - Easy setup
-- Full Thoth features
+- Full Row-Bot features
 - Secure by default
 - Great UX
 - No infrastructure needed
@@ -173,7 +173,7 @@ Only expose the web UI if you specifically need it (advanced debugging, team das
 
 ## More Information
 
-- Thoth documentation: https://github.com/siddsachar/Thoth
-- Discord setup: [THOTH_DISCORD_BOT.md](THOTH_DISCORD_BOT.md)
-- SMS setup: [THOTH_SMS_INTEGRATION.md](THOTH_SMS_INTEGRATION.md)
+- Row-Bot documentation: https://github.com/siddsachar/row-bot
+- Discord setup: [ROW_BOT_DISCORD_BOT.md](ROW_BOT_DISCORD_BOT.md)
+- SMS setup: [ROW_BOT_SMS_INTEGRATION.md](ROW_BOT_SMS_INTEGRATION.md)
 - Web UI security: [NETWORK_SETUP.md](references/NETWORK_SETUP.md)

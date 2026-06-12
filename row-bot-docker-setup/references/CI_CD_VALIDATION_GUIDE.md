@@ -61,8 +61,8 @@ Three comprehensive CI/CD workflows are configured in `.github/workflows/`:
 ### Completed ✅
 - macOS Tahoe (M4) — **VALIDATED WORKING**
   - Docker builds successfully
-  - Thoth container runs and serves HTTP
-  - nano accessible to thoth user
+  - Row-Bot container runs and serves HTTP
+  - nano accessible to rowbot user
   - OpenRouter integration confirmed
   - Volume persistence works
 
@@ -80,30 +80,30 @@ Before committing, you can run local validation:
 
 ### 1. Syntax Check
 ```bash
-bash -n thoth-docker-setup/setup.sh
-bash -n thoth-docker-setup/check-docker.sh
-bash -n thoth-docker-setup/preflight-check.sh
+bash -n row-bot-docker-setup/setup.sh
+bash -n row-bot-docker-setup/check-docker.sh
+bash -n row-bot-docker-setup/preflight-check.sh
 ```
 
 ### 2. Config Validation
 ```bash
-docker-compose -f thoth-docker-setup/docker-compose.yml config > /dev/null
-python3 -c "import json; json.load(open('thoth-docker-setup/skill-manifest.json'))"
+docker-compose -f row-bot-docker-setup/docker-compose.yml config > /dev/null
+python3 -c "import json; json.load(open('row-bot-docker-setup/skill-manifest.json'))"
 ```
 
 ### 3. Build Test
 ```bash
-cd thoth-docker-setup
+cd row-bot-docker-setup
 docker-compose build --no-cache
 ```
 
 ### 4. Security Scan (Local)
 ```bash
 # Check for hardcoded IPs
-grep -r "10\.0\." thoth-docker-setup/ --include="*.md" --include="*.sh" | grep -v "<ip>"
+grep -r "10\.0\." row-bot-docker-setup/ --include="*.md" --include="*.sh" | grep -v "<ip>"
 
 # Check for exposed keys
-grep -r "sk-" thoth-docker-setup/ --include="*.md" | grep -v "sk-or-" | grep -v "sk-ant-" | grep -v "<api-key>"
+grep -r "sk-" row-bot-docker-setup/ --include="*.md" | grep -v "sk-or-" | grep -v "sk-ant-" | grep -v "<api-key>"
 ```
 
 ---

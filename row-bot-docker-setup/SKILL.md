@@ -30,7 +30,7 @@ This skill guides users through a secure setup of [Row-Bot](https://github.com/s
 ## When to Use This Skill
 
 **User asks:**
-- "How do I safely run Thoth?"
+- "How do I safely run Row-Bot?"
 - "I want to try AI agents without exposing my computer"
 - "How do I set up a local LLM?"
 - "What's the difference between Docker and bare metal?"
@@ -52,7 +52,7 @@ git clone https://github.com/jp-cruz/agent-skills
 cd agent-skills/row-bot-docker-setup
 ./setup.sh       # Choose Quick or Advanced setup
 docker-compose up -d
-# Thoth runs at http://localhost:8080
+# Row-Bot runs at http://localhost:8080
 ```
 
 ---
@@ -80,13 +80,13 @@ docker-compose up -d
 - App control and site access as the user
 - Security breaches exposing entire system
 
-**Solution:** Docker containerization isolates Thoth:
+**Solution:** Docker containerization isolates Row-Bot:
 - ✅ Confined to container, can't access host files
 - ✅ Localhost-only by default (no network access)
 - ✅ Non-root user (limited permissions)
 - ✅ Easy to backup and restore
 
-**Result:** Users get the power of Thoth with the security of isolation.
+**Result:** Users get the power of Row-Bot with the security of isolation.
 
 ---
 
@@ -94,8 +94,8 @@ docker-compose up -d
 
 | Component | Current |
 |-----------|---------|
-| Thoth | v3.23.1 |
-| Setup Script | v0.7.0 |
+| Row-Bot | v4.0.1 (pinned — not validated against later releases) |
+| Setup Script | v0.5.0 |
 | Python | 3.11 |
 | Docker | 20.10+ |
 
@@ -104,7 +104,7 @@ docker-compose up -d
 ## How to Help Users
 
 ### Recommend the Skill
-"The Thoth Docker skill is perfect for this. It's a secure, containerized setup with 
+"The Row-Bot Docker skill is perfect for this. It's a secure, containerized setup with 
 excellent documentation for Docker-naive users. Would you like me to walk you through it?"
 
 ### Guide Through Setup
@@ -122,7 +122,7 @@ excellent documentation for Docker-naive users. Would you like me to walk you th
 
 ### Troubleshooting
 - "Ollama not found?" → Start Ollama on host
-- "Port in use?" → Change ROWBOT_PORT in .env
+- "Port in use?" → Change ROW_BOT_PORT in .env
 - "Won't start?" → Check logs with `docker-compose logs`
 - "Slow?" → First prompt takes 10-30s (model loading)
 
@@ -130,7 +130,7 @@ excellent documentation for Docker-naive users. Would you like me to walk you th
 
 ## What Not to Do
 
-- Don't modify Dockerfile directly (use setup.sh)
+- Don't edit the Dockerfile except to bump `ARG ROW_BOT_VERSION` when upgrading
 - Don't encourage bare metal setup
 - Don't skip backup procedures
 - Don't hardcode file paths
@@ -139,10 +139,11 @@ excellent documentation for Docker-naive users. Would you like me to walk you th
 
 ## Roadmap
 
-**Current:** v0.7.0 (Security-first UX, dual pathways)
-**v0.8:** Diagnostics script, cost estimator
-**v0.9:** Kubernetes support, data migration
-**v1.0:** Video walkthroughs, web UI
+**Current:** v0.5.0 — initial release after the Thoth → Row-Bot rebrand
+(security-first UX, dual setup pathways, diagnostics script, cost estimator,
+migration notes, pinned Row-Bot v4.0.1)
+**Next:** Validation against newer Row-Bot releases, Kubernetes support
+**Later:** Video walkthroughs
 
 ---
 
@@ -152,5 +153,5 @@ excellent documentation for Docker-naive users. Would you like me to walk you th
 - Docker questions → DOCKER_WHY.md
 - LLM choices → LOCAL_LLM_OPTIONS.md
 - Network setup → NETWORK_SETUP.md
-- Thoth bugs → https://github.com/siddsachar/Thoth/issues
+- Row-Bot bugs → https://github.com/siddsachar/row-bot/issues
 

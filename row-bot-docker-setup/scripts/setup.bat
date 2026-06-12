@@ -22,22 +22,22 @@ if exist .env (
 echo [INFO] Detected OS: Windows
 
 REM Read .env values (simple version - assumes standard paths)
-for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_DATA_DIR=" .env') do set ROWBOT_DATA_DIR=%%i
-for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_WORKSPACE_DIR=" .env') do set ROWBOT_WORKSPACE_DIR=%%i
-for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_PORT=" .env') do set ROWBOT_PORT=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROW_BOT_DATA_DIR=" .env') do set ROW_BOT_DATA_DIR=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROW_BOT_WORKSPACE_DIR=" .env') do set ROW_BOT_WORKSPACE_DIR=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROW_BOT_PORT=" .env') do set ROW_BOT_PORT=%%i
 for /f "tokens=2 delims==" %%i in ('findstr "^OLLAMA_BASE_URL=" .env') do set OLLAMA_BASE_URL=%%i
 
 echo.
 echo Configuration:
-echo   Data Directory:      %ROWBOT_DATA_DIR%
-echo   Workspace Directory: %ROWBOT_WORKSPACE_DIR%
-echo   Row-Bot Port:          %ROWBOT_PORT%
+echo   Data Directory:      %ROW_BOT_DATA_DIR%
+echo   Workspace Directory: %ROW_BOT_WORKSPACE_DIR%
+echo   Row-Bot Port:          %ROW_BOT_PORT%
 echo   Ollama URL:          %OLLAMA_BASE_URL%
 
 echo.
 echo [INFO] Creating data directories
-if not exist "%ROWBOT_DATA_DIR%" mkdir "%ROWBOT_DATA_DIR%"
-if not exist "%ROWBOT_WORKSPACE_DIR%" mkdir "%ROWBOT_WORKSPACE_DIR%"
+if not exist "%ROW_BOT_DATA_DIR%" mkdir "%ROW_BOT_DATA_DIR%"
+if not exist "%ROW_BOT_WORKSPACE_DIR%" mkdir "%ROW_BOT_WORKSPACE_DIR%"
 echo [INFO] Directories created
 
 echo.
@@ -75,7 +75,7 @@ echo Next steps:
 echo   1. Review and customize .env if needed
 echo   2. Ensure Ollama is running
 echo   3. Start Row-Bot: docker-compose up -d
-echo   4. Open http://localhost:%ROWBOT_PORT%
+echo   4. Open http://localhost:%ROW_BOT_PORT%
 echo.
 echo Useful commands:
 echo   docker-compose up -d          # Start in background

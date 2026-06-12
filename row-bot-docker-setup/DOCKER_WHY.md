@@ -8,9 +8,9 @@ TL;DR: **Docker runs Row-Bot in an isolated container, so if something goes wron
 
 You want to run Row-Bot, an AI agent platform. The problem:
 
-- Thoth itself might have a security flaw
-- A malicious website could attack Thoth
-- Someone could trick Thoth into running bad commands
+- Row-Bot itself might have a security flaw
+- A malicious website could attack Row-Bot
+- Someone could trick Row-Bot into running bad commands
 - If a model or plugin is compromised, it could try to break out
 
 **On bare metal (direct installation):** If any of these happen, the attacker has full access to your computer as *you*. They can:
@@ -34,14 +34,14 @@ Docker runs Row-Bot in a **container** — a sandboxed environment that looks li
 **Inside the container:**
 ```
 ┌─────────────────────────────┐
-│ Thoth Container             │
+│ Row-Bot Container             │
 ├─────────────────────────────┤
 │ • Row-Bot application         │
 │ • Python environment        │
-│ • Thoth's databases         │
-│ • Thoth's projects          │
+│ • Row-Bot's databases         │
+│ • Row-Bot's projects          │
 │                             │
-│ User: thoth (UID 1000)      │
+│ User: rowbot (UID 1000)      │
 │ Home: /home/rowbot           │
 │ Can write to: /home/rowbot/* │
 │ Cannot write to: /Users/... │
@@ -56,14 +56,14 @@ Docker runs Row-Bot in a **container** — a sandboxed environment that looks li
 1. **File system isolation** — Container can't access your home folder, documents, or downloads
 2. **Network isolation** — Container is localhost-only by default (can't reach outside unless you allow it)
 3. **Process isolation** — Container can't see or control other applications
-4. **User isolation** — Container runs as non-root user (thoth), not as you
+4. **User isolation** — Container runs as non-root user (rowbot), not as you
 5. **Volume isolation** — Container data lives in Docker volumes, separate from your system
 
 ---
 
 ## Risk Comparison: Bare Metal vs. Docker
 
-### Scenario 1: Thoth Has a Security Flaw
+### Scenario 1: Row-Bot Has a Security Flaw
 
 **Bare Metal:**
 ```
@@ -81,22 +81,22 @@ Attacker → Row-Bot flaw → Confined to /home/rowbot in container
            Can't see your other accounts
 ```
 
-### Scenario 2: Malicious Website Attacks Thoth
+### Scenario 2: Malicious Website Attacks Row-Bot
 
 **Bare Metal:**
 ```
 ⚠️ DANGER
-Website → Malicious JavaScript → Exploit in Thoth → Your computer compromised
+Website → Malicious JavaScript → Exploit in Row-Bot → Your computer compromised
 ```
 
 **Docker:**
 ```
 ✅ SAFE
-Website → Malicious JavaScript → Exploit in Thoth → Confined to container
+Website → Malicious JavaScript → Exploit in Row-Bot → Confined to container
          (if Row-Bot even allows web access)
 ```
 
-### Scenario 3: Someone Tricks Thoth Into Running Bad Commands
+### Scenario 3: Someone Tricks Row-Bot Into Running Bad Commands
 
 **Bare Metal:**
 ```
@@ -126,30 +126,30 @@ Attacker → Access ~/.ssh (your SSH keys)
 ✅ SAFE
 Attacker → Container has no access to ~/.ssh, ~/.config, or ~/.aws
         → Can only steal credentials it was explicitly given (in env vars)
-        → And only for Thoth's own operations
+        → And only for Row-Bot's own operations
 ```
 
 ---
 
 ## Docker Layers of Security (This Setup)
 
-Our Thoth setup uses **multiple safety layers:**
+Our Row-Bot setup uses **multiple safety layers:**
 
 ### Layer 1: Container Isolation
-- Thoth runs in Docker container, separate from your system
-- Even if Thoth is fully compromised, attacker is confined
+- Row-Bot runs in Docker container, separate from your system
+- Even if Row-Bot is fully compromised, attacker is confined
 
 ### Layer 2: Localhost-Only (Default)
-- Thoth is only accessible from your computer (`127.0.0.1:8080`)
+- Row-Bot is only accessible from your computer (`127.0.0.1:8080`)
 - Attacker can't reach it from the network
 - You can optionally enable network access, with warnings
 
 ### Layer 3: Non-Root User
-- Thoth runs as `thoth` user (UID 1000), not root
+- Row-Bot runs as `rowbot` user (UID 1000), not root
 - Even inside container, permissions are limited
 
 ### Layer 4: Volume Isolation
-- Thoth's data (memory.db, projects, configs) lives in Docker volumes
+- Row-Bot's data (memory.db, projects, configs) lives in Docker volumes
 - Not mixed with your system files
 - Easy to backup, restore, or delete without touching your computer
 
@@ -167,7 +167,7 @@ Docker isolation is powerful, but not perfect:
 1. **Compromised Docker itself** — If Docker has a 0-day exploit, attacker could potentially escape
    - *Mitigation:* Keep Docker updated
 
-2. **Deliberately given credentials** — If you give Thoth your OpenAI API key, and Thoth is compromised, attacker gets that key
+2. **Deliberately given credentials** — If you give Row-Bot your OpenAI API key, and Row-Bot is compromised, attacker gets that key
    - *Mitigation:* Use read-only API keys with spending limits
 
 3. **Network-level attacks** — If you enable network access, advanced attackers might exploit container networking
@@ -207,13 +207,13 @@ Docker isolation is powerful, but not perfect:
 ## Practical Implications
 
 ### What You Can Do in Docker (Same as Normal)
-- Use Thoth normally via web interface
+- Use Row-Bot normally via web interface
 - Access your projects
 - Connect to Ollama or cloud LLMs
 - Create and modify projects
 - Export and back up your data
 
-### What Thoth Can't Do in Docker
+### What Row-Bot Can't Do in Docker
 - Delete files on your computer
 - Access your SSH keys or credentials
 - Connect to systems outside the container (unless you allow it)
@@ -226,14 +226,14 @@ Docker isolation is powerful, but not perfect:
 
 This setup uses **secure defaults:**
 
-✅ **Localhost-only by default** — Thoth only accessible from your computer
+✅ **Localhost-only by default** — Row-Bot only accessible from your computer
 ✅ **No authentication required** — You don't need extra passwords, but on localhost only
 ✅ **Ollama support** — Run models locally, data never leaves your computer
 ✅ **Non-root user** — Even inside container, running as limited user
 ✅ **Easy backup** — Docker volumes are easy to backup and restore
 
 **If you need network access:**
-- See NETWORK_SETUP.md for safe ways to expose Thoth
+- See NETWORK_SETUP.md for safe ways to expose Row-Bot
 - We recommend reverse proxy (Nginx/Caddy) with authentication
 
 ---

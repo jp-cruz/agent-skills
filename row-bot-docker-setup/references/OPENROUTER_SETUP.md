@@ -1,4 +1,4 @@
-# OpenRouter Setup Guide for Thoth
+# OpenRouter Setup Guide for Row-Bot
 
 **For users without a local LLM provider**
 
@@ -51,7 +51,7 @@ OpenRouter offers two pricing tiers:
 
 ### 📊 What Gets Sent
 
-When using OpenRouter with Thoth:
+When using OpenRouter with Row-Bot:
 - ✅ Your prompts/questions
 - ✅ Your conversation context
 - ⚠️ **May be logged** (depends on model)
@@ -60,7 +60,7 @@ When using OpenRouter with Thoth:
 **NOT sent:**
 - Your local files (unless you paste them)
 - Your identity (just API key)
-- Your Thoth configuration
+- Your Row-Bot configuration
 
 ---
 
@@ -94,11 +94,10 @@ OpenRouter offers a free routing option: `openrouter/openrouter:free`
 - ⚠️ **Use only for testing**, not production or private data
 - ⚠️ **Much slower** than paid models
 - ⚠️ **Data logging likely** — free tier models usually train on data
-- ✅ Good for: Trying Thoth, non-sensitive work, demos
+- ✅ Good for: Trying Row-Bot, non-sensitive work, demos
 
 To use free routing:
 ```bash
-THOTH_LLM_MODEL=openrouter/openrouter:free
 ```
 
 **Recommended:** Combine both — $5 credits + free routing fallback
@@ -116,21 +115,19 @@ THOTH_LLM_MODEL=openrouter/openrouter:free
 4. Copy the key (starts with `sk-or-...`)
 5. Keep it secret!
 
-### Step 4: Configure Thoth
+### Step 4: Configure Row-Bot
 
 **Edit `.env`:**
 
 ```bash
 # OpenRouter Configuration
 OPENROUTER_API_KEY=sk-or-your-key-here
-OPENAI_API_KEY=sk-or-your-key-here  # Thoth uses this field for OpenRouter
 
-# Set Thoth to use OpenRouter
-THOTH_LLM_PROVIDER=openrouter
-THOTH_MODEL=anthropic/claude-3-haiku  # or other OpenRouter model
+# Set Row-Bot to use OpenRouter
+# Then pick the provider and model inside Row-Bot: Settings → Models
 ```
 
-**Or update in Thoth UI:**
+**Or update in Row-Bot UI:**
 - Settings → LLM Provider → OpenAI (OpenRouter compatible)
 - API Key: Your OpenRouter key
 - Base URL: `https://openrouter.ai/api/v1`
@@ -183,9 +180,9 @@ THOTH_MODEL=anthropic/claude-3-haiku  # or other OpenRouter model
 
 ## Step-by-Step Configuration
 
-### Option A: Use Thoth Web UI
+### Option A: Use Row-Bot Web UI
 
-1. Start Thoth: `docker-compose up -d`
+1. Start Row-Bot: `docker-compose up -d`
 2. Open http://localhost:8080
 3. Settings → LLM Provider
 4. Select: **OpenAI** (this works with OpenRouter)
@@ -204,24 +201,23 @@ nano .env
 
 # Add or update:
 OPENROUTER_API_KEY=sk-or-your-actual-key-here
-THOTH_LLM_PROVIDER=openrouter
-THOTH_LLM_MODEL=anthropic/claude-3-haiku
+# Then pick the provider and model inside Row-Bot: Settings → Models
 
 # Save (Ctrl+X, Y, Enter)
 
-# Restart Thoth
+# Restart Row-Bot
 docker-compose restart
 ```
 
 ### Option C: Edit in Container
 
 ```bash
-docker-compose exec thoth nano /home/thoth/.thoth/config.yaml
+docker-compose exec rowbot nano /home/rowbot/.row-bot/config.yaml
 
 # Update the provider section to point to OpenRouter
 # Save and exit
 
-docker-compose restart thoth
+docker-compose restart rowbot
 ```
 
 ---
@@ -230,13 +226,13 @@ docker-compose restart thoth
 
 ```bash
 # Check logs
-docker-compose logs thoth | grep -i "provider\|openrouter"
+docker-compose logs rowbot | grep -i "provider\|openrouter"
 
-# Test in Thoth UI
+# Test in Row-Bot UI
 # Settings → Test Connection
 
 # Or from command line
-docker-compose exec thoth curl -X POST https://openrouter.ai/api/v1/chat/completions \
+docker-compose exec rowbot curl -X POST https://openrouter.ai/api/v1/chat/completions \
   -H "Authorization: Bearer sk-or-your-key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -253,7 +249,7 @@ docker-compose exec thoth curl -X POST https://openrouter.ai/api/v1/chat/complet
 
 **A:** OpenRouter itself is legitimate, but:
 - ✅ Traffic is encrypted (HTTPS)
-- ✅ Your key is not stored in Thoth
+- ✅ Your key is not stored in Row-Bot
 - ⚠️ Your prompts go to OpenRouter's servers
 - ⚠️ Free models may log/train on data
 - ✅ Paid models typically have better privacy (see provider policies)
@@ -266,7 +262,7 @@ docker-compose exec thoth curl -X POST https://openrouter.ai/api/v1/chat/complet
 
 ### Q: Can I Switch Models Later?
 
-**Yes!** Change in `.env` or Thoth UI anytime. Just restart Thoth.
+**Yes!** Change in `.env` or Row-Bot UI anytime. Just restart Row-Bot.
 
 ### Q: What If I Run Out of Credit?
 
@@ -274,7 +270,7 @@ OpenRouter will refuse requests. Add more credit in your account.
 
 ### Q: Can I Use Multiple Providers?
 
-**Yes!** Thoth supports fallback chains:
+**Yes!** Row-Bot supports fallback chains:
 - Primary: OpenRouter (Claude 3 Haiku)
 - Fallback: Groq Free (Mixtral)
 - Fallback: Local Ollama (if available)
@@ -368,7 +364,7 @@ OpenRouter will refuse requests. Add more credit in your account.
 # Download from https://ollama.ai
 # Run: ollama serve
 # Pull a model: ollama pull llama2
-# Configure Thoth to use local Ollama
+# Configure Row-Bot to use local Ollama
 ```
 
 **Other options:**
@@ -404,7 +400,7 @@ OpenRouter will refuse requests. Add more credit in your account.
    - GPT-4 only when needed (~$0.30 per 1M tokens)
 
 4. **Cache When Possible**
-   - Thoth caches responses
+   - Row-Bot caches responses
    - Reusing cached results is free
    - Reduces API calls
 
@@ -430,6 +426,6 @@ OpenRouter will refuse requests. Add more credit in your account.
 
 ---
 
-**Next Step:** Set up your OpenRouter account and add your key to Thoth!
+**Next Step:** Set up your OpenRouter account and add your key to Row-Bot!
 
 For more info: https://openrouter.ai/docs

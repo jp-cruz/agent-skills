@@ -1,7 +1,7 @@
 # Memory Overhead & Usage Analysis
 
 **Analysis Date:** 2026-05-25  
-**Container:** thoth_docker_template-thoth:latest  
+**Container:** rowbot_docker_template-rowbot:latest  
 **Base Image:** python:3.11-slim  
 **Status:** Healthy ✓
 
@@ -35,7 +35,7 @@ docker-compose.yml:
 | **Total Image Size** | 5.05 GB | Uncompressed on disk |
 | **Compressed (storage)** | 1.19 GB | 76% compression ratio |
 | **Startup Memory** | ~500 MiB | Loaded from disk to RAM |
-| **Runtime Peak** | ~838 MiB | Observed with Thoth running |
+| **Runtime Peak** | ~838 MiB | Observed with Row-Bot running |
 
 ### Layer Breakdown
 
@@ -45,7 +45,7 @@ Layer                           Size        % of Total    Description
 pip install (Python packages)   2.66 GB     52%          LangChain, dependencies
 apt-get (system tools)          925 MB      18%          nano, vim, jq, git, ffmpeg
 Debian base                     109 MB      2%           OS foundation
-Thoth source code               113 MB      2%           GitHub clone
+Row-Bot source code               113 MB      2%           GitHub clone
 Python 3.11 runtime             51.7 MB     1%           Python interpreter
 User setup & configs            ~200 MB     4%           Workdir, user creation, ENV
 ─────────────────────────────────────────────────────────────────────
@@ -58,9 +58,9 @@ TOTAL                           5.05 GB     100%
 
 ### 1. Python Package Dependencies (2.66 GB / 52%)
 
-**Root Cause:** Thoth's extensive LangChain ecosystem
+**Root Cause:** Row-Bot's extensive LangChain ecosystem
 ```
-Thoth requirements.txt: 131 packages
+Row-Bot requirements.txt: 131 packages
 
 Primary consumers:
   • langchain + langchain-* modules        (~800 MB)
@@ -71,15 +71,15 @@ Primary consumers:
 ```
 
 **Not Avoidable:**
-- These are core dependencies for Thoth's LLM integration
-- Removing any would break Thoth functionality
+- These are core dependencies for Row-Bot's LLM integration
+- Removing any would break Row-Bot functionality
 
 ---
 
 ### 2. System Tools (925 MB / 18%)
 
 **Installed utilities:**
-- `git` (15 MB) — Required for Thoth installation
+- `git` (15 MB) — Required for Row-Bot installation
 - `curl` (5 MB) — HTTP requests, Ollama connectivity
 - `ffmpeg` (50 MB) — Media processing capability
 - `gcc` (200 MB) — C compiler for building packages
@@ -130,7 +130,7 @@ RUN apt-get install -y \
 ```
 
 **Estimated New Size:** ~4.7 GB (down from 5.05 GB)  
-**Runtime Impact:** None — Thoth functionality unchanged  
+**Runtime Impact:** None — Row-Bot functionality unchanged  
 **Trade-off:** Lose media processing capability, no in-container compilation
 
 ---
@@ -148,7 +148,7 @@ RUN pip install ...
 
 # Stage 2: Runtime
 FROM python:3.11-slim
-COPY --from=builder /home/thoth/.local /home/thoth/.local
+COPY --from=builder /home/rowbot/.local /home/rowbot/.local
 # Skip build tools, gcc, dev deps
 ```
 
@@ -183,8 +183,8 @@ COPY --from=builder /home/thoth/.local /home/thoth/.local
 **Recommendation:** Push image to Docker Hub or private registry after build to avoid repeated downloads
 
 ```bash
-docker tag thoth_docker_template-thoth:latest YOUR_REGISTRY/thoth-docker-setup:0.5.0
-docker push YOUR_REGISTRY/thoth-docker-setup:0.5.0
+docker tag rowbot_docker_template-rowbot:latest YOUR_REGISTRY/row-bot-docker-setup:0.5.0
+docker push YOUR_REGISTRY/row-bot-docker-setup:0.5.0
 ```
 
 ---

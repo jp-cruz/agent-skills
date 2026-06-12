@@ -1,6 +1,6 @@
 # Utilities Analysis — Why These Packages
 
-**Decision:** Add minimal, essential command-line utilities to the Thoth container for safe, productive development and troubleshooting.
+**Decision:** Add minimal, essential command-line utilities to the Row-Bot container for safe, productive development and troubleshooting.
 
 ---
 
@@ -28,15 +28,15 @@
 | **Why Added** | Essential for editing config files inside container without rebuilding |
 | **Safety** | Zero security risk; read/write operations only on user files |
 | **Alternative** | vi (too cryptic for quick edits) |
-| **Use Cases** | Edit `/home/thoth/.thoth/config.yaml`, environment variables, etc. |
+| **Use Cases** | Edit `/home/rowbot/.row-bot/config.yaml`, environment variables, etc. |
 | **Justification** | NECESSARY — avoids constant container rebuilds for config changes |
 
 ```bash
-# Example: Edit Thoth config inside running container
-docker-compose exec thoth nano /home/thoth/.thoth/config.yaml
+# Example: Edit Row-Bot config inside running container
+docker-compose exec rowbot nano /home/rowbot/.row-bot/config.yaml
 
-# Or check what Thoth user can access
-docker-compose exec thoth nano /home/thoth/.bashrc
+# Or check what Row-Bot user can access
+docker-compose exec rowbot nano /home/rowbot/.bashrc
 ```
 
 #### 2. **vim-tiny** (~2 MB)
@@ -51,7 +51,7 @@ docker-compose exec thoth nano /home/thoth/.bashrc
 
 ```bash
 # Power users familiar with vim can use it
-docker-compose exec thoth vim /home/thoth/.thoth/config.yaml
+docker-compose exec rowbot vim /home/rowbot/.row-bot/config.yaml
 ```
 
 #### 3. **jq** (~2 MB)
@@ -62,20 +62,20 @@ docker-compose exec thoth vim /home/thoth/.thoth/config.yaml
 | **Safety** | Zero security risk; read-only parsing by default |
 | **Security** | Doesn't execute code, only parses JSON structures |
 | **Use Cases** | Parse Ollama API responses, debug model selection, format logs |
-| **Justification** | NECESSARY — Thoth heavily relies on Ollama JSON API |
+| **Justification** | NECESSARY — Row-Bot heavily relies on Ollama JSON API |
 
 ```bash
 # Example: See available models in Ollama
-docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags | jq '.models[] | .name'
+docker-compose exec rowbot curl -s http://host.docker.internal:11434/api/tags | jq '.models[] | .name'
 
 # Extract specific fields from API responses
-docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags | jq '.models[0]'
+docker-compose exec rowbot curl -s http://host.docker.internal:11434/api/tags | jq '.models[0]'
 
 # Debug model configuration
-docker-compose exec thoth curl -s http://host.docker.internal:11434/api/show llama2 | jq '.parameters'
+docker-compose exec rowbot curl -s http://host.docker.internal:11434/api/show llama2 | jq '.parameters'
 
 # Pretty-print JSON logs
-docker-compose exec thoth cat /home/thoth/.thoth/logs.json | jq '.'
+docker-compose exec rowbot cat /home/rowbot/.row-bot/logs.json | jq '.'
 ```
 
 #### 4. **less** (~170 KB)
@@ -90,10 +90,10 @@ docker-compose exec thoth cat /home/thoth/.thoth/logs.json | jq '.'
 
 ```bash
 # View logs page-by-page
-docker-compose exec thoth tail -f /home/thoth/.thoth/logs | less
+docker-compose exec rowbot tail -f /home/rowbot/.row-bot/logs | less
 
 # Browse large API responses
-docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags | jq '.' | less
+docker-compose exec rowbot curl -s http://host.docker.internal:11434/api/tags | jq '.' | less
 ```
 
 #### 5. **file** (~30 KB)
@@ -107,13 +107,13 @@ docker-compose exec thoth curl -s http://host.docker.internal:11434/api/tags | j
 
 ```bash
 # Check what's in a file
-docker-compose exec thoth file /home/thoth/.thoth/models/llama2.gguf
+docker-compose exec rowbot file /home/rowbot/.row-bot/models/llama2.gguf
 
 # Verify downloaded files
-docker-compose exec thoth file /home/thoth/workspace/config.json
+docker-compose exec rowbot file /home/rowbot/workspace/config.json
 
 # Check text encoding
-docker-compose exec thoth file /home/thoth/.thoth/config.yaml
+docker-compose exec rowbot file /home/rowbot/.row-bot/config.yaml
 ```
 
 #### 6. **tree** (~40 KB)
@@ -128,13 +128,13 @@ docker-compose exec thoth file /home/thoth/.thoth/config.yaml
 
 ```bash
 # See workspace structure
-docker-compose exec thoth tree -L 2 /home/thoth/.thoth
+docker-compose exec rowbot tree -L 2 /home/rowbot/.row-bot
 
 # Check installed models
-docker-compose exec thoth tree /home/thoth/workspace
+docker-compose exec rowbot tree /home/rowbot/workspace
 
 # Limit depth to avoid overwhelming output
-docker-compose exec thoth tree -L 1 /app
+docker-compose exec rowbot tree -L 1 /app
 ```
 
 #### 7. **unzip** (~150 KB)
@@ -149,10 +149,10 @@ docker-compose exec thoth tree -L 1 /app
 
 ```bash
 # Extract model package
-docker-compose exec thoth unzip /home/thoth/workspace/models.zip -d /home/thoth/.thoth/models
+docker-compose exec rowbot unzip /home/rowbot/workspace/models.zip -d /home/rowbot/.row-bot/models
 
 # Import configuration
-docker-compose exec thoth unzip /home/thoth/workspace/config-backup.zip -d /home/thoth/.thoth
+docker-compose exec rowbot unzip /home/rowbot/workspace/config-backup.zip -d /home/rowbot/.row-bot
 ```
 
 ---
@@ -163,9 +163,9 @@ These were in the original Dockerfile and remain essential:
 
 | Utility | Purpose | Size | Risk |
 |---------|---------|------|------|
-| **git** | Clone Thoth repo, manage versions | ~10 MB | Safe (read-only operations) |
+| **git** | Clone Row-Bot repo, manage versions | ~10 MB | Safe (read-only operations) |
 | **curl** | HTTP requests, Ollama API calls | ~2 MB | Safe (readonly by default) |
-| **ffmpeg** | Media processing for Thoth | ~60 MB | Safe (media processing only) |
+| **ffmpeg** | Media processing for Row-Bot | ~60 MB | Safe (media processing only) |
 | **gcc** | C compiler for Python build deps | ~20 MB | Safe (build-time only) |
 
 ---
@@ -177,14 +177,14 @@ These were in the original Dockerfile and remain essential:
 | **gcc, build-essential** | Already included; sufficient for builds |
 | **openssh-server** | Unnecessary; use `docker exec` for shell access |
 | **wget** | Redundant; curl already included |
-| **htop** | Nice-to-have but rarely needed for Thoth; `ps` in base image |
+| **htop** | Nice-to-have but rarely needed for Row-Bot; `ps` in base image |
 | **rsync** | Nice-to-have; `cp` and `tar` sufficient for backups |
-| **sudo** | Not needed; container already runs as non-root thoth user |
+| **sudo** | Not needed; container already runs as non-root rowbot user |
 | **telnet** | Security risk; use curl for diagnostics |
 | **vim (full)** | vim-tiny is sufficient; full vim adds 50+ MB |
 | **emacs** | Overkill for config editing |
-| **nodejs, ruby, go, rust** | Completely unnecessary; Thoth is Python |
-| **mysql-client, postgresql** | Unnecessary; Thoth doesn't require external DB |
+| **nodejs, ruby, go, rust** | Completely unnecessary; Row-Bot is Python |
+| **mysql-client, postgresql** | Unnecessary; Row-Bot doesn't require external DB |
 
 ---
 
@@ -224,11 +224,11 @@ Per-utility breakdown:
 - Execute code (jq only parses JSON)
 - Access other containers
 - Access host system files outside mounts
-- Escalate privileges (running as thoth user)
-- Make modifications outside /home/thoth and /app
+- Escalate privileges (running as rowbot user)
+- Make modifications outside /home/rowbot and /app
 
 ### Security Posture
-- **User confinement:** All run as non-root `thoth` user
+- **User confinement:** All run as non-root `rowbot` user
 - **Filesystem isolation:** Bind mounts restrict host access
 - **Network isolation:** Container-level network isolation
 - **No privilege escalation:** No sudo, su, or setuid binaries added
@@ -243,7 +243,7 @@ Per-utility breakdown:
 - **Impact:** Negligible; one-time cost
 
 ### Runtime Memory
-- **Base Thoth:** ~100 MB
+- **Base Row-Bot:** ~100 MB
 - **Utilities overhead:** <5 MB (not all used simultaneously)
 - **Impact:** Negligible
 
@@ -297,7 +297,7 @@ If future use cases require:
 - **Debugging:** `strace`, `ltrace` (trace system calls)
 - **Network:** `netstat`, `ss` (connection info) — consider instead of adding `nc`
 - **Compression:** `xz`, `bzip2` (beyond `gzip` in base image)
-- **Version control:** `mercurial` (if Thoth adds Hg support)
+- **Version control:** `mercurial` (if Row-Bot adds Hg support)
 - **Monitoring:** `dstat`, `vmstat` (resource monitoring)
 
 These can be added without modifying the current Dockerfile structure.
@@ -312,8 +312,8 @@ Before shipping the updated Dockerfile:
 - [ ] Build succeeds on Windows (WSL 2)
 - [ ] Build succeeds on Linux
 - [ ] Image size is acceptable (~300 MB)
-- [ ] All utilities are accessible from thoth user
-- [ ] Thoth starts and runs normally
+- [ ] All utilities are accessible from rowbot user
+- [ ] Row-Bot starts and runs normally
 - [ ] Ollama connectivity works
 - [ ] jq can parse Ollama API responses
 - [ ] nano can edit files

@@ -17,7 +17,7 @@ Row-Bot is now a desktop application, but containerization provides:
 - **Host Ollama integration**: Row-Bot connects to Ollama on the host via `host.docker.internal:11434` (Docker Desktop) or `localhost:11434` (Linux with `--network=host`)
 - **Persistent volumes**: Two named volumes preserve application data and workspace files across container restarts
 - **Non-root user**: Row-Bot runs as user `rowbot` (UID 1000) for security; all files owned by this user
-- **Git source**: Dockerfile clones from `https://github.com/siddsachar/row-bot.git` (latest)
+- **Git source**: Dockerfile clones `https://github.com/siddsachar/row-bot.git` pinned to release tag **v4.0.1** (`ARG ROW_BOT_VERSION` in docker/Dockerfile). This skill is built/tested for v4.0.1 only; bump the ARG and re-test to upgrade.
 
 ### Architecture Improvements (v0.5.0)
 
@@ -164,10 +164,10 @@ All paths and ports are configurable through `.env`:
   - Use `host.docker.internal` on macOS/Windows Docker Desktop
   - Use `http://localhost:11434` on Linux with `--network=host`
   - Use `http://<host-ip>:11434` on Linux with bridge network or remote Ollama
-- `ROWBOT_PORT`: Container port (default: 8080)
-- `ROWBOT_BIND`: Host binding for web access (default: 127.0.0.1 for localhost only)
-- `ROWBOT_DATA_DIR`: Host path for application data (deprecated, pure volumes used instead)
-- `ROWBOT_WORKSPACE_DIR`: Host path for workspace files (deprecated, pure volumes used instead)
+- `ROW_BOT_PORT`: Container port (default: 8080)
+- `ROW_BOT_BIND`: Host binding for web access (default: 127.0.0.1 for localhost only)
+- `ROW_BOT_DATA_DIR`: Host path for application data (deprecated, pure volumes used instead)
+- `ROW_BOT_WORKSPACE_DIR`: Host path for workspace files (deprecated, pure volumes used instead)
 - `RESTART_POLICY`: Container restart behavior (default: `unless-stopped`)
 
 ### Runtime Environment (Inside Container)
@@ -188,8 +188,9 @@ This setup uses **pure Docker volumes** (not host bind mounts) for maximum stabi
   
 - `rowbot-workspace`: User workspace and project files
   - **Location**: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-workspace/_data`
-  - **Container path**: `/app/workspace`
+  - **Container path**: `/home/rowbot/Documents/Row-Bot` (Row-Bot's default workspace root — its filesystem tools write here)
   - **Portability**: Fully portable
+  - **Note**: `projects/` inside the workspace is a symlink into the data volume (created by entrypoint.sh) for continuity with bare-metal migrations
 
 **Why pure Docker volumes (not bind mounts)?**
 - ✅ Portable: Same volumes work on any Docker host (macOS, Linux, Windows, cloud)
@@ -213,10 +214,10 @@ This setup uses **pure Docker volumes** (not host bind mounts) for maximum stabi
    curl ${OLLAMA_BASE_URL:-http://localhost:11434}/api/tags
    ```
 
-4. **Check port availability**: Ensure `ROWBOT_PORT` is not in use:
+4. **Check port availability**: Ensure `ROW_BOT_PORT` is not in use:
    ```bash
-   lsof -i :${ROWBOT_PORT:-8080}  # macOS
-   netstat -tlnp | grep ${ROWBOT_PORT:-8080}  # Linux
+   lsof -i :${ROW_BOT_PORT:-8080}  # macOS
+   netstat -tlnp | grep ${ROW_BOT_PORT:-8080}  # Linux
    ```
 
 ## ⚠️ CRITICAL: Required Runtime Utilities
@@ -265,13 +266,17 @@ This is ready for distribution as an agent skill:
 
 ## Upgrading Row-Bot (Safe & Stable)
 
+This setup pins Row-Bot to a specific release tag (currently **v4.0.1**) so every
+build is reproducible and every user runs the same tested version. It has not
+been validated against later Row-Bot releases.
+
 To upgrade Row-Bot to a new version:
 
-1. **Update Dockerfile** (line 10):
+1. **Update the version ARG** at the top of `docker/Dockerfile`:
    ```dockerfile
-   RUN git clone https://github.com/siddsachar/row-bot.git . && \
-       git checkout <TAG_OR_COMMIT>  # e.g., v1.0.0 or commit hash
+   ARG ROW_BOT_VERSION=v4.0.1   # change to the new release tag
    ```
+   Check available releases: https://github.com/siddsachar/row-bot/releases
 
 2. **Rebuild and restart**:
    ```bash

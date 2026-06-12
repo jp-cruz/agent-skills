@@ -1,4 +1,4 @@
-# Contributing to Thoth Docker Template
+# Contributing to Row-Bot Docker Template
 
 Thank you for your interest in contributing! This guide explains how to submit improvements.
 
@@ -121,8 +121,8 @@ If you can, test on multiple platforms:
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/thoth-docker-template.git
-cd thoth-docker-template
+git clone https://github.com/YOUR_USERNAME/rowbot-docker-template.git
+cd rowbot-docker-template
 
 # Create feature branch
 git checkout -b feature/your-feature
@@ -207,4 +207,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ---
 
-Thank you for helping make Thoth Docker Template better! 🚀
+Thank you for helping make Row-Bot Docker Template better! 🚀
