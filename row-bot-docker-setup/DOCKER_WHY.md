@@ -1,12 +1,12 @@
 # Why Docker? Security for AI Agent Software
 
-TL;DR: **Docker runs Thoth in an isolated container, so if something goes wrong, your computer is safe.**
+TL;DR: **Docker runs Row-Bot in an isolated container, so if something goes wrong, your computer is safe.**
 
 ---
 
 ## The Risk: Running Untrusted Code
 
-You want to run Thoth, an AI agent platform. The problem:
+You want to run Row-Bot, an AI agent platform. The problem:
 
 - Thoth itself might have a security flaw
 - A malicious website could attack Thoth
@@ -27,7 +27,7 @@ You want to run Thoth, an AI agent platform. The problem:
 
 ## The Solution: Docker Isolation
 
-Docker runs Thoth in a **container** — a sandboxed environment that looks like a separate computer, but shares your hardware.
+Docker runs Row-Bot in a **container** — a sandboxed environment that looks like a separate computer, but shares your hardware.
 
 ### What a Container Provides
 
@@ -36,14 +36,14 @@ Docker runs Thoth in a **container** — a sandboxed environment that looks like
 ┌─────────────────────────────┐
 │ Thoth Container             │
 ├─────────────────────────────┤
-│ • Thoth application         │
+│ • Row-Bot application         │
 │ • Python environment        │
 │ • Thoth's databases         │
 │ • Thoth's projects          │
 │                             │
 │ User: thoth (UID 1000)      │
-│ Home: /home/thoth           │
-│ Can write to: /home/thoth/* │
+│ Home: /home/rowbot           │
+│ Can write to: /home/rowbot/* │
 │ Cannot write to: /Users/... │
 └─────────────────────────────┘
          ↓
@@ -68,13 +68,13 @@ Docker runs Thoth in a **container** — a sandboxed environment that looks like
 **Bare Metal:**
 ```
 ⚠️ DANGER
-Attacker → Thoth flaw → Full access to your computer
+Attacker → Row-Bot flaw → Full access to your computer
 ```
 
 **Docker:**
 ```
 ✅ SAFE (mostly)
-Attacker → Thoth flaw → Confined to /home/thoth in container
+Attacker → Row-Bot flaw → Confined to /home/rowbot in container
            ↓
            Can't touch your files
            Can't access your apps
@@ -93,7 +93,7 @@ Website → Malicious JavaScript → Exploit in Thoth → Your computer compromi
 ```
 ✅ SAFE
 Website → Malicious JavaScript → Exploit in Thoth → Confined to container
-         (if Thoth even allows web access)
+         (if Row-Bot even allows web access)
 ```
 
 ### Scenario 3: Someone Tricks Thoth Into Running Bad Commands

@@ -243,7 +243,7 @@ ollama pull llama2
 Two Docker volumes store data across container restarts:
 
 1. **row-bot-docker-setup_rowbot-data**
-   - Thoth application state, memory.db, configuration, API keys
+   - Row-Bot application state, memory.db, configuration, API keys
    - Mounted at `/home/rowbot/.row-bot` inside container
    - Location on host: `/var/lib/docker/volumes/row-bot-docker-setup_rowbot-data/_data`
 
@@ -264,9 +264,9 @@ See [CLAUDE.md](CLAUDE.md) for full backup and disaster recovery procedures.
 
 **Backup (full volume backup):**
 ```bash
-# Create backup of Thoth data volume
+# Create backup of Row-Bot data volume
 docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
-  -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
+  -v ./backups:/backup alpine tar czf /backup/rowbot-data-$(date +%Y%m%d).tar.gz -C /data .
 ```
 
 **Restore from backup:**
@@ -276,7 +276,7 @@ docker-compose down
 
 # Restore volume
 docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
-  -v ./backups:/backup alpine tar xzf /backup/thoth-data-YYYYMMDD.tar.gz -C /data
+  -v ./backups:/backup alpine tar xzf /backup/rowbot-data-YYYYMMDD.tar.gz -C /data
 
 # Fix ownership
 docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
@@ -300,7 +300,7 @@ See [CLAUDE.md](CLAUDE.md) for complete backup, restore, and disaster recovery p
 
 If port 8080 is in use, change it in `.env`:
 ```bash
-THOTH_PORT=8081
+ROWBOT_PORT=8081
 ```
 
 Then restart:
@@ -310,7 +310,7 @@ docker-compose up -d
 
 ### Ollama Connection Failed
 
-**Symptom:** `Connection refused` or `Network unreachable` when Thoth tries to reach Ollama
+**Symptom:** `Connection refused` or `Network unreachable` when Row-Bot tries to reach Ollama
 
 **Check 1:** Ollama is running
 ```bash
@@ -342,7 +342,7 @@ ping <ollama-host-ip>
 If you get "Permission denied" errors, ensure the directories are writable:
 ```bash
 chmod 755 "$(grep ROWBOT_DATA_DIR .env | cut -d= -f2)"
-chmod 755 "$(grep THOTH_WORKSPACE_DIR .env | cut -d= -f2)"
+chmod 755 "$(grep ROWBOT_WORKSPACE_DIR .env | cut -d= -f2)"
 ```
 
 If issues persist, check container user permissions:
@@ -378,21 +378,21 @@ Docker volume performance on WSL 2 and Docker Desktop can be slow. To improve:
 
 > **Mac Mini M4 with 256GB drive? Linux workstation with storage constraints?** Read this section.
 
-Thoth's memory system grows 1–3 GB/week. On smaller drives, plan ahead.
+Row-Bot's memory system grows 1–3 GB/week. On smaller drives, plan ahead.
 
 ### Space Requirements
 
 | Component | Size | Notes |
 |-----------|------|-------|
-| Docker image (Thoth) | ~5 GB uncompressed | One-time; cached after first build |
+| Docker image (Row-Bot) | ~5 GB uncompressed | One-time; cached after first build |
 | Docker build cache | 1–3 GB | Grows with rebuilds |
-| Thoth data (memory.db, etc.) | 1 GB → 10 GB+ | Grows with use; 10GB typical after 2–3 weeks |
+| Row-Bot data (memory.db, etc.) | 1 GB → 10 GB+ | Grows with use; 10GB typical after 2–3 weeks |
 | Workspace files | Variable | Your files |
 | **Total after 1 month** | **~15–20 GB** | Plan accordingly |
 
 ### Recommendation
 
-- **External Thunderbolt/USB-C SSD**: Best for Thoth data. Thunderbolt 3/4 and USB 3.2 Gen 2 SSDs (>300 MB/s) are fast enough for seamless use.
+- **External Thunderbolt/USB-C SSD**: Best for Row-Bot data. Thunderbolt 3/4 and USB 3.2 Gen 2 SSDs (>300 MB/s) are fast enough for seamless use.
 - **Setup script automation:** `./setup.sh` detects external drives and offers to use them automatically.
 - **Move data later:** If you've already installed, see [references/DISK_MANAGEMENT.md](references/DISK_MANAGEMENT.md) for migration steps.
 
@@ -400,14 +400,14 @@ Thoth's memory system grows 1–3 GB/week. On smaller drives, plan ahead.
 
 - Total drive space < 500 GB
 - System drive free space < 100 GB
-- You expect to use Thoth heavily (>10 hours/week)
-- You plan to keep Thoth running for months
+- You expect to use Row-Bot heavily (>10 hours/week)
+- You plan to keep Row-Bot running for months
 
 ---
 
 ## Multi-Machine Deployments
 
-To run Thoth and Ollama on different machines:
+To run Row-Bot and Ollama on different machines:
 
 **Machine 1 (Ollama Host):**
 ```bash
@@ -415,7 +415,7 @@ ollama serve
 # Or in Docker: docker run -d -p 11434:11434 ollama/ollama:latest
 ```
 
-**Machine 2 (Thoth Host):**
+**Machine 2 (Row-Bot Host):**
 ```bash
 # In .env, set:
 OLLAMA_BASE_URL=http://<machine1-ip>:11434
@@ -427,9 +427,9 @@ docker-compose up -d
 ## Architecture
 
 - **Base:** Python 3.11 slim
-- **Runtime:** Thoth (GitHub commit `deb5d11`)
+- **Runtime:** Row-Bot (GitHub commit `main`)
 - **Port:** 8080 (configurable)
-- **User:** `thoth` (UID 1000, non-root)
+- **User:** `rowbot` (UID 1000, non-root)
 - **Restart:** Automatic unless stopped
 - **Networking:** Bridge mode (macOS/Windows), configurable on Linux
 
@@ -458,4 +458,4 @@ When making changes:
 
 ## License
 
-This template is provided as-is. See the [Thoth project](https://github.com/siddsachar/row-bot) for its license.
+This template is provided as-is. See the [Row-Bot project](https://github.com/siddsachar/row-bot) for its license.

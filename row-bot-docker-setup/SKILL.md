@@ -1,12 +1,12 @@
-# Thoth Docker Skill
+# Row-Bot Docker Skill
 
-**A production-ready Docker Compose setup for Thoth that prioritizes security, privacy, and ease of use.**
+**A production-ready Docker Compose setup for Row-Bot that prioritizes security, privacy, and ease of use.**
 
 ---
 
 ## What This Skill Does
 
-This skill guides users through a secure setup of [Thoth](https://github.com/siddsachar/Thoth), an open-source AI agent platform, in Docker. It provides:
+This skill guides users through a secure setup of [Row-Bot](https://github.com/siddsachar/row-bot), an open-source AI agent platform, in Docker. It provides:
 
 1. **Security-first design** — Explains Docker isolation benefits, configures localhost-only access by default
 2. **Dual setup pathways** — Quick (5 min) or Advanced (10 min) setup based on user preference

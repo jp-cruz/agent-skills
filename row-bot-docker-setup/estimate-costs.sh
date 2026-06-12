@@ -132,7 +132,7 @@ MONTHLY_HOURS=$((DAILY_HOURS * 30))
 MONTHLY_KWH=$(awk "BEGIN {printf \"%.2f\", $MONTHLY_HOURS * $HOURLY_POWER_W / 1000}")
 ELECTRICITY_COST=$(awk "BEGIN {printf \"%.2f\", $MONTHLY_KWH * $COST_PER_KWH}")
 
-# Hardware amortization: only if buying a new GPU specifically for Thoth
+# Hardware amortization: only if buying a new GPU specifically for Row-Bot
 GPU_AMORTIZATION=0  # Default: already own hardware
 echo -e "${YELLOW}Ollama (Local - electricity only)${NC}"
 echo "  Estimated usage: $MONTHLY_HOURS hours/month at ~${HOURLY_POWER_W}W"
@@ -185,7 +185,7 @@ echo ""
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 echo ""
-echo "To use your chosen provider with Thoth:"
+echo "To use your chosen provider with Row-Bot:"
 echo "  1. Update .env with your API key"
 echo "  2. Restart container: docker-compose restart rowbot"
 echo "  3. Or re-run setup.sh to reconfigure"

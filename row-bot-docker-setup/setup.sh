@@ -337,10 +337,10 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     elif [[ "$tunnel_choice" == "tailscale" ]]; then
                         ROWBOT_BIND="127.0.0.1"
                         echo "  ✓ Remember: Connect devices to Tailscale VPN first"
-                        echo "    Then access Thoth via private network"
+                        echo "    Then access Row-Bot via private network"
                     else
                         ROWBOT_BIND="127.0.0.1"
-                        echo "  ⚠️  Set up your chosen solution before accessing Thoth"
+                        echo "  ⚠️  Set up your chosen solution before accessing Row-Bot"
                         echo "    See: NETWORK_SETUP.md for detailed guides"
                     fi
                 else
@@ -555,7 +555,7 @@ if grep -q "OLLAMA_BASE_URL" "$ENV_FILE"; then
         echo -e "${GREEN}✓${NC} Ollama is reachable"
     else
         echo -e "${YELLOW}⚠️${NC} Ollama is not reachable at $OLLAMA_URL"
-        echo "  Start Ollama before starting Thoth, or use a cloud provider"
+        echo "  Start Ollama before starting Row-Bot, or use a cloud provider"
         echo "  See TROUBLESHOOTING.md for Ollama setup help"
     fi
     echo ""
@@ -564,7 +564,7 @@ fi
 # Next steps
 echo -e "${GREEN}Next Steps:${NC}"
 echo ""
-echo "1. Start Thoth:"
+echo "1. Start Row-Bot:"
 echo "   docker-compose up -d"
 echo ""
 echo "2. Verify everything works:"
@@ -580,9 +580,9 @@ echo ""
 
 # Contextual learning links (optional)
 echo -e "${YELLOW}Want to understand more?${NC}"
-echo "  • Why Docker isolates Thoth:    See DOCKER_WHY.md"
+echo "  • Why Docker isolates Row-Bot:    See DOCKER_WHY.md"
 echo "  • LLM options & tradeoffs:      See LOCAL_LLM_OPTIONS.md"
-echo "  • First steps with Thoth:       See GETTING_STARTED.md"
+echo "  • First steps with Row-Bot:       See GETTING_STARTED.md"
 echo "  • Network access & security:    See references/NETWORK_SETUP.md"
 echo "  • Estimate monthly costs:       Run ./estimate-costs.sh"
 echo ""

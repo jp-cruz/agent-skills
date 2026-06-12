@@ -1,6 +1,6 @@
 # Local LLM Options: Comparing Privacy, Speed, and Hardware
 
-This guide helps you choose between different local LLM backends for Thoth.
+This guide helps you choose between different local LLM backends for Row-Bot.
 
 ---
 
@@ -38,7 +38,7 @@ This guide helps you choose between different local LLM backends for Thoth.
 1. Download from https://ollama.ai
 2. Run: `ollama serve`
 3. In another terminal: `ollama pull mistral` (or another model)
-4. Thoth connects automatically
+4. Row-Bot connects automatically
 
 **Models Available:**
 - **Small & Fast:** mistral (7B), neural-chat (7B)
@@ -84,7 +84,7 @@ ollama pull deepseek-coder   # Best for coding
 3. Choose a model from the library
 4. Click "Download"
 5. Start server
-6. Configure Thoth to use `http://localhost:1234/v1`
+6. Configure Row-Bot to use `http://localhost:1234/v1`
 
 **Cost:** Free
 
@@ -385,6 +385,6 @@ ollama pull mistral
 1. **Choose your backend** (default is Ollama)
 2. **Install and start it** on your machine
 3. **Download a model** (default is `mistral-7b`)
-4. **Test connection** from Thoth
+4. **Test connection** from Row-Bot
 
 For setup instructions, see CLAUDE.md "Testing Individual Components" section.

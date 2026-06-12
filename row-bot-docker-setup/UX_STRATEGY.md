@@ -9,7 +9,7 @@
 2. **App control & site access** — Agent could manipulate applications, access sensitive files, visit sites as the user
 3. **Security breach cascade** — Single vulnerability (malicious website, command injection, bad actor) compromises entire system and all user identity/credentials
 
-**Docker solution:** Containerization creates a security boundary that isolates the agent platform from the host system. If Thoth is compromised, the attacker is confined to the container—they cannot wipe drives, access host files, or impersonate the user on external sites.
+**Docker solution:** Containerization creates a security boundary that isolates the agent platform from the host system. If Row-Bot is compromised, the attacker is confined to the container—they cannot wipe drives, access host files, or impersonate the user on external sites.
 
 ---
 
@@ -37,7 +37,7 @@ Both pathways produce the **same safe defaults** through system scanning. The di
 │  • Compromised agents access your apps │
 │  • Security breaches expose everything │
 │                                         │
-│ Docker isolates Thoth in a container   │
+│ Docker isolates Row-Bot in a container │
 │ — safer for you, same power.          │
 └─────────────────────────────────────────┘
               ↓
@@ -64,10 +64,10 @@ Both pathways produce the **same safe defaults** through system scanning. The di
               ↓
 ┌─────────────────────────────────────────┐
 │ Creating .env...                        │
-│ Starting Thoth...                       │
+│ Starting Row-Bot...                       │
 │                                         │
 │ ✅ Setup complete!                      │
-│ Access Thoth at: http://localhost:8080 │
+│ Access Row-Bot at: http://localhost:8080 │
 │                                         │
 │ Learn more: see DOCKER_WHY.md           │
 └─────────────────────────────────────────┘
@@ -100,8 +100,8 @@ Detect:
 ```
 
 ### Defaults Applied
-- `THOTH_BIND=127.0.0.1` (localhost only — most secure)
-- `THOTH_PORT=8080` (standard, available)
+- `ROWBOT_BIND=127.0.0.1` (localhost only — most secure)
+- `ROWBOT_PORT=8080` (standard, available)
 - `LLM_PROVIDER=ollama` (if RAM ≥ 8GB and Ollama detected)
 - `LLM_PROVIDER=openrouter` (if RAM < 8GB, no Ollama, ask for API key)
 - `RESTART_POLICY=unless-stopped`
@@ -136,7 +136,7 @@ Detect:
 ┌─────────────────────────────────────────┐
 │ Q1: Network Access                      │
 │                                         │
-│ How will you access Thoth?              │
+│ How will you access Row-Bot?              │
 │  a) This computer only [DEFAULT - Secure]│
 │  b) From other machines on home WiFi    │
 │  c) From the internet (expert mode)     │
@@ -183,7 +183,7 @@ Detect:
               ↓
 ┌─────────────────────────────────────────┐
 │ Creating .env...                        │
-│ Starting Thoth...                       │
+│ Starting Row-Bot...                       │
 │                                         │
 │ ✅ Setup complete!                      │
 │                                         │
@@ -223,7 +223,7 @@ Detect:
 ### For Both Pathways
 
 **Lead message:**
-> "Thoth uses **Docker** to isolate the AI agent from your computer. If Thoth is compromised, the attacker is confined to the container—they can't wipe drives, access your files, or impersonate you online."
+> "Row-Bot uses **Docker** to isolate the AI agent from your computer. If Row-Bot is compromised, the attacker is confined to the container—they can't wipe drives, access your files, or impersonate you online."
 
 ### Expanded Security Frame (Advanced only)
 
@@ -234,7 +234,7 @@ Detect:
 | **Hard drive wipe** | ⚠️ Possible — malicious code runs as you | ✅ Blocked — confined to /home/thoth |
 | **App manipulation** | ⚠️ Possible — code can modify any app | ✅ Blocked — can't access host processes |
 | **Site access as user** | ⚠️ Possible — network requests use your IP | ✅ Blocked — requests come from container |
-| **Data breach cascade** | ⚠️ Entire system at risk if Thoth compromised | ✅ Only container data at risk |
+| **Data breach cascade** | ⚠️ Entire system at risk if Row-Bot compromised | ✅ Only container data at risk |
 | **Credential theft** | ⚠️ Access to ~/.ssh, API keys, passwords | ✅ Can't access host home directory |
 
 **This doesn't mean no risk:**

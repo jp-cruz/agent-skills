@@ -125,24 +125,26 @@ echo -e "${YELLOW}Checking firewall...${NC}"
 
 FIREWALL_STATUS="unknown"
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS: check pf (packet filter)
-    if sudo pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
+    # macOS: check pf (packet filter) — don't use sudo to avoid password prompt
+    if pfctl -s info 2>/dev/null | grep -q "Status: Enabled"; then
         check_pass "Firewall: Enabled (blocks external access)"
         FIREWALL_STATUS="enabled"
-    elif sudo pfctl -s info 2>/dev/null | grep -q "Status: Disabled"; then
-        check_fail "Firewall: Disabled (⚠️ if using LAN access, configure router firewall)"
+    elif pfctl -s info 2>/dev/null | grep -q "Status: Disabled"; then
+        check_warn "Firewall: Disabled (recommended: enable in System Preferences)"
         FIREWALL_STATUS="disabled"
+    else
+        check_warn "Firewall status: Unable to check (run without sudo to verify manually)"
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux: check ufw or firewalld
-    if sudo ufw status 2>/dev/null | grep -q "Status: active"; then
+    # Linux: check ufw or firewalld — don't use sudo to avoid password prompt
+    if ufw status 2>/dev/null | grep -q "Status: active"; then
         check_pass "Firewall: Enabled (ufw active)"
         FIREWALL_STATUS="enabled"
-    elif sudo firewall-cmd --state 2>/dev/null | grep -q "running"; then
+    elif firewall-cmd --state 2>/dev/null | grep -q "running"; then
         check_pass "Firewall: Enabled (firewalld running)"
         FIREWALL_STATUS="enabled"
     else
-        check_warn "Firewall status: Unable to determine (check manually)"
+        check_warn "Firewall status: Unable to determine (recommended: enable ufw or firewalld)"
     fi
 else
     check_warn "Firewall status: Unable to check on this OS"
@@ -262,7 +264,7 @@ fi
 echo ""
 echo -e "${YELLOW}Checking disk space...${NC}"
 
-AVAILABLE_GB=$(df -k "$(pwd)" | awk 'NR==2 {print $4}' | sed 's/G//')
+AVAILABLE_GB=$(df -k "$(pwd)" | awk 'NR==2 {print int($4/1024/1024)}')
 
 if [ -z "$AVAILABLE_GB" ] || [ "$AVAILABLE_GB" -lt 0 ]; then
     check_warn "Could not determine available disk space"

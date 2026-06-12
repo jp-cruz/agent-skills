@@ -1,6 +1,6 @@
 # Docker Installation Guide for Non-Technical Users
 
-Docker is a tool that safely isolates Thoth from the rest of your computer. You need to install it before running Thoth.
+Docker is a tool that safely isolates Row-Bot from the rest of your computer. You need to install it before running Row-Bot.
 
 **Good news:** Installation is straightforward. Pick your operating system below.
 

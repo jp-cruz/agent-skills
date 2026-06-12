@@ -31,7 +31,7 @@ echo.
 echo Configuration:
 echo   Data Directory:      %ROWBOT_DATA_DIR%
 echo   Workspace Directory: %ROWBOT_WORKSPACE_DIR%
-echo   Thoth Port:          %ROWBOT_PORT%
+echo   Row-Bot Port:          %ROWBOT_PORT%
 echo   Ollama URL:          %OLLAMA_BASE_URL%
 
 echo.
@@ -74,7 +74,7 @@ echo.
 echo Next steps:
 echo   1. Review and customize .env if needed
 echo   2. Ensure Ollama is running
-echo   3. Start Thoth: docker-compose up -d
+echo   3. Start Row-Bot: docker-compose up -d
 echo   4. Open http://localhost:%ROWBOT_PORT%
 echo.
 echo Useful commands:
