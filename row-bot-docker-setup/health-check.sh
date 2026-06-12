@@ -113,9 +113,11 @@ INSTANCE_NAME=${INSTANCE_NAME:-rowbot-app}
 echo ""
 echo -e "${YELLOW}Checking ports...${NC}"
 
-if lsof -i :${ROW_BOT_PORT:-8080} > /dev/null 2>&1 || \
+if [ -n "$(docker ps --filter "name=^${INSTANCE_NAME}$" --format '{{.Names}}' 2>/dev/null)" ]; then
+    check_pass "Port ${ROW_BOT_PORT:-8080} is in use by Row-Bot ($INSTANCE_NAME) — expected"
+elif lsof -i :${ROW_BOT_PORT:-8080} > /dev/null 2>&1 || \
    netstat -tln 2>/dev/null | grep -q ":${ROW_BOT_PORT:-8080} "; then
-    check_warn "Port ${ROW_BOT_PORT:-8080} is in use. Row-Bot may not be able to start."
+    check_warn "Port ${ROW_BOT_PORT:-8080} is in use by another process. Row-Bot may not be able to start."
     check_warn "To use a different port, edit .env and set ROW_BOT_PORT=8081"
 else
     check_pass "Port ${ROW_BOT_PORT:-8080} is available"
