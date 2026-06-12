@@ -5,7 +5,7 @@ This guide walks you through your first steps after setup.sh completes.
 ## Prerequisites
 
 You've already:
-- Run `./setup.sh` (macOS/Linux) or `scripts\setup.bat` (Windows)
+- Run `./setup.sh` (macOS/Linux). Windows: run `scripts\setup.bat` — it checks prerequisites and walks you through running setup.sh via WSL or Git Bash
 - Created a `.env` file with your configuration
 - Started the container with `docker-compose up -d`
 
