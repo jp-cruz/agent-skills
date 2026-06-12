@@ -93,7 +93,7 @@ source "$(dirname "$0")/disk-check.sh" --export-only 2>/dev/null || true
 # Extract paths from .env
 ROWBOT_DATA_DIR=$(grep "^ROWBOT_DATA_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
 ROWBOT_WORKSPACE_DIR=$(grep "^ROWBOT_WORKSPACE_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
-THOTH_PORT=$(grep "^THOTH_PORT=" .env | cut -d= -f2)
+ROWBOT_PORT=$(grep "^ROWBOT_PORT=" .env | cut -d= -f2)
 OLLAMA_BASE_URL=$(grep "^OLLAMA_BASE_URL=" .env | cut -d= -f2)
 
 # Check Ollama
@@ -113,11 +113,11 @@ fi
 # Check port
 PORT_AVAILABLE=0
 if [ "$OS" = "macos" ]; then
-    if ! lsof -i ":${THOTH_PORT}" > /dev/null 2>&1; then
+    if ! lsof -i ":${ROWBOT_PORT}" > /dev/null 2>&1; then
         PORT_AVAILABLE=1
     fi
 elif [ "$OS" = "linux" ]; then
-    if ! netstat -tlnp 2>/dev/null | grep -q ":${THOTH_PORT} "; then
+    if ! netstat -tlnp 2>/dev/null | grep -q ":${ROWBOT_PORT} "; then
         PORT_AVAILABLE=1
     fi
 fi
@@ -174,7 +174,7 @@ echo ""
 # Network
 echo "  Network"
 echo "    Ollama:  $OLLAMA_STATUS ($MODEL_COUNT models)"
-echo "    Port:    ${THOTH_PORT} — $([ $PORT_AVAILABLE -eq 1 ] && echo "${GREEN}Available ✓${NC}" || echo "${RED}In use ✗${NC}")"
+echo "    Port:    ${ROWBOT_PORT} — $([ $PORT_AVAILABLE -eq 1 ] && echo "${GREEN}Available ✓${NC}" || echo "${RED}In use ✗${NC}")"
 echo ""
 
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
@@ -228,7 +228,7 @@ else
 fi
 
 echo -e "${GREEN}[4/4] Port check${NC}"
-echo -e "${GREEN}  Port ${THOTH_PORT} available${NC}"
+echo -e "${GREEN}  Port ${ROWBOT_PORT} available${NC}"
 
 echo ""
 
@@ -243,17 +243,17 @@ echo ""
 echo -e "${GREEN}Next steps:${NC}"
 echo "  1. Ensure Ollama is running: ollama serve"
 echo "  2. Start Thoth: docker-compose up -d"
-echo "  3. Open: http://localhost:${THOTH_PORT}"
+echo "  3. Open: http://localhost:${ROWBOT_PORT}"
 echo ""
 
 # Progressive disclosure for maintenance
-read -p "Run thoth-maintenance.sh now to check disk cleanup options? [y/N] " RUN_MAINT
+read -p "Run rowbot-maintenance.sh now to check disk cleanup options? [y/N] " RUN_MAINT
 
 if [ "$RUN_MAINT" = "y" ] || [ "$RUN_MAINT" = "Y" ]; then
-    bash ./scripts/thoth-maintenance.sh
+    bash ./scripts/rowbot-maintenance.sh
 else
     echo ""
     echo -e "${YELLOW}Tip:${NC} Run this monthly to clean up Docker artifacts:"
-    echo "  ./scripts/thoth-maintenance.sh"
+    echo "  ./scripts/rowbot-maintenance.sh"
     echo ""
 fi

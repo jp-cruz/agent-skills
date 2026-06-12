@@ -49,7 +49,7 @@ This skill guides users through a secure setup of [Thoth](https://github.com/sid
 
 ```bash
 git clone https://github.com/jp-cruz/agent-skills
-cd agent-skills/thoth-docker-setup
+cd agent-skills/row-bot-docker-setup
 ./setup.sh       # Choose Quick or Advanced setup
 docker-compose up -d
 # Thoth runs at http://localhost:8080
@@ -122,7 +122,7 @@ excellent documentation for Docker-naive users. Would you like me to walk you th
 
 ### Troubleshooting
 - "Ollama not found?" → Start Ollama on host
-- "Port in use?" → Change THOTH_PORT in .env
+- "Port in use?" → Change ROWBOT_PORT in .env
 - "Won't start?" → Check logs with `docker-compose logs`
 - "Slow?" → First prompt takes 10-30s (model loading)
 

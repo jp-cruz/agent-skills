@@ -29,14 +29,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          cd thoth-docker-setup
+          cd row-bot-docker-setup
           docker-compose build --no-cache
         continue-on-error: true
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'thoth-app:latest'
+          image-ref: 'rowbot-app:latest'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
@@ -62,7 +62,7 @@ jobs:
       - name: Run Snyk scan for Dockerfile
         uses: snyk/actions/docker@master
         with:
-          image: thoth-app
+          image: rowbot-app
           args: --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

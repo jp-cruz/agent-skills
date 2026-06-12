@@ -39,7 +39,7 @@ sanitize() {
 
 # Start collecting
 {
-    echo "Thoth Docker Diagnostics Report"
+    echo "Row-Bot Docker Diagnostics Report"
     echo "Generated: $(date)"
     echo ""
     echo "═══════════════════════════════════════════════════════════════════"
@@ -125,23 +125,23 @@ sanitize() {
     echo ""
 
     echo "═══════════════════════════════════════════════════════════════════"
-    echo "THOTH CONTAINER STATUS"
+    echo "ROW-BOT CONTAINER STATUS"
     echo "═══════════════════════════════════════════════════════════════════"
     echo ""
 
     if docker ps -a 2>/dev/null | grep -q rowbot; then
         echo "Container Status:"
-        docker ps -a 2>/dev/null | grep thoth || echo "Container found but status unknown"
+        docker ps -a 2>/dev/null | grep rowbot || echo "Container found but status unknown"
         echo ""
 
         echo "Container Logs (last 50 lines):"
-        docker-compose logs --tail=50 thoth 2>/dev/null || echo "Unable to retrieve logs"
+        docker-compose logs --tail=50 rowbot 2>/dev/null || echo "Unable to retrieve logs"
         echo ""
 
         echo "Container Inspect (selected fields):"
         docker inspect row-bot-docker-setup_rowbot_1 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
     else
-        echo "Thoth container not found"
+        echo "Row-Bot container not found"
     fi
     echo ""
 
@@ -236,8 +236,8 @@ sanitize() {
     fi
 
     # Check container
-    if ! docker ps 2>/dev/null | grep -q "thoth.*Up"; then
-        echo "⚠️  Thoth container is not running"
+    if ! docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
+        echo "⚠️  Row-Bot container is not running"
         ((ISSUES++))
     fi
 

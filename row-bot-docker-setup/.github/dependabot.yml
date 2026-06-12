@@ -3,7 +3,7 @@ version: 2
 updates:
   # Docker image scanning
   - package-ecosystem: "docker"
-    directory: "/thoth-docker-setup/docker"
+    directory: "/row-bot-docker-setup/docker"
     schedule:
       interval: "weekly"
       day: "monday"
@@ -35,7 +35,7 @@ updates:
 
   # Python dependencies (if applicable)
   - package-ecosystem: "pip"
-    directory: "/thoth-docker-setup"
+    directory: "/row-bot-docker-setup"
     schedule:
       interval: "weekly"
       day: "monday"

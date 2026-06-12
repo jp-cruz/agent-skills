@@ -163,13 +163,13 @@ echo -e "${YELLOW}Checking Row-Bot container...${NC}"
 if ! docker ps --all 2>/dev/null | grep -q rowbot; then
     check_warn "Row-Bot container not created yet. Run: docker-compose up -d"
 else
-    if docker ps 2>/dev/null | grep -q "thoth.*Up"; then
+    if docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
         check_pass "Row-Bot container is running"
 
         # Check container health
-        if docker ps 2>/dev/null | grep -q "thoth.*(healthy)"; then
+        if docker ps 2>/dev/null | grep -q "rowbot.*(healthy)"; then
             check_pass "Container health: Healthy"
-        elif docker ps 2>/dev/null | grep -q "thoth.*(unhealthy)"; then
+        elif docker ps 2>/dev/null | grep -q "rowbot.*(unhealthy)"; then
             check_fail "Container health: Unhealthy"
             check_warn "Container may still be starting. Wait 30 seconds and check again."
         else
@@ -187,8 +187,8 @@ fi
 echo ""
 echo -e "${YELLOW}Checking Row-Bot connectivity...${NC}"
 
-if docker ps 2>/dev/null | grep -q "thoth.*Up"; then
-    if docker-compose exec thoth curl -s http://localhost:8080 > /dev/null 2>&1; then
+if docker ps 2>/dev/null | grep -q "rowbot.*Up"; then
+    if docker-compose exec rowbot curl -s http://localhost:8080 > /dev/null 2>&1; then
         check_pass "Row-Bot is responding on port 8080"
     else
         check_warn "Row-Bot not responding yet (may still be starting)"

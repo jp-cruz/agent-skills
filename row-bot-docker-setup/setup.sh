@@ -574,7 +574,7 @@ echo "3. Access Row-Bot:"
 if [[ "$ROWBOT_BIND" == "127.0.0.1" ]]; then
     echo "   http://localhost:8080"
 else
-    echo "   http://<your-ip>:${THOTH_PORT:-8080}"
+    echo "   http://<your-ip>:${ROWBOT_PORT:-8080}"
 fi
 echo ""
 

@@ -24,14 +24,14 @@ echo [INFO] Detected OS: Windows
 REM Read .env values (simple version - assumes standard paths)
 for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_DATA_DIR=" .env') do set ROWBOT_DATA_DIR=%%i
 for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_WORKSPACE_DIR=" .env') do set ROWBOT_WORKSPACE_DIR=%%i
-for /f "tokens=2 delims==" %%i in ('findstr "^THOTH_PORT=" .env') do set THOTH_PORT=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_PORT=" .env') do set ROWBOT_PORT=%%i
 for /f "tokens=2 delims==" %%i in ('findstr "^OLLAMA_BASE_URL=" .env') do set OLLAMA_BASE_URL=%%i
 
 echo.
 echo Configuration:
 echo   Data Directory:      %ROWBOT_DATA_DIR%
 echo   Workspace Directory: %ROWBOT_WORKSPACE_DIR%
-echo   Thoth Port:          %THOTH_PORT%
+echo   Thoth Port:          %ROWBOT_PORT%
 echo   Ollama URL:          %OLLAMA_BASE_URL%
 
 echo.
@@ -75,11 +75,11 @@ echo Next steps:
 echo   1. Review and customize .env if needed
 echo   2. Ensure Ollama is running
 echo   3. Start Thoth: docker-compose up -d
-echo   4. Open http://localhost:%THOTH_PORT%
+echo   4. Open http://localhost:%ROWBOT_PORT%
 echo.
 echo Useful commands:
 echo   docker-compose up -d          # Start in background
 echo   docker-compose logs -f        # View logs
 echo   docker-compose ps             # Check status
-echo   docker-compose exec thoth bash # Open shell in container
+echo   docker-compose exec rowbot bash # Open shell in container
 echo.
