@@ -1,5 +1,5 @@
 #!/bin/bash
-# Thoth Docker Storage Assessment
+# Row-Bot Docker Storage Assessment
 # Detects all mounted drives, recommends optimal storage locations
 # Exports DISK_CHECK_RECOMMENDED_* env vars for setup.sh to consume
 # Bash 3.x compatible (no associative arrays)
@@ -28,7 +28,7 @@ log() {
 }
 
 log "${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-log "${BLUE}║          THOTH DOCKER STORAGE ASSESSMENT                              ║${NC}"
+log "${BLUE}║          ROW-BOT DOCKER STORAGE ASSESSMENT                              ║${NC}"
 log "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
 
 # ============================================================================
@@ -222,14 +222,14 @@ if [ -f "$DRIVES_FILE" ] && [ -s "$DRIVES_FILE" ]; then
     done < "$DRIVES_FILE"
 
     if [ -n "$BEST_DRIVE" ]; then
-        DISK_CHECK_RECOMMENDED_DATA_DIR="${BEST_DRIVE}/thoth-data"
+        DISK_CHECK_RECOMMENDED_DATA_DIR="${BEST_DRIVE}/rowbot-data"
         DISK_CHECK_RECOMMENDED_WORKSPACE_DIR="${BEST_DRIVE}/thoth-workspace"
 
         log "  ${GREEN}✓ Recommended external drive found:${NC}"
         log "    Location: $BEST_DRIVE"
         log "    Suggested paths:"
-        log "      THOTH_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR"
-        log "      THOTH_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
+        log "      ROWBOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR"
+        log "      ROWBOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
     fi
 else
     log "  ${YELLOW}⚠ No external drive found${NC}"
@@ -255,7 +255,7 @@ log "  • After 2–3 weeks: ~10 GB typical"
 log "  • After 1 month: ~15–20 GB"
 log "  • Long-running systems: can reach 50+ GB"
 log ""
-log "  Plan accordingly: use external storage for thoth-data and thoth-workspace"
+log "  Plan accordingly: use external storage for rowbot-data and thoth-workspace"
 log "  See references/DISK_MANAGEMENT.md for cleanup and archival strategies"
 
 # Export variables

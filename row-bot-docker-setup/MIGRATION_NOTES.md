@@ -90,14 +90,15 @@ Example:
 - Auto-rewritten to: `~/Documents/Row-Bot/projects/` (still on bare metal, ephemeral)
 - Inside container: Path doesn't exist because it's outside the volume
 
-**Symptom:** Row-Bot starts, but project workspace is empty. Tools that reference old `/home/thoth/...` paths fail.
+**Symptom:** Row-Bot starts, but project workspace is empty. Tools that reference old `/home/rowbot/...` paths fail.
 
 **Solution:**
 
 1. **Identify the authoritative data location**
    ```bash
    # Check which path exists in migrated volume:
-   ls -la /Volumes/MAC_MINI_1TB/docker/docker-root/rowbot-data/Documents/
+   VOLUME_PATH=$(docker volume inspect row-bot-docker-setup_rowbot-data --format '{{.Mountpoint}}')
+   ls -la "$VOLUME_PATH/Documents/"
    # You'll see either "Thoth/" or "Row-Bot/" directory
    ```
 
@@ -229,30 +230,30 @@ docker-compose logs -f rowbot
 # 1. Stop the Docker container
 docker-compose down
 
-# 2. Extract backup into Docker volume location
-# Get the volume path:
-VOLUME_PATH=$(docker volume inspect row-bot-docker-setup_rowbot-data --format '{{.Mountpoint}}')
-
-# 3. Copy data from backup (or directly from bare metal):
-# Option A: From backup tar
-tar -xzf row-bot-backup-*.tar.gz -C "$VOLUME_PATH" --strip-components=1
+# 2. Copy data from backup (recommended) or directly from bare metal:
+# Option A: From backup tar (most reliable)
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  -v "$PWD":/backup alpine tar xzf /backup/row-bot-backup-*.tar.gz -C /data --strip-components=1
 # (--strip-components=1 removes the .row-bot/ prefix)
 
-# Option B: Direct copy from bare metal
-# Assuming ~/.row-bot exists on bare metal:
-cp -r ~/.row-bot/* "$VOLUME_PATH"
+# Option B: Direct copy from bare metal (if backup not available)
+# Note: This copies to the volume via a temporary container
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  -v "$HOME/.row-bot":/backup:ro alpine cp -r /backup/* /data/
 
-# 4. Fix ownership
-docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine chown -R 1000:1000 /data
+# 3. Fix ownership (files may have different UID after restore)
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data \
+  alpine chown -R 1000:1000 /data
 
-# 5. Handle SQLite files carefully
-# If the source was live, run backup API instead:
-python3 << 'EOF'
+# 4. Handle SQLite files carefully
+# If the source was live, run backup API to ensure consistency:
+VOLUME_PATH=$(docker volume inspect row-bot-docker-setup_rowbot-data --format '{{.Mountpoint}}')
+python3 << EOF
 import sqlite3
 import os
 
 source = os.path.expanduser("~/.row-bot/memory.db")
-dest = f"{VOLUME_PATH}/memory.db"
+dest = "$VOLUME_PATH/memory.db"
 
 if os.path.exists(source):
     src = sqlite3.connect(source)
@@ -260,11 +261,11 @@ if os.path.exists(source):
     src.backup(dst)
     src.close()
     dst.close()
-    print(f"Safely migrated memory.db")
+    print("Safely migrated memory.db")
 EOF
 ```
 
-### Phase 4: Fix Paths & Config
+### Phase 4: Verify Migration
 
 ```bash
 # 1. Start the container
@@ -273,16 +274,15 @@ docker-compose up -d
 # 2. Wait for startup, then check logs
 docker-compose logs --tail=50 rowbot
 
-# 3. If you see workspace path errors, rename directories:
-# Enter the volume to check structure
-docker-compose exec rowbot ls -la ~/.row-bot/Documents/
+# 3. Check if workspace paths need renaming (from Thoth → Row-Bot)
+docker-compose exec rowbot ls -la ~/.row-bot/Documents/ 2>/dev/null || echo "No Documents directory yet"
 
-# Rename if needed:
+# 4. If you see a "Thoth/" directory, rename it:
 docker-compose exec rowbot mv ~/.row-bot/Documents/Thoth ~/.row-bot/Documents/Row-Bot 2>/dev/null || true
 
-# 4. Verify workspace is accessible
+# 5. Verify workspace is accessible
 docker-compose exec rowbot ls -la ~/.row-bot/Documents/Row-Bot/projects/
-# Should list your project directories
+# Should list your project directories (if they exist)
 ```
 
 ### Phase 5: Restore API Keys

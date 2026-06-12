@@ -11,6 +11,8 @@ services:
       - "${ROWBOT_BIND:-127.0.0.1}:${ROWBOT_PORT:-8080}:8080"
     environment:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - rowbot-data:/home/rowbot/.row-bot
       - rowbot-workspace:/app/workspace

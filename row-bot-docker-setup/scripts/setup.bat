@@ -1,12 +1,12 @@
 @echo off
-REM Thoth Docker Template Setup Script for Windows
+REM Row-Bot Docker Template Setup Script for Windows
 REM Initializes .env, creates data directories, and validates prerequisites
 
 setlocal enabledelayedexpansion
 
 echo.
 echo ================================================================
-echo     Thoth Docker Template Setup
+echo     Row-Bot Docker Template Setup
 echo ================================================================
 echo.
 
@@ -22,22 +22,22 @@ if exist .env (
 echo [INFO] Detected OS: Windows
 
 REM Read .env values (simple version - assumes standard paths)
-for /f "tokens=2 delims==" %%i in ('findstr "^THOTH_DATA_DIR=" .env') do set THOTH_DATA_DIR=%%i
-for /f "tokens=2 delims==" %%i in ('findstr "^THOTH_WORKSPACE_DIR=" .env') do set THOTH_WORKSPACE_DIR=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_DATA_DIR=" .env') do set ROWBOT_DATA_DIR=%%i
+for /f "tokens=2 delims==" %%i in ('findstr "^ROWBOT_WORKSPACE_DIR=" .env') do set ROWBOT_WORKSPACE_DIR=%%i
 for /f "tokens=2 delims==" %%i in ('findstr "^THOTH_PORT=" .env') do set THOTH_PORT=%%i
 for /f "tokens=2 delims==" %%i in ('findstr "^OLLAMA_BASE_URL=" .env') do set OLLAMA_BASE_URL=%%i
 
 echo.
 echo Configuration:
-echo   Data Directory:      %THOTH_DATA_DIR%
-echo   Workspace Directory: %THOTH_WORKSPACE_DIR%
+echo   Data Directory:      %ROWBOT_DATA_DIR%
+echo   Workspace Directory: %ROWBOT_WORKSPACE_DIR%
 echo   Thoth Port:          %THOTH_PORT%
 echo   Ollama URL:          %OLLAMA_BASE_URL%
 
 echo.
 echo [INFO] Creating data directories
-if not exist "%THOTH_DATA_DIR%" mkdir "%THOTH_DATA_DIR%"
-if not exist "%THOTH_WORKSPACE_DIR%" mkdir "%THOTH_WORKSPACE_DIR%"
+if not exist "%ROWBOT_DATA_DIR%" mkdir "%ROWBOT_DATA_DIR%"
+if not exist "%ROWBOT_WORKSPACE_DIR%" mkdir "%ROWBOT_WORKSPACE_DIR%"
 echo [INFO] Directories created
 
 echo.

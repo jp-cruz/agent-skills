@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║         THOTH DOCKER SETUP — ENVIRONMENT ASSESSMENT                   ║${NC}"
+echo -e "${BLUE}║         ROW-BOT DOCKER SETUP — ENVIRONMENT ASSESSMENT                   ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════════════════╝${NC}"
 
 # ============================================================================
@@ -362,7 +362,7 @@ fi
 echo -e "\n${GREEN}ENVIRONMENT VARIABLES${NC}"
 
 # Check for relevant env vars
-RELEVANT_VARS=("OLLAMA_HOST" "OLLAMA_BASE_URL" "THOTH_PORT" "THOTH_DATA_DIR" "THOTH_WORKSPACE_DIR" "THOTH_SECRETS_BACKEND" "PYTHONPATH" "PYTHON_KEYRING_BACKEND")
+RELEVANT_VARS=("OLLAMA_HOST" "OLLAMA_BASE_URL" "THOTH_PORT" "ROWBOT_DATA_DIR" "ROWBOT_WORKSPACE_DIR" "THOTH_SECRETS_BACKEND" "PYTHONPATH" "PYTHON_KEYRING_BACKEND")
 
 for var in "${RELEVANT_VARS[@]}"; do
     if [[ -n "${!var}" ]]; then
@@ -432,14 +432,14 @@ echo ""
 # Data directories
 echo "# Data Persistence Paths"
 if [[ "$OS" == "macos" ]]; then
-    echo "THOTH_DATA_DIR=/Users/$(whoami)/thoth-data"
-    echo "THOTH_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace"
+    echo "ROWBOT_DATA_DIR=/Users/$(whoami)/rowbot-data"
+    echo "ROWBOT_WORKSPACE_DIR=/Users/$(whoami)/thoth-workspace"
 elif [[ "$OS" == "linux" ]]; then
-    echo "THOTH_DATA_DIR=/home/$(whoami)/thoth-data"
-    echo "THOTH_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace"
+    echo "ROWBOT_DATA_DIR=/home/$(whoami)/rowbot-data"
+    echo "ROWBOT_WORKSPACE_DIR=/home/$(whoami)/thoth-workspace"
 elif [[ "$OS" == "windows" ]]; then
-    echo "THOTH_DATA_DIR=C:\\Users\\$(whoami)\\thoth-data"
-    echo "THOTH_WORKSPACE_DIR=C:\\Users\\$(whoami)\\thoth-workspace"
+    echo "ROWBOT_DATA_DIR=C:\\Users\\$(whoami)\\rowbot-data"
+    echo "ROWBOT_WORKSPACE_DIR=C:\\Users\\$(whoami)\\thoth-workspace"
 fi
 echo ""
 

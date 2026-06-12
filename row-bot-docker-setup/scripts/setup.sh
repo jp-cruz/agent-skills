@@ -1,5 +1,5 @@
 #!/bin/bash
-# Thoth Docker Template Setup Script
+# Row-Bot Docker Setup Script
 # Automated detection, one-decision setup flow, progressive disclosure
 
 set -e
@@ -15,7 +15,7 @@ NC='\033[0m'
 # ============================================================================
 
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}    Thoth Docker Template Setup${NC}"
+echo -e "${GREEN}    Row-Bot Docker Setup${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
@@ -91,8 +91,8 @@ fi
 source "$(dirname "$0")/disk-check.sh" --export-only 2>/dev/null || true
 
 # Extract paths from .env
-THOTH_DATA_DIR=$(grep "^THOTH_DATA_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
-THOTH_WORKSPACE_DIR=$(grep "^THOTH_WORKSPACE_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
+ROWBOT_DATA_DIR=$(grep "^ROWBOT_DATA_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
+ROWBOT_WORKSPACE_DIR=$(grep "^ROWBOT_WORKSPACE_DIR=" .env | cut -d= -f2 | sed "s|~|$HOME|g")
 THOTH_PORT=$(grep "^THOTH_PORT=" .env | cut -d= -f2)
 OLLAMA_BASE_URL=$(grep "^OLLAMA_BASE_URL=" .env | cut -d= -f2)
 
@@ -154,12 +154,12 @@ if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ]; then
     STORAGE_ICON="${GREEN}⭐${NC}"
     DATA_PATH="$DISK_CHECK_RECOMMENDED_DATA_DIR"
     WORKSPACE_PATH="$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR"
-    THOTH_DATA_DIR="$DATA_PATH"
-    THOTH_WORKSPACE_DIR="$WORKSPACE_PATH"
+    ROWBOT_DATA_DIR="$DATA_PATH"
+    ROWBOT_WORKSPACE_DIR="$WORKSPACE_PATH"
 else
     STORAGE_ICON=" "
-    DATA_PATH="$THOTH_DATA_DIR"
-    WORKSPACE_PATH="$THOTH_WORKSPACE_DIR"
+    DATA_PATH="$ROWBOT_DATA_DIR"
+    WORKSPACE_PATH="$ROWBOT_WORKSPACE_DIR"
     if [ $SYSTEM_FREE_GB -lt 100 ]; then
         echo -e "${YELLOW}  ⚠ Using system drive (${SYSTEM_FREE_GB}GB free).${NC}"
         echo -e "${YELLOW}    External SSD recommended for long-term use.${NC}"
@@ -189,7 +189,7 @@ read -p "Apply this configuration? [Y/n] " CONFIRM
 if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
     echo ""
     echo "To customize:"
-    echo "  1. Edit .env manually (e.g., change THOTH_DATA_DIR)"
+    echo "  1. Edit .env manually (e.g., change ROWBOT_DATA_DIR)"
     echo "  2. Re-run: ./setup.sh"
     echo ""
     echo "For detailed guidance:"
@@ -205,17 +205,17 @@ echo ""
 # ============================================================================
 
 echo -e "${GREEN}[1/4] Creating data directories${NC}"
-mkdir -p "$THOTH_DATA_DIR"
-mkdir -p "$THOTH_WORKSPACE_DIR"
+mkdir -p "$ROWBOT_DATA_DIR"
+mkdir -p "$ROWBOT_WORKSPACE_DIR"
 
 # Update .env only if external drive was recommended and used
-if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ] && [ "$DATA_PATH" != "$(grep '^THOTH_DATA_DIR=' .env | cut -d= -f2 | sed "s|~|$HOME|g")" ]; then
-    sed -i.bak "s|^THOTH_DATA_DIR=.*|THOTH_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR|" .env
-    sed -i.bak "s|^THOTH_WORKSPACE_DIR=.*|THOTH_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR|" .env
+if [ -n "$DISK_CHECK_RECOMMENDED_DATA_DIR" ] && [ "$DATA_PATH" != "$(grep '^ROWBOT_DATA_DIR=' .env | cut -d= -f2 | sed "s|~|$HOME|g")" ]; then
+    sed -i.bak "s|^ROWBOT_DATA_DIR=.*|ROWBOT_DATA_DIR=$DISK_CHECK_RECOMMENDED_DATA_DIR|" .env
+    sed -i.bak "s|^ROWBOT_WORKSPACE_DIR=.*|ROWBOT_WORKSPACE_DIR=$DISK_CHECK_RECOMMENDED_WORKSPACE_DIR|" .env
 fi
 
 echo -e "${GREEN}[2/4] Verifying Docker${NC}"
-if ! ./check-docker.sh 2>&1 | grep -q "ALL CHECKS PASSED"; then
+if ! bash "$(dirname "$0")/check-docker.sh" 2>&1 | grep -q "ALL CHECKS PASSED"; then
     echo -e "${RED}Docker check failed. See: DOCKER_GUIDE_FOR_BEGINNERS.md${NC}"
     exit 1
 fi

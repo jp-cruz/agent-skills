@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 RUN git clone https://github.com/siddsachar/row-bot.git . && \
-    git checkout latest
+    git checkout main
 
 RUN pip install --no-cache-dir --user -r requirements.txt && \
     pip install --no-cache-dir --user --upgrade keyring keyrings.alt
@@ -34,7 +34,7 @@ COPY --from=builder --chown=rowbot:rowbot /app /app
 COPY --from=builder --chown=rowbot:rowbot /root/.local /home/rowbot/.local
 
 # Copy entrypoint script to ensure symlinks persist across container restarts
-COPY --chown=rowbot:rowbot docker/entrypoint.sh /home/rowbot/entrypoint.sh
+COPY --chown=rowbot:rowbot entrypoint.sh /home/rowbot/entrypoint.sh
 RUN chmod +x /home/rowbot/entrypoint.sh
 
 USER rowbot

@@ -7,7 +7,7 @@ chcp 65001 >nul 2>&1
 
 echo.
 echo ======================================================================
-echo     THOTH DOCKER SETUP - ENVIRONMENT ASSESSMENT
+echo     ROW-BOT DOCKER SETUP - ENVIRONMENT ASSESSMENT
 echo ======================================================================
 echo.
 
@@ -202,8 +202,8 @@ if "!LLM_BACKEND!"=="ollama" (
 echo.
 
 echo # Data Persistence Paths
-echo THOTH_DATA_DIR=C:\Users\%USERNAME%\thoth-data
-echo THOTH_WORKSPACE_DIR=C:\Users\%USERNAME%\thoth-workspace
+echo ROWBOT_DATA_DIR=C:\Users\%USERNAME%\rowbot-data
+echo ROWBOT_WORKSPACE_DIR=C:\Users\%USERNAME%\thoth-workspace
 echo.
 
 echo # Container Restart Policy

@@ -483,9 +483,6 @@ if [[ "$pathway_choice" == "b" || "$pathway_choice" == "B" ]]; then
                     sed -i.bak "s|sk-ant-your-key-here|$api_key|" "$ENV_FILE" || \
                     sed -i '' "s|sk-ant-your-key-here|$api_key|" "$ENV_FILE"
 
-                    sed -i.bak '/^# ANTHROPIC_API_KEY/s/^# //' "$ENV_FILE" || \
-                    sed -i '' '/^# ANTHROPIC_API_KEY/s/^# //' "$ENV_FILE"
-
                     sed -i.bak '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE" || \
                     sed -i '' '/^# ROWBOT_LLM_PROVIDER=anthropic/s/^# //' "$ENV_FILE"
 
@@ -510,13 +507,13 @@ echo -e "${BLUE}═════════════════════�
 echo ""
 
 # Version check (informational only, after setup completes)
-if [[ "$THOTH_VERSION" != "unknown" && ! "$THOTH_VERSION" =~ ^v[0-9] ]]; then
-    echo -e "${YELLOW}ℹ️  Note: Dockerfile uses Thoth commit $THOTH_VERSION${NC}"
-    echo "    This script was tested with Thoth v3.23.1"
+if [[ "$ROWBOT_VERSION" != "unknown" && ! "$ROWBOT_VERSION" =~ ^v[0-9] ]]; then
+    echo -e "${YELLOW}ℹ️  Note: Dockerfile uses Row-Bot commit $ROWBOT_VERSION${NC}"
+    echo "    This script was tested with Row-Bot main branch"
     echo ""
-elif [[ "$SCRIPT_VERSION" < "$THOTH_VERSION" ]]; then
-    echo -e "${YELLOW}ℹ️  Note: You may have a newer Thoth version${NC}"
-    echo "    This script v$SCRIPT_VERSION was tested with Thoth $THOTH_VERSION"
+elif [[ "$SCRIPT_VERSION" < "$ROWBOT_VERSION" ]]; then
+    echo -e "${YELLOW}ℹ️  Note: You may have a newer Row-Bot version${NC}"
+    echo "    This script v$SCRIPT_VERSION was tested with Row-Bot $ROWBOT_VERSION"
     echo ""
 fi
 

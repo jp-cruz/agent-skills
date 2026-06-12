@@ -150,7 +150,7 @@ fi
 
 if [[ "$FIREWALL_STATUS" == "disabled" ]]; then
     check_warn "⚠️  If using ROWBOT_BIND=0.0.0.0 (LAN access), verify router has firewall enabled"
-    check_warn "    Otherwise, Thoth may be exposed to the internet"
+    check_warn "    Otherwise, Row-Bot may be exposed to the internet"
 fi
 
 # ============================================================================
@@ -158,13 +158,13 @@ fi
 # ============================================================================
 
 echo ""
-echo -e "${YELLOW}Checking Thoth container...${NC}"
+echo -e "${YELLOW}Checking Row-Bot container...${NC}"
 
-if ! docker ps --all 2>/dev/null | grep -q thoth; then
-    check_warn "Thoth container not created yet. Run: docker-compose up -d"
+if ! docker ps --all 2>/dev/null | grep -q rowbot; then
+    check_warn "Row-Bot container not created yet. Run: docker-compose up -d"
 else
     if docker ps 2>/dev/null | grep -q "thoth.*Up"; then
-        check_pass "Thoth container is running"
+        check_pass "Row-Bot container is running"
 
         # Check container health
         if docker ps 2>/dev/null | grep -q "thoth.*(healthy)"; then
@@ -176,25 +176,25 @@ else
             check_warn "Container health: Unknown (starting or no health check defined)"
         fi
     else
-        check_fail "Thoth container is not running. Start with: docker-compose up -d"
+        check_fail "Row-Bot container is not running. Start with: docker-compose up -d"
     fi
 fi
 
 # ============================================================================
-# CHECK 6: Thoth connectivity
+# CHECK 6: Row-Bot connectivity
 # ============================================================================
 
 echo ""
-echo -e "${YELLOW}Checking Thoth connectivity...${NC}"
+echo -e "${YELLOW}Checking Row-Bot connectivity...${NC}"
 
 if docker ps 2>/dev/null | grep -q "thoth.*Up"; then
     if docker-compose exec thoth curl -s http://localhost:8080 > /dev/null 2>&1; then
-        check_pass "Thoth is responding on port 8080"
+        check_pass "Row-Bot is responding on port 8080"
     else
-        check_warn "Thoth not responding yet (may still be starting)"
+        check_warn "Row-Bot not responding yet (may still be starting)"
     fi
 else
-    check_warn "Thoth container not running, skipping connectivity check"
+    check_warn "Row-Bot container not running, skipping connectivity check"
 fi
 
 # ============================================================================
@@ -224,8 +224,8 @@ if grep -q "^OLLAMA_BASE_URL=" "$ENV_FILE"; then
         check_fail "Ollama is not reachable at $OLLAMA_URL"
         check_warn "Start Ollama and ensure it's accessible"
     fi
-elif grep -q "^THOTH_LLM_PROVIDER=" "$ENV_FILE"; then
-    LLM_PROVIDER=$(grep "^THOTH_LLM_PROVIDER=" "$ENV_FILE" | cut -d= -f2)
+elif grep -q "^ROWBOT_LLM_PROVIDER=" "$ENV_FILE"; then
+    LLM_PROVIDER=$(grep "^ROWBOT_LLM_PROVIDER=" "$ENV_FILE" | cut -d= -f2)
     check_pass "LLM Provider configured: $LLM_PROVIDER"
 
     case "$LLM_PROVIDER" in
@@ -290,8 +290,8 @@ echo ""
 if [ $CHECKS_FAILED -eq 0 ]; then
     echo -e "${GREEN}✓ All checks passed!${NC}"
     echo ""
-    echo "Your Thoth setup is ready. Next steps:"
-    echo "  1. Start Thoth:  docker-compose up -d"
+    echo "Your Row-Bot setup is ready. Next steps:"
+    echo "  1. Start Row-Bot:  docker-compose up -d"
     echo "  2. Open browser: http://localhost:8080"
     echo "  3. See GETTING_STARTED.md for first steps"
     echo ""
