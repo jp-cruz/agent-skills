@@ -139,7 +139,7 @@ sanitize() {
         echo ""
 
         echo "Container Inspect (selected fields):"
-        docker inspect row-bot-docker-setup_rowbot_1 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
+        docker inspect rowbot-app 2>/dev/null | grep -E '(Status|State|RestartCount)' || echo "Unable to inspect container"
     else
         echo "Row-Bot container not found"
     fi

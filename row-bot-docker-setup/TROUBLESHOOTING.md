@@ -1,325 +1,306 @@
-# Troubleshooting Guide
+# Troubleshooting Row-Bot Docker
 
-Quick answers to common problems.
+Quick fixes for common issues.
 
 ---
 
-## Thoth Won't Start
+## Container Issues
 
-### Check container status
+### Row-Bot won't start / container keeps restarting
 
+**Check status:**
 ```bash
 docker-compose ps
-# STATUS should be: Up X seconds (healthy)
 ```
 
-### If status is "Exiting" or "Restarting"
-
+**View detailed logs:**
 ```bash
-# View detailed error logs
-docker-compose logs --tail=100 thoth
+docker-compose logs --tail=100 rowbot
 ```
 
-### Common startup errors
+**Common causes:**
 
-#### Error: Permission denied on thoth_app.log
+**Error: "Permission denied on file"**
+- Fix ownership: `docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine chown -R 1000:1000 /data`
+- Restart: `docker-compose restart rowbot`
 
-**Cause:** File ownership issue after data restore
+**Error: "Port 8080 already in use"**
+- Find what's using it: `lsof -i :8080` (macOS/Linux) or `netstat -ano | findstr :8080` (Windows)
+- Change port in `.env`: set `ROWBOT_PORT=8081` (or any free port)
+- Restart: `docker-compose down && docker-compose up -d`
 
-**Fix:**
+**Error: "Out of memory" or killed unexpectedly**
+- Row-Bot needs at least 2GB RAM. Check: `docker stats rowbot`
+- If near limit, stop other containers or increase Docker memory limit
+
+**Error: "health check failed"**
+- Row-Bot is still starting (takes 30-60 seconds on first run)
+- Wait 1 minute and retry: `docker-compose ps`
+
+---
+
+### Container runs but doesn't respond on http://localhost:8080
+
+**Verify it's listening:**
 ```bash
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  alpine chown -R 1000:1000 /data
-docker-compose up -d
+docker-compose exec rowbot curl -s http://localhost:8080 | head
 ```
 
-#### Error: Address already in use
+Should return HTML. If error:
+- Wait another 30 seconds (Row-Bot is initializing)
+- Check logs: `docker-compose logs --tail=20 rowbot | tail`
 
-**Cause:** Port 8080 (or configured port) is in use
+**Can't access from browser but curl works:**
+- Firewall may be blocking. Try: `curl http://localhost:8080`
+- If curl works, firewall is blocking browser. Disable temporarily or whitelist port 8080.
 
-**Fix:**
+**Can't access from other machine:**
+- By default, Row-Bot only listens on localhost (secure)
+- To access from network, change `.env`: set `ROWBOT_BIND=0.0.0.0`
+- Restart: `docker-compose down && docker-compose up -d`
+- **Security warning:** This exposes Row-Bot to your local network. See NETWORK_SETUP.md for safer alternatives (tunnel, VPN).
+
+---
+
+## LLM / AI Issues
+
+### Row-Bot won't generate responses
+
+**Check LLM provider is configured:**
 ```bash
-# Find what's using port 8080
-lsof -i :8080  # macOS
-netstat -tlnp | grep 8080  # Linux
+grep "^ROWBOT_LLM_PROVIDER\|^OLLAMA_BASE_URL\|^OPENROUTER_API_KEY\|^OPENAI_API_KEY\|^ANTHROPIC_API_KEY" .env
+```
 
-# Either stop that process or change THOTH_PORT in .env
-# Then restart:
+Should show at least one provider configured.
+
+**If using Ollama (local):**
+
+Verify Ollama is running on your machine:
+```bash
+curl http://localhost:11434/api/tags
+```
+
+Should list models. If error:
+- Start Ollama: `ollama serve` (in a separate terminal)
+- Check it's on port 11434
+
+Verify Row-Bot can reach it from container:
+```bash
+docker-compose exec rowbot curl http://host.docker.internal:11434/api/tags
+```
+
+(On Linux, use `localhost` instead of `host.docker.internal`)
+
+If still not working:
+- Ollama may be on a different machine. Check `.env` has correct `OLLAMA_BASE_URL=http://<your-ollama-ip>:11434`
+
+**If using cloud provider (OpenAI, Claude, OpenRouter):**
+
+Check API key is in `.env`:
+```bash
+grep "API_KEY" .env
+```
+
+Verify key isn't expired or empty (`sk-...` values should be present)
+
+Test the API key manually:
+```bash
+# OpenRouter example
+curl -H "Authorization: Bearer YOUR_KEY_HERE" https://api.openrouter.ai/api/v1/models
+
+# OpenAI example
+curl -H "Authorization: Bearer YOUR_KEY_HERE" https://api.openai.com/v1/models
+```
+
+If "401 Unauthorized": key is wrong or expired. Update `.env` and restart:
+```bash
+docker-compose restart rowbot
+```
+
+**Row-Bot is slow/hanging:**
+
+Check logs for errors:
+```bash
+docker-compose logs --tail=30 rowbot | grep -i "error\|timeout\|refused"
+```
+
+If using Ollama: model may be too large. Check memory: `docker stats rowbot`
+
+If using cloud provider: API may be rate-limited or slow. Try a different model in `.env`.
+
+---
+
+## Setup Issues
+
+### setup.sh failed or didn't create .env
+
+**Run setup again:**
+```bash
+./setup.sh
+```
+
+Choose "Advanced" to see each step and skip past failures.
+
+**setup.sh asks for API key, doesn't save it:**
+
+Check `.env` was created:
+```bash
+ls -la .env
+```
+
+If missing, setup.sh crashed. Check for errors: `tail -20 setup.sh.log` (if it exists)
+
+Manually create .env:
+```bash
+cp .env.example .env
+```
+
+Edit with your values: `nano .env` (or use your editor)
+
+**Sed errors on macOS:**
+
+setup.sh uses BSD sed (different from GNU sed). If you see "sed: 1: ..." errors:
+```bash
+# Check your sed version
+sed --version  # Will fail on macOS
+
+# Install GNU sed
+brew install gnu-sed
+```
+
+Then run setup.sh again.
+
+---
+
+## Docker / Compose Issues
+
+### docker-compose command not found
+
+**Install docker-compose:**
+
+macOS/Windows: Included with Docker Desktop (download from docker.com)
+
+Linux: `sudo apt install docker-compose` (Ubuntu/Debian) or equivalent for your distro
+
+**docker: permission denied**
+
+You need to be in the docker group:
+```bash
+sudo usermod -aG docker $USER
+```
+
+Then log out and back in, or: `newgrp docker`
+
+**Cannot connect to Docker daemon**
+
+Docker isn't running. Start it:
+- macOS/Windows: Open Docker Desktop app
+- Linux: `sudo systemctl start docker`
+
+**docker-compose down removes my data!**
+
+By default, `docker-compose down` only removes the container, not volumes.
+
+`docker-compose down -v` removes volumes (⚠️ deletes data). Don't use `-v` unless you want to delete everything.
+
+To safely stop: `docker-compose stop` (keeps data)
+
+To safely remove: `docker-compose down` (removes container, keeps volumes)
+
+---
+
+## Disk / Storage Issues
+
+### "No space left on device"
+
+Check disk: `df -h`
+
+Row-Bot uses the volumes (usually in `/var/lib/docker/volumes/` on Linux).
+
+**To free space:**
+
+Remove old backups: `ls -la backups/` and delete old `.tar.gz` files
+
+Check what's using space:
+```bash
+docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine du -sh /data
+```
+
+If Row-Bot data is huge (>20GB), it's likely the threads.db grew too large.
+
+---
+
+## Health Check Issues
+
+### ./health-check.sh reports failures
+
+**Most common:** "Row-Bot container not running"
+- Start container: `docker-compose up -d`
+- Wait 10 seconds: `sleep 10 && docker-compose ps`
+
+**"Port 8080 in use"**
+- This is OK if Row-Bot is running (it uses port 8080)
+- If Row-Bot is not running and port is in use, something else is listening
+
+**"Firewall disabled"**
+- On macOS: You disabled the firewall. Enable in System Preferences → Security & Privacy.
+- On Linux: Install `ufw` or `firewalld` and enable
+- This is optional but recommended for security.
+
+**"Ollama not reachable"** (if using Ollama)
+- Make sure Ollama is running: `ollama serve` (separate terminal)
+- If Ollama is on another machine, update `.env`: `OLLAMA_BASE_URL=http://<ip>:11434`
+
+---
+
+## Getting More Help
+
+**Run diagnostics:**
+```bash
+./diagnostics.sh
+```
+
+Generates a detailed report (with secrets redacted) you can attach to a bug report.
+
+**Check logs thoroughly:**
+```bash
+docker-compose logs rowbot > /tmp/rowbot-logs.txt 2>&1
+# Then share or review the logs
+```
+
+**Ask for help:**
+- Row-Bot issue? [github.com/siddsachar/row-bot/issues](https://github.com/siddsachar/row-bot/issues)
+- Docker setup issue? [github.com/jp-cruz/agent-skills/issues](https://github.com/jp-cruz/agent-skills/issues)
+
+When asking for help, include:
+- Output of `docker-compose ps`
+- Last 50 lines of `docker-compose logs rowbot`
+- Contents of your `.env` (redact API keys)
+- Your OS and Docker version: `docker --version && docker-compose --version`
+
+---
+
+## Still Stuck?
+
+Try a clean restart:
+
+```bash
+# Stop everything
 docker-compose down
-docker-compose up -d
-```
 
-#### Error: Failed to connect to Docker daemon
+# Remove all data (⚠️ destructive!)
+docker volume rm row-bot-docker-setup_rowbot-data
 
-**Cause:** Docker Desktop not running
-
-**Fix:**
-```bash
-# Start Docker
-open -a Docker  # macOS
-# Or: Start Docker Desktop app on Windows
-
-# Wait 10 seconds then try again
-docker-compose up -d
-```
-
----
-
-## Can't Access Thoth
-
-### Thoth is running but page won't load
-
-```bash
-# Test container is listening
-docker-compose exec thoth curl http://localhost:8080
-# Should return HTML
-
-# Check binding (default is localhost only)
-docker-compose ps
-# Should show: 127.0.0.1:8080->8080 (localhost only)
-# or: 0.0.0.0:8080->8080 (network-wide)
-```
-
-### Can't access from other computer on network
-
-**Cause:** Default binding is localhost-only (127.0.0.1)
-
-**Fix:**
-```bash
-# In .env, change:
-THOTH_BIND=0.0.0.0
-
-# Rebuild and restart:
-docker-compose down
+# Start fresh
 docker-compose up -d
 
-# Then access from other machine using your IP:
-# http://<your-machine-ip>:8080
+# Wait 30 seconds then check
+sleep 30
+docker-compose logs rowbot
 ```
 
-See [NETWORK_SETUP.md](references/NETWORK_SETUP.md) for details.
+This erases all your Row-Bot data. Only do this if nothing else works and you have a backup.
 
----
+**To safely restore from backup after clean restart:**
 
-## Ollama Issues
-
-### Ollama not reachable
-
-```bash
-# Check if Ollama is running
-curl http://host.docker.internal:11434/api/tags  # macOS/Windows
-curl http://localhost:11434/api/tags  # Linux
-
-# Should return JSON with list of models
-```
-
-### If Ollama is not running
-
-```bash
-# Start Ollama
-# macOS/Windows: Open Ollama app
-# Linux: ollama serve
-
-# Then from inside container:
-docker-compose exec thoth curl http://host.docker.internal:11434/api/tags
-```
-
-### Thoth says "Could not connect to Ollama"
-
-**Cause:** OLLAMA_BASE_URL in .env doesn't match where Ollama is running
-
-**Fix:**
-```bash
-# Check OLLAMA_BASE_URL in .env
-cat .env | grep OLLAMA
-
-# macOS/Windows Docker Desktop:
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-
-# Linux (if Ollama on same host):
-OLLAMA_BASE_URL=http://localhost:11434
-
-# Linux (if Ollama on different machine):
-OLLAMA_BASE_URL=http://<ollama-machine-ip>:11434
-```
-
-Then restart:
-```bash
-docker-compose restart thoth
-```
-
-### Ollama loads but model is slow
-
-**Cause:** Model too large for your hardware
-
-**Solutions:**
-1. Use smaller model:
-   ```bash
-   ollama pull mistral  # Smaller than llama2
-   ```
-
-2. Check available RAM:
-   ```bash
-   docker stats  # See memory usage
-   ```
-
-3. Consider cloud provider instead (OpenRouter, OpenAI)
-
----
-
-## Developer Studio Issues
-
-### Projects not visible in Thoth UI
-
-**Cause:** Symlink lost after container rebuild
-
-**Fix (manual):**
-```bash
-docker-compose exec thoth mkdir -p /home/thoth/Documents/Thoth
-docker-compose exec thoth ln -s /home/thoth/.thoth/Documents/Thoth/projects \
-  /home/thoth/Documents/Thoth/projects 2>/dev/null || true
-```
-
-**Fix (automatic in v0.6.2+):** Should be automatic via entrypoint script. If not, try container restart:
-```bash
-docker-compose restart thoth
-```
-
-### Can't write to workspace
-
-**Cause:** File ownership issue
-
-**Fix:**
-```bash
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  alpine chown -R 1000:1000 /data
-docker-compose restart thoth
-```
-
----
-
-## Performance Issues
-
-### Container uses lots of memory
-
-```bash
-# Check memory usage
-docker stats
-
-# Typical: 1-2 GB
-# High: 4+ GB suggests memory leak
-```
-
-### Thoth is slow to respond
-
-**Possible causes:**
-
-1. **Ollama running on same machine** — Shares CPU/memory
-   - Solution: Use cloud LLM instead (OpenRouter, OpenAI)
-
-2. **Large conversation history** — memory.db is huge
-   - Check size: `docker-compose exec thoth du -sh /home/thoth/.thoth/memory.db`
-   - Solution: Archive old conversations or start fresh
-
-3. **Docker resource limits** — Container isn't given enough resources
-   - Check: `docker inspect thoth-app | grep Memory`
-   - Solution: Increase Docker Desktop memory allocation
-
----
-
-## Data Issues
-
-### Lost all my conversations
-
-**Prevention (for future):**
-```bash
-# Back up regularly
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar czf /backup/thoth-data-$(date +%Y%m%d).tar.gz -C /data .
-```
-
-**Recovery (if backup exists):**
-```bash
-# Restore from backup
-docker-compose down
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar xzf /backup/thoth-data-*.tar.gz -C /data
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  alpine chown -R 1000:1000 /data
-docker-compose up -d
-```
-
-See [CLAUDE.md](CLAUDE.md) "Disaster Recovery" section for full procedures.
-
----
-
-## Upgrading Thoth
-
-### Before upgrading
-
-```bash
-# Back up your data
-docker run --rm -v thoth-docker-setup_thoth-data:/data \
-  -v ./backups:/backup alpine tar czf /backup/thoth-backup-pre-upgrade-$(date +%Y%m%d).tar.gz -C /data .
-```
-
-### To upgrade to new Thoth version
-
-```bash
-# Edit Dockerfile, change line 11:
-# git checkout v3.23.1  →  git checkout v3.24.0
-
-# Rebuild and restart
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-Your data is safe in Docker volumes — they persist across upgrades.
-
----
-
-## When to Escalate
-
-If you've tried the above and still have issues:
-
-1. **Collect logs:**
-   ```bash
-   docker-compose logs --tail=200 thoth > thoth-logs.txt
-   ```
-
-2. **Document:**
-   - What you tried
-   - Exact error message
-   - Your OS and Docker version
-   - `.env` settings (without API keys)
-
-3. **Report:**
-   - [Thoth Issues](https://github.com/siddsachar/Thoth/issues) for Thoth-specific bugs
-   - [This Repo Issues](https://github.com/jp-cruz/agent-skills/issues) for setup/Docker issues
-
----
-
-## Quick Reference
-
-```bash
-# View logs
-docker-compose logs -f
-
-# Restart
-docker-compose restart thoth
-
-# Stop
-docker-compose stop
-
-# Full reset (⚠️ deletes volumes)
-docker-compose down -v
-
-# Shell access
-docker-compose exec thoth bash
-
-# Check health
-docker-compose ps
-curl http://localhost:8080
-```
-
-See [CLAUDE.md](CLAUDE.md) for more detailed command reference.
+See [MIGRATION_NOTES.md](MIGRATION_NOTES.md) Phase 3: Copy Bare-Metal Data.

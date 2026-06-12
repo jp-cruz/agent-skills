@@ -262,7 +262,7 @@ fi
 echo ""
 echo -e "${YELLOW}Checking disk space...${NC}"
 
-AVAILABLE_GB=$(df -BG "$(pwd)" | awk 'NR==2 {print $4}' | sed 's/G//')
+AVAILABLE_GB=$(df -k "$(pwd)" | awk 'NR==2 {print $4}' | sed 's/G//')
 
 if [ -z "$AVAILABLE_GB" ] || [ "$AVAILABLE_GB" -lt 0 ]; then
     check_warn "Could not determine available disk space"

@@ -1,256 +1,248 @@
-# Getting Started with Thoth Docker
+# Getting Started with Row-Bot Docker
 
-Your setup is complete. Here's how to verify everything works and take your first steps.
+This guide walks you through your first steps after setup.sh completes.
 
----
+## Prerequisites
 
-## Step 1: Verify Setup (2 minutes)
+You've already:
+- Run `./setup.sh` (or `scripts/setup.sh` on Windows)
+- Created a `.env` file with your configuration
+- Started the container with `docker-compose up -d`
 
-Run the health check to confirm everything is working:
-
-```bash
-cd /path/to/thoth-docker-setup
-./health-check.sh
-```
-
-You should see:
-```
-✓ Docker running
-✓ Port 8080 available
-✓ Ollama reachable (or cloud LLM configured)
-✓ Thoth container healthy
-✓ All checks passed
-```
-
-If you see ✗ instead, see [Troubleshooting](#troubleshooting) below.
+If not, start there: `./setup.sh`
 
 ---
 
-## Step 2: Start Thoth (30 seconds)
+## 1. Verify Row-Bot is Running
 
-If health check passed:
+Check that the container started successfully:
 
-```bash
-docker-compose up -d
-```
-
-Wait 10-15 seconds for the container to fully start.
-
----
-
-## Step 3: Access Thoth (1 minute)
-
-Open your browser to:
-
-```
-http://localhost:8080
-```
-
-You should see the Thoth interface. If not:
-- **Chrome/Safari/Firefox not loading?** → Check Troubleshooting below
-- **Port 8080 blocked?** → See [Port Conflicts](TROUBLESHOOTING.md#port-already-in-use)
-- **Network error?** → Container may still be starting, wait 20 seconds and refresh
-
----
-
-## Step 4: Your First Prompt (5 minutes)
-
-Once Thoth loads, you're ready to interact. Try something simple:
-
-```
-"Tell me about yourself and what you can do."
-```
-
-Then try something practical:
-
-```
-"Create a simple Python script that prints 'Hello, World'"
-```
-
-**If responses are slow:**
-- First response may take 10-30 seconds (model loading)
-- Subsequent responses should be faster
-- If consistently slow, see [Performance Issues](TROUBLESHOOTING.md#thoth-is-slow-to-respond)
-
----
-
-## Step 5: Set Preferences (Optional)
-
-Once you're comfortable, explore Thoth's settings:
-- Click the settings icon (⚙️) in the interface
-- Configure your preferred language model
-- Set up any API integrations
-- Customize behavior
-
-See [Thoth Documentation](https://github.com/siddsachar/Thoth#readme) for detailed options.
-
----
-
-## Common Questions
-
-### "How does Thoth see my files?"
-
-By default, Thoth **cannot see files on your computer**. For security, all workspace files live in the Docker container.
-
-To share files with Thoth:
-1. Use the web interface upload
-2. Or mount additional volumes (advanced — see [CLAUDE.md](CLAUDE.md))
-
-### "Can Thoth access the internet?"
-
-By default, **no**. Thoth can make API calls to configured services (OpenAI, Anthropic, etc.) but cannot browse the web unless explicitly configured.
-
-### "Where is my data stored?"
-
-Your Thoth data lives in Docker volumes:
-- **Application data** (memory.db, config): `/var/lib/docker/volumes/thoth-docker-setup_thoth-data/_data`
-- **Workspace files**: `/var/lib/docker/volumes/thoth-docker-setup_thoth-workspace/_data`
-
-To back up: See [CLAUDE.md](CLAUDE.md) "Disaster Recovery" section.
-
-### "How do I update to a newer Thoth version?"
-
-1. Edit `docker/Dockerfile` line 11: `git checkout v3.23.1` → change to new version
-2. Run: `docker-compose build --no-cache`
-3. Run: `docker-compose up -d`
-
-Your data is safe — volumes persist across upgrades.
-
----
-
-## Troubleshooting
-
-### Thoth won't load in browser
-
-**Check 1: Container is running**
 ```bash
 docker-compose ps
-# Should show: thoth  UP
 ```
 
-**Check 2: Port is working**
+You should see `rowbot` in the output with status `Up`.
+
+If the container is not running, check the logs:
+
 ```bash
-docker-compose exec thoth curl http://localhost:8080
-# Should return HTML (long response)
+docker-compose logs --tail=50 rowbot
 ```
 
-**Check 3: Try a different port**
-```bash
-# Edit .env
-THOTH_PORT=8081
+Look for errors about:
+- Missing dependencies
+- Port 8080 already in use
+- Permission denied on volumes
+- Ollama connection failures
 
-# Restart
-docker-compose down
+---
+
+## 2. Access the Row-Bot Web Interface
+
+Open your browser to: **http://localhost:8080**
+
+You should see the Row-Bot dashboard. If it's loading, wait 30 seconds — Row-Bot can take time to initialize.
+
+### If you can't access it:
+
+**On macOS/Linux:**
+```bash
+curl -I http://localhost:8080
+```
+
+Should return HTTP 200 or 303 (redirect). If "Connection refused", the container may not be listening yet or port 8080 is blocked.
+
+**On Windows WSL2:**
+Same as above — `localhost:8080` should work.
+
+**If port 8080 is in use:**
+```bash
+lsof -i :8080  # macOS/Linux
+netstat -ano | findstr :8080  # Windows
+```
+
+If something else is using port 8080, either:
+- Stop that service, OR
+- Edit `.env` and change `ROWBOT_PORT=8081` (or any free port), then restart:
+  ```bash
+  docker-compose down
+  docker-compose up -d
+  ```
+
+---
+
+## 3. Test LLM Connectivity
+
+Row-Bot can use either **Ollama** (local, free) or **cloud providers** (OpenAI, Claude, OpenRouter).
+
+### Check Ollama (if you configured it):
+
+```bash
+# From your host machine:
+curl -s http://localhost:11434/api/tags | grep -o '"name":"[^"]*' | cut -d'"' -f4
+```
+
+Should list your Ollama models (e.g., `qwen2`, `llama2`).
+
+If Ollama is running on a different machine:
+```bash
+curl -s http://<ollama-host-ip>:11434/api/tags
+```
+
+### Check cloud provider (if you configured an API key):
+
+Inside Row-Bot, create a test conversation:
+1. Click the **+** (new chat) button
+2. Type: "What is 2+2?"
+3. Send the message
+
+If Row-Bot responds, your LLM provider is working.
+
+If it hangs or errors:
+- Check that your API key is correct in `.env`
+- Verify your API key hasn't expired
+- Check cloud provider status (openrouter.io, openai.com, etc.)
+- Look at container logs: `docker-compose logs --tail=20 rowbot`
+
+---
+
+## 4. Explore Row-Bot Features
+
+Once you're connected to an LLM:
+
+### Create a Project (optional)
+
+- Click **Workspace** or **Projects**
+- Create a new project (Row-Bot will guide you)
+- Projects let you organize conversations and knowledge
+
+### Use the Knowledge Graph (optional)
+
+- Click **Knowledge** or **Memory**
+- Row-Bot automatically builds a knowledge graph from conversations
+- You can see entities (people, concepts) and their relationships
+
+### Configure Tools (optional)
+
+- Click **Settings** or **Tools**
+- Row-Bot can integrate with external tools (APIs, web search, etc.)
+- Your API keys from `.env` are already loaded here
+
+---
+
+## 5. Keep Row-Bot Running
+
+### Check container health:
+
+```bash
+docker-compose exec rowbot curl -s http://localhost:8080 | head -20
+```
+
+### View live logs:
+
+```bash
+docker-compose logs -f rowbot
+```
+
+Press `Ctrl+C` to stop watching logs.
+
+### Restart if needed:
+
+```bash
+docker-compose restart rowbot
+```
+
+### Stop Row-Bot (but keep data):
+
+```bash
+docker-compose stop
+```
+
+### Start again:
+
+```bash
 docker-compose up -d
-
-# Try: http://localhost:8081
 ```
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#cant-access-thoth) for more.
+### Delete everything (⚠️ destructive):
+
+```bash
+docker-compose down -v  # Deletes all data!
+```
 
 ---
 
-### Ollama not found
+## 6. Troubleshooting
 
-If you chose local Ollama but it's not running:
+**Problem:** "Connection refused" when accessing http://localhost:8080
 
-```bash
-# Check if Ollama is running on your machine
-curl http://localhost:11434/api/tags
-
-# If error: Start Ollama
-# macOS: Open Ollama app
-# Linux: ollama serve
-
-# Then restart Thoth
-docker-compose restart thoth
-```
-
-If you don't have Ollama installed: See [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md) for alternatives.
+**Solutions:**
+- Wait 30 seconds (Row-Bot is starting)
+- Check logs: `docker-compose logs --tail=50 rowbot`
+- Verify port 8080 is free: `lsof -i :8080`
+- Check firewall isn't blocking localhost access
 
 ---
 
-### No API key / cloud provider not responding
+**Problem:** Row-Bot starts but LLM doesn't respond
 
-If you chose OpenAI/Claude/OpenRouter but getting "API error":
-
-**Check 1: API key is set**
-```bash
-cat .env | grep -i openai  # or openrouter, anthropic
-```
-
-**Check 2: API key is correct**
-- Re-run setup.sh to enter your key again
-- Or edit .env directly (keep it secret!)
-
-**Check 3: Key has credits/balance**
-- Log in to your provider's dashboard
-- Verify account has credits available
-- Check for spending limits
+**Solutions:**
+- If using Ollama: `curl http://localhost:11434/api/tags` (should list models)
+- If using cloud LLM: check API key in `.env` is correct
+- Check `.env` has `ROWBOT_LLM_PROVIDER=ollama|openai|anthropic|openrouter`
+- View logs: `docker-compose logs --tail=50 rowbot | grep -i "llm\|ollama\|api"`
 
 ---
 
-### Container won't start
+**Problem:** "Permission denied" errors in logs
 
-```bash
-# View error logs
-docker-compose logs --tail=50 thoth
+**Solutions:**
+- The container user may not have write access to volumes
+- Fix with: `docker run --rm -v row-bot-docker-setup_rowbot-data:/data alpine chown -R 1000:1000 /data`
+- Restart: `docker-compose restart rowbot`
 
-# Common issues:
-# - Out of disk space: docker system prune
-# - Port already in use: see Port Conflicts section
-# - Permission error: may need sudo
-```
+---
 
-See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#thoth-wont-start) for detailed fixes.
+**Problem:** Docker can't find container or service
+
+**Solutions:**
+- Make sure you're running `docker-compose` commands from the **row-bot-docker-setup** directory (where `docker-compose.yml` lives)
+- The service name is **`rowbot`** (not `thoth`)
+- The container name is **`rowbot-app`** (for direct `docker` commands)
 
 ---
 
 ## Next Steps
 
-### Want to use Thoth more effectively?
-
-- **Read the Thoth docs**: https://github.com/siddsachar/Thoth#readme
-- **Check Discord/forums**: Community support and examples
-- **Create your first project**: Organize your work in Thoth
-
-### Want to integrate with other tools?
-
-- **GitHub integration**: See Thoth's Developer Studio
-- **Discord bot**: Expose Thoth as a Discord bot (advanced)
-- **API access**: Thoth exposes an API for custom integrations
-
-### Want to customize Thoth?
-
-- **Custom models**: See [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md)
-- **Reverse proxy**: See [NETWORK_SETUP.md](references/NETWORK_SETUP.md)
-- **Docker resources**: See [CLAUDE.md](CLAUDE.md)
-
-### Want to back up your data?
-
-See [CLAUDE.md](CLAUDE.md) "Disaster Recovery" section for:
-- Monthly backup procedure
-- Testing your backups (critical!)
-- Full restore procedure
+- **Learn Row-Bot:** Check the [Row-Bot GitHub](https://github.com/siddsachar/row-bot) docs
+- **Migrate from bare-metal:** See [MIGRATION_NOTES.md](MIGRATION_NOTES.md) if you're moving from a non-Docker Row-Bot
+- **Advanced configuration:** See [CLAUDE.md](CLAUDE.md) for developer options
+- **Troubleshoot:** See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
 
 ---
 
-## Need Help?
+## Health Check
 
-1. **Quick issues**: Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-2. **Docker questions**: See [DOCKER_WHY.md](DOCKER_WHY.md)
-3. **LLM setup**: See [LOCAL_LLM_OPTIONS.md](LOCAL_LLM_OPTIONS.md)
-4. **Network access**: See [NETWORK_SETUP.md](references/NETWORK_SETUP.md)
-5. **Thoth issues**: Check [Thoth GitHub Issues](https://github.com/siddsachar/Thoth/issues)
+Run the included health-check script to verify everything:
+
+```bash
+./health-check.sh
+```
+
+This checks:
+- Docker is installed and running
+- docker-compose is available
+- `.env` is configured
+- Port 8080 is available
+- Row-Bot container is running
+- Ollama or cloud LLM is reachable
 
 ---
 
-## Checklist: Your First Hour
+## Questions?
 
-- [ ] Ran `./health-check.sh` and all passed
-- [ ] Started Thoth with `docker-compose up -d`
-- [ ] Accessed Thoth at http://localhost:8080
-- [ ] Successfully created a prompt and got a response
-- [ ] Located where your data is stored
-- [ ] Reviewed backup procedures
-- [ ] Bookmarked this guide for future reference
+- **Row-Bot issues:** [github.com/siddsachar/row-bot/issues](https://github.com/siddsachar/row-bot/issues)
+- **Docker setup issues:** Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) or run `./diagnostics.sh`
+- **This skill issues:** [github.com/jp-cruz/agent-skills/issues](https://github.com/jp-cruz/agent-skills/issues)
+
+Enjoy Row-Bot! 🚀
